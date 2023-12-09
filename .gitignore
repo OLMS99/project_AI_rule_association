@@ -1,0 +1,7 @@
+.vscode/launch.json
+Lib/site-packages/
+__pycache__/
+Scripts/
+testChamber.zip
+pyvenv.cfg
+test_chamber_ia_neural_network.py
