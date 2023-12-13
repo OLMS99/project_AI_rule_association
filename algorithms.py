@@ -45,21 +45,49 @@ def possible_values(examplesData):
 
     return result
 
-def make_examples(Model, classLabel, possibilities, n=1):
+def make_examples(Model, classLabel, labelArray, possibilities, n=1):
     result = []
     i = 0
 
     while i < n:
         oneSample = []
+        sample_idx = []
 
         for e in possibilities:
             indexRange = len(e)
             choice = np.random.randint(indexRange)
             oneSample.append(e[choice])
+            sample_idx.append(choice)
 
-        test = Model.predict(oneSmaple)
+        test = Model.predict(np.array(oneSample))
+        if labelArray[np.argmax(test)] == classLabel:
+            i += 1
+            result.append(oneSample)
+            print("exemplo feito: %s" % (oneSample))
+            continue
 
-        if test == classLabel:
+
+        feature_idx = 0
+        possible_idx = 0
+        numFeatures = len(possibilities)
+        while feature_idx < numFeatures:
+            possibleValuesFeature = len(possibilities[feature_idx])
+            oneSample[feature_idx] = possibilities[feature_idx][possible_idx]
+
+            test = Model.predict(np.array(oneSample))
+            if labelArray[np.argmax(test)] == classLabel:
+                break
+
+            possible_idx += 1 + int(possible_idx == sample_idx[feature_idx])
+            if possible_idx >= possibleValuesFeature:
+                oneSample[feature_idx] = possibilities[feature_idx][sample_idx[feature_idx]]
+                feature_idx += 1
+                if feature_idx >=numFeatures:
+                    break
+
+                possible_idx = int(sample_idx[feature_idx] == 0)
+
+        if labelArray[np.argmax(test)] == classLabel:
             i += 1
             result.append(oneSample)
             print("exemplo feito: %s" % (oneSample))
@@ -219,12 +247,15 @@ def Rule_extraction_learning_3(M, C, Ex):
         ExC = Ex[0][Ex_idx]
         Possibilities[C[c]] = possible_values(ExC)
 
-    while not voltas < numClasses:
+    print("Iniciou regras e possibilidades")
+    print("numero de labels: %d" % (numClasses))
 
+    while voltas < numClasses:
+        print("numero de voltas: %d" % (voltas))
         class_target = voltas
         voltas += 1
         qtd_exemplos = numClasses * voltas
-        E = make_examples(M, C[c], Possibilities[C[class_target]], n = qtd_exemplos)
+        E = make_examples(M, C[c], C, Possibilities[C[class_target]], n = qtd_exemplos)
 
         O = []
         S = []
@@ -234,6 +265,8 @@ def Rule_extraction_learning_3(M, C, Ex):
             print("resultado do exemplo: %s" % (C[np.argmax(model_result)]))
             O.append(C[np.argmax(model_result)])#save outputs
 
+        print("exemplos gerados: %d" % (len(E)))
+
         for idx, s in enumerate(S):
             ModelOutput =  O[idx]
             if s > ModelOutput:
@@ -242,14 +275,14 @@ def Rule_extraction_learning_3(M, C, Ex):
                 R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], C[ModelOutput])
 
             else:
-                for i in range(qtd_exemplos):
-                    for v in Possibilities[i]:
-                        if S[i] - E[i] + v > S:
-                            E[i] = v
-                            S[i] = sum(E)
-                            O[i] = M.predict(E)
+                for i in range(len(E[idx])):
+                    for v in Possibilities[ModelOutput][i]:
+                        if s - E[idx][i] + v > S:
+                            E[idx][i] = v
+                            S[idx] = sum(E[idx])
+                            O[idx] = M.predict(E[idx])
 
-                        if S[i] > O[i]:
-                            R[O[i]] = label_code_block(R[O[i]], E[i], C[O[i]])
+                        if S[idx] > O[idx]:
+                            R[O[idx]] = label_code_block(R[O[idx]], E[idx], C[O[idx]])
 
     return R
