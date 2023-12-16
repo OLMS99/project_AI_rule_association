@@ -19,7 +19,7 @@ import Utils
 def selectUnusedSubsets(attributes, size, threshold):
     possible_sets = list(itertools.combinations(attributes, size))
     final_selection = []
-    
+
     for group in possible_sets:
         if sum(group) >= threshold:
             final_selection.append(group)
@@ -46,7 +46,7 @@ def selectNegatives(weights):
 
     return NegativeLinks
 
-def KT_1(U, debug = False):
+def KT_1(U, theta = 0, debug = False):
     R=[]
 
     for layer_idx, u in enumerate(U):
@@ -64,12 +64,12 @@ def KT_1(U, debug = False):
                 print("weights: %s\n bias: %s\nactivation:%s\n" % (neuron_weights, neuron_bias, neuron_activation.__name__))
                 print("Sum of positives weights: %s" % (SumSu))
 
-            if SumSu > neuron_bias:
+            if SumSu > theta:
                 Sp = []
                 for i in range(1, len(Su) + 1):
-                    s = selectUnusedSubsets(Su, i, neuron_bias)
+                    s = selectUnusedSubsets(Su, i, theta)
                     for subset in s:
-                        if sum(subset) > neuron_bias:
+                        if sum(subset) > theta:
                             Sp.append(subset) #or
             else:
                 continue
@@ -82,7 +82,7 @@ def KT_1(U, debug = False):
                     for negSubset in n:
                         if debug:
                             print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (sum(p), sum(N), sum(negSubset)))
-                        if sum(p) + (sum(N) - sum(negSubset)) > neuron_bias:
+                        if sum(p) + (sum(N) - sum(negSubset)) > theta:
                             for element in negSubset:
                                 for item in p:
                                     premise1 = Node.Node(layerIndex = layer_idx+1, featureIndex = order_idx, threshold = item)

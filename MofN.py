@@ -153,7 +153,7 @@ def optimize(U, model, DataX, Datay, debug = False):
         for neuron_idx, neuron in enumerate(layer):
             neuron[1] = params["b"+str(layer_idx+1)][neuron_idx]
 
-def MofN_2(U, model, DataX, Datay):
+def MofN_2(U, model, DataX, Datay, theta=0):
     R=[]
     K=dict()
     G=dict()

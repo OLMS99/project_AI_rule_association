@@ -30,67 +30,34 @@ def covered(rule, example, c):
 
 def possible_values(examplesData):
 #valores possiveis para os exemplos
-    result = []
-    print(examplesData.shape)
+    result = dict()
+    #print("dimensões: %s" % (examplesData.shape))
+
     feature_length = examplesData.shape[1]
     for i in range(feature_length):
-        result.append([])
+        result[i] = []
 
     for e in examplesData:
         for i in range(feature_length):
             result[i].append(e[i])
 
-    for r in result:
-        r = list(set(r))
+    for idx, r in result.items():
+        result[idx] = list(set(r))
 
     return result
 
-def make_examples(Model, classLabel, labelArray, possibilities, n=1):
+def make_examples(possibilities, n = 1):
     result = []
-    i = 0
 
-    while i < n:
+    for i in range(n):
         oneSample = []
-        sample_idx = []
 
-        for e in possibilities:
+        for e in possibilities.values():
             indexRange = len(e)
             choice = np.random.randint(indexRange)
             oneSample.append(e[choice])
-            sample_idx.append(choice)
 
-        test = Model.predict(np.array(oneSample))
-        if labelArray[np.argmax(test)] == classLabel:
-            i += 1
-            result.append(oneSample)
-            print("exemplo feito: %s" % (oneSample))
-            continue
-
-
-        feature_idx = 0
-        possible_idx = 0
-        numFeatures = len(possibilities)
-        while feature_idx < numFeatures:
-            possibleValuesFeature = len(possibilities[feature_idx])
-            oneSample[feature_idx] = possibilities[feature_idx][possible_idx]
-
-            test = Model.predict(np.array(oneSample))
-            if labelArray[np.argmax(test)] == classLabel:
-                break
-
-            possible_idx += 1 + int(possible_idx == sample_idx[feature_idx])
-            if possible_idx >= possibleValuesFeature:
-                oneSample[feature_idx] = possibilities[feature_idx][sample_idx[feature_idx]]
-                feature_idx += 1
-                if feature_idx >=numFeatures:
-                    break
-
-                possible_idx = int(sample_idx[feature_idx] == 0)
-
-        if labelArray[np.argmax(test)] == classLabel:
-            i += 1
-            result.append(oneSample)
-            print("exemplo feito: %s" % (oneSample))
+        result.append(oneSample)
 
     return result
 
@@ -100,11 +67,9 @@ def filter(antecendents, ant_to_null):
     hold_idx = -1
 
     for idx, ant in enumerate(antecendents):
-        if ant.threshold == ant_to_null:
-            if ant.comparison == ant_to_null:
-                if ant.featureIndex == ant.featureIndex:
-                    hold = ant
-                    hold_idx = idx
+        if ant.threshold == ant_to_null and ant.comparison == ant_to_null and ant.featureIndex == ant.featureIndex:
+            hold = ant
+            hold_idx = idx
 
     if hold_idx != -1:
         copy_tree = antecendents[-1].copy()
@@ -118,16 +83,15 @@ def filter(antecendents, ant_to_null):
 
         if side == 0:
             numSons = hold.num_sons()
-            if numSons ==2:
+            if numSons == 2:
                 resultNode = hold.rotation45()
                 return resultNode
 
-            elif numSons ==1:
+            elif numSons == 1:
                 if left_branch:
                     result = hold.left
                 else:
                     result = hold.right
-
                 return result
 
             else:
@@ -138,7 +102,6 @@ def filter(antecendents, ant_to_null):
 
         if not left_branch and not right_branch:
             #delete hold from list and tree
-
             if side == -1:
                 origin.set_left(None)
 
@@ -147,7 +110,6 @@ def filter(antecendents, ant_to_null):
 
             copy.pop(hold_idx)
             return copy_tree
-
 
         elif not left_branch:
             if side == -1:
@@ -220,8 +182,10 @@ def label_code_block(R, E, C):
 
                 if Subset(c,r_):
                     r = r_
+
             if R is None:
                 R = r
+
             else:
                 r.set_left(R)
                 R = r
@@ -233,56 +197,58 @@ def label_code_block(R, E, C):
 
     return R
 
-def Rule_extraction_learning_3(M, C, Ex):
+def Rule_extraction_learning_3(M, C, Ex, theta = 0):
     R = dict() #organizado por c lista de nós com ramos conectados e listados
-    Possibilities = dict()
-    voltas = 0
-    numClasses = len(C)
+    for c in C:
+        R[c] = None
 
-    for c in range(numClasses):
-        R[C[c]] = None
-        #make set of possible values to a label calss and generate examples
-        Ex_idx_mask = (Ex[1] == C[c])
-        Ex_idx = Ex[1][Ex_idx_mask]
-        ExC = Ex[0][Ex_idx]
-        Possibilities[C[c]] = possible_values(ExC)
+    Possibilities = possible_values(Ex)
+    numClasses = len(C)
+    outputLayerIndex = M.get_params()["num layers"] - 1
+
+    voltas = 0
 
     print("Iniciou regras e possibilidades")
     print("numero de labels: %d" % (numClasses))
 
     while voltas < numClasses:
         print("numero de voltas: %d" % (voltas))
-        class_target = voltas
         voltas += 1
         qtd_exemplos = numClasses * voltas
-        E = make_examples(M, C[c], C, Possibilities[C[class_target]], n = qtd_exemplos)
+        E = make_examples(Possibilities, n = qtd_exemplos*1000)
 
         O = []
-        S = []
+        Sum_IO = []
         for example in E:
-            S.append(sum(example))
             model_result = M.predict(np.squeeze(example))
+            Sum_IO.append(M.get_params()["Z"+str(outputLayerIndex)])
+
             print("resultado do exemplo: %s" % (C[np.argmax(model_result)]))
-            O.append(C[np.argmax(model_result)])#save outputs
+            O.append(C[np.argmax(model_result)])
 
         print("exemplos gerados: %d" % (len(E)))
 
-        for idx, s in enumerate(S):
-            ModelOutput =  O[idx]
-            if s > ModelOutput:
-                #Todo: change function call, consider saving versions of examples devided by the outputs
+        for idx, s in enumerate(Sum_IO):
+            for neuron in s:
+                ModelOutput =  O[idx]
+                if neuron > theta:
+                    #Todo: change function call, consider saving versions of examples devided by the outputs
 
-                R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], C[ModelOutput])
+                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput)
 
             else:
                 for i in range(len(E[idx])):
-                    for v in Possibilities[ModelOutput][i]:
-                        if s - E[idx][i] + v > S:
+                    for v in Possibilities[i]:
+                        temp = E[idx]
+                        temp[i] = v
+                        #changing the value of ei to vij increase s
+                        modelResult = M.predict(np.array(temp))
+                        if  modelResult > s:
                             E[idx][i] = v
-                            S[idx] = sum(E[idx])
                             O[idx] = M.predict(E[idx])
+                            Sum_IO[idx] = M.get_params()["Z"+str(outputLayerIndex)]
 
                         if S[idx] > O[idx]:
-                            R[O[idx]] = label_code_block(R[O[idx]], E[idx], C[O[idx]])
+                            R[O[idx]] = label_code_block(R[O[idx]], E[idx], O[idx])
 
     return R
