@@ -13,10 +13,10 @@ def ReLU(X, prime=False):
 
 def sigmoid(X, slope = 1, prime = False):
     term = np.exp(- X * slope)
+    sigma = 1./(term+1)
     if prime:
-        sigma = sigmoid(X, slope = slope)
         return slope * sigma * (1 - sigma)
-    return 1./(term+1)
+    return sigma
 
 def tanh(X, prime=False):
     x_tanh = math.tanh(x)

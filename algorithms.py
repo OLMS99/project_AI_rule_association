@@ -144,16 +144,15 @@ def filter(antecendents, ant_to_null):
 
     return antecendents[-1][2]
 
-def conjuntive_rule(Exemplo, classLabel):
+def conjuntive_rule(Exemplo, endResult):
     resultRule = Node.Node(featureIndex=0, threshold=Exemplo[0])
-
     previousPremisse = resultRule
     for idx in range(1, len(Exemplo)):
         partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo[idx])
         previousPremisse.set_right(partial_premisse)
         previousPremisse = partial_premisse
-    leaf = Node.Node(value = classLabel)
-    previousPremisse.set_right(leaf)
+
+    previousPremisse.set_right(endResult)
 
     return resultRule
 
@@ -162,7 +161,7 @@ def label_code_block(R, E, C):
     c = classify(R, E)
 
     if not covered(R, E, C):
-        r = conjuntive_rule(E, C)
+        r = conjuntive_rule(E, R[C])
         if r:
             print("conjuntive rule made for %s:"%(C))
             #r.print()
@@ -200,7 +199,7 @@ def label_code_block(R, E, C):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0):
     R = dict() #organizado por c lista de nós com ramos conectados e listados
     for c in C:
-        R[c] = None
+        R[c] = Node.Node(value=c)
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)
@@ -210,6 +209,9 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0):
 
     print("Iniciou regras e possibilidades")
     print("numero de labels: %d" % (numClasses))
+    for idx, c in R.items():
+        print("label: {}".format(idx))
+        c.print()
 
     while voltas < numClasses:
         print("numero de voltas: %d" % (voltas))
@@ -221,9 +223,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0):
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
-            Sum_IO.append(M.get_params()["Z"+str(outputLayerIndex)])
-
-            print("resultado do exemplo: %s" % (C[np.argmax(model_result)]))
+            Sum_IO.append(sum(M.get_params()["Z"+str(outputLayerIndex)]))
             O.append(C[np.argmax(model_result)])
 
         print("exemplos gerados: %d" % (len(E)))
@@ -243,12 +243,14 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0):
                         temp[i] = v
                         #changing the value of ei to vij increase s
                         modelResult = M.predict(np.array(temp))
-                        if  modelResult > s:
-                            E[idx][i] = v
-                            O[idx] = M.predict(E[idx])
-                            Sum_IO[idx] = M.get_params()["Z"+str(outputLayerIndex)]
+                        newSum = sum(M.get_params()["Z"+str(outputLayerIndex)])
 
-                        if S[idx] > O[idx]:
+                        if  newSum > s:
+                            E[idx][i] = v
+                            O[idx] = C[np.argmax(modelResult)]
+                            Sum_IO[idx] = newSum
+
+                        if s > theta:
                             R[O[idx]] = label_code_block(R[O[idx]], E[idx], O[idx])
 
     return R

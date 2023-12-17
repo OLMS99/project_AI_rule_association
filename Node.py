@@ -35,7 +35,7 @@ class Node:
         return int(self.left is not None) + int(self.right is not None)
 
     def is_leaf_node(self):
-        return (self.value) and (self.left is None) and (self.right is None)
+        return (self.left is None) and (self.right is None)
 
     def set_left(self, node):
         self.left = node
@@ -107,16 +107,18 @@ class Node:
             initial_pass = not initial_pass
 
         if initial_pass:
-            if self.right is not None:
+            if self.right:
                 return self.right.step(input_values)
             else:
-                return None
+                return -1
 
         else:
-            if self.left is not None:
+            if self.left:
                 return self.left.step(input_values)
             else:
-                return None
+                return -1
+
+        return -1
 
     def getAntecedent(self, side = 0, origin = None, archive = []):
         print("entrou na função antecendente")
@@ -193,21 +195,25 @@ class Node:
             print("folha: %s" % (self.value))
             return
 
-        if self.layerIndex:
-            print("neuronio avaliado: camada %d numero %d" % (self.featureIndex, self.featureIndex))
-        else:
-            print("neuronio avaliado: numero %d" % (self.featureIndex))
+        message =  "neuronio avaliado: "
 
         if self.negation:
-            print("NOT neuronio %s %s" % (self.comparison, self.threshold))
-        else:
-            print("neuronio %s %s" % (self.comparison, self.threshold))
+            message += "NOT "
 
-        if self.right is not None:
+        if self.layerIndex:
+            message += str("camada: {}").format(self.layerIndex)
+
+        if self.featureIndex:
+            message += str("neuronio: {}").format(self.featureIndex)
+            message += str("\n neuronio {0} {1}"),format(self.comparison, self.thershold)
+
+        print(message)
+
+        if self.right:
             print("right branch:")
             self.right.print()
 
-        if self.left is not None:
+        if self.left:
             print("left branch:")
             self.right.print()
 
@@ -217,10 +223,10 @@ class Node:
     #primeiro verifica o nós direito e veja os sub nós, quais são folhas
 
         if self.right is None:
-            return self
+            return self.left
 
         if self.left is None:
-            return self
+            return self.right
 
         leftLeaf = self.left.is_leaf_node()
         rightLeaf = self.right.is_leaf_node()
