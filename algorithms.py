@@ -15,7 +15,7 @@ def classify(R, E):
 #classify the example with the rules and to a class, consider drop parameter C
 #with each rule pass the examples and check the true and false for each class
     if R is None:
-        return None
+        return "no_input_value"
 
     prediction = R.step(E)
 
@@ -161,7 +161,12 @@ def label_code_block(R, E, C):
     c = classify(R, E)
 
     if not covered(R, E, C):
-        r = conjuntive_rule(E, R[C])
+        if R[C]:
+            r = conjuntive_rule(E, R[C])
+        else:
+            leaf = Node.Node(value=C)
+            r = conjuntive_rule(E, leaf)
+
         if r:
             print("conjuntive rule made for %s:"%(C))
             #r.print()
@@ -199,7 +204,8 @@ def label_code_block(R, E, C):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0):
     R = dict() #organizado por c lista de nós com ramos conectados e listados
     for c in C:
-        R[c] = Node.Node(value=c)
+        #TODO: trocar a folha por uma regra feita por um exemplo de uma classe
+        R[c] = None
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)
@@ -211,7 +217,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0):
     print("numero de labels: %d" % (numClasses))
     for idx, c in R.items():
         print("label: {}".format(idx))
-        c.print()
+        print(c)
 
     while voltas < numClasses:
         print("numero de voltas: %d" % (voltas))
