@@ -18,7 +18,7 @@ np.random.seed(seed)
 #OR-> left
 
 class Node:
-    def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value=None, negation = False):
+    def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value="no_input_value", negation = False):
 
         self.featureIndex = featureIndex
         self.layerIndex = layerIndex
@@ -35,7 +35,7 @@ class Node:
         return int(self.left is not None) + int(self.right is not None)
 
     def is_leaf_node(self):
-        return (self.left is None) and (self.right is None)
+        return (self.value != "no_input_value") and (self.left is None) and (self.right is None)
 
     def set_left(self, node):
         self.left = node
@@ -57,8 +57,11 @@ class Node:
             value = self.value,
             negation = self.negation)
 
-        copy_node.set_left(self.left.copy())
-        copy_node.set_right(self.right.copy())
+        if self.left:
+            copy_node.set_left(self.left.copy())
+
+        if self.right:
+            copy_node.set_right(self.right.copy())
 
         return copy_node
 
@@ -110,15 +113,15 @@ class Node:
             if self.right:
                 return self.right.step(input_values)
             else:
-                return -1
+                return "no_input_value"
 
         else:
             if self.left:
                 return self.left.step(input_values)
             else:
-                return -1
+                return "no_input_value"
 
-        return -1
+        return "no_input_value"
 
     def getAntecedent(self, side = 0, origin = None, archive = []):
         print("entrou na função antecendente")
@@ -151,12 +154,12 @@ class Node:
         if self.right is None and self.left is None:
             return 0
 
-        if self.right is not None:
+        if self.right:
             rightHeight = self.right.getHeight()
         else:
             rightHeight = 0
 
-        if self.left is not None:
+        if self.left:
             leftHeight = self.left.getHeight()
         else:
             leftHeight = 0
@@ -182,10 +185,10 @@ class Node:
         if self.is_leaf_node:
             consequent.append(self.value)
         else:
-            if self.right is not None:
+            if self.right:
                 consequent.append(['R', self.right.getConsequent(consequent=consequent)])
 
-            if self.left is not None:
+            if self.left:
                 consequent.append(['L', self.left.getConsequent(consequent=consequent)])
 
         return consequent
@@ -204,8 +207,8 @@ class Node:
             message += str("camada: {}").format(self.layerIndex)
 
         if self.featureIndex:
-            message += str("neuronio: {}").format(self.featureIndex)
-            message += str("\n neuronio {0} {1}"),format(self.comparison, self.thershold)
+            message += str(" neuronio: {}").format(self.featureIndex)
+            message += str("\nneuronio {0} {1}"),format(self.comparison, self.thershold)
 
         print(message)
 
