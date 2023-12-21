@@ -149,19 +149,49 @@ def filter(antecendents, ant_to_null):
 
     return antecendents[-1][2]
 
-def conjuntive_rule(Exemplo, endResult, debug = False):
-    resultRule = Node.Node(featureIndex=0, threshold=Exemplo[0])
-    previousPremisse = resultRule
-    for idx in range(1, len(Exemplo)):
-        partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo[idx])
-        previousPremisse.set_right(partial_premisse)
-        previousPremisse = partial_premisse
+def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
+    presence_array = [False] * len(Exemplo)
+    current_node = endResult
+    hook = None
 
-    previousPremisse.set_right(endResult)
+    if endResult:
+        while not current_node.is_leaf_node():
+            judge = current_node.eval(Exemplo)
+            if judge:
+                presence_array[current_node.featureIndex] = True
+                current_node = current_node.right
+
+            else:
+                if current_node.left:
+                    current_node = current_node.left
+                else:
+                    hook = current_node
+                    break
+
+    resultRule = None
+    previousPremisse = None
+
+    for idx, feature_check in enumerate(presence_array):
+        if not feature_check:
+            partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo)
+
+            if not resultRule:
+                resultRule = partial_premisse
+            else:
+                previousPremisse.set_right(partial_premisse)
+
+            previousPremisse = partial_premisse
+
+    previousPremisse.set_right(leaf)
+
+    if hook:
+        hook.set_left(resultRule)
 
     if debug:
-        previousPremisse.print()
+        resultRule.print()
 
+    if endResult:
+        return endResult
     return resultRule
 
 def label_code_block(R, E, debug = False):
@@ -177,11 +207,9 @@ def label_code_block(R, E, debug = False):
 
     if not is_covered:
 
-        if R:
-            r = conjuntive_rule(E, R)
-        else:
-            leaf = Node.Node(value=c)
-            r = conjuntive_rule(E, leaf)
+        leaf = Node.Node(value=c)
+        r = conjuntive_rule(E, R, leaf)
+
         if debug:
             if r:
                 print("conjuntive rule made for %s:"%(c))

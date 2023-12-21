@@ -35,23 +35,31 @@ class Node:
         self.label = str(label)
 
     def eval(self, value):
+        if isinstance(value, list):
+            if self.layerIndex:
+                holder = value[self.layerIndex][self.featureIndex]
+            else:
+                holder = value[self.featureIndex]
+        else:
+            holder = value
+
         if comparison == "=":
-            initial_pass = value == self.threshold
+            initial_pass = holder == self.threshold
 
         elif comparison == ">":
-            initial_pass = value > self.threshold
+            initial_pass = holder > self.threshold
 
         elif comparison == "<":
-            initial_pass = value < self.threshold
+            initial_pass = holder < self.threshold
 
         elif comparison == ">=":
-            initial_pass = value >= self.threshold
+            initial_pass = holder >= self.threshold
 
         elif comparison == "<=":
-            initial_pass = value <= self.threshold
+            initial_pass = holder <= self.threshold
 
         elif comparison == "!=":
-            initial_pass = value != self.threshold
+            initial_pass = holder != self.threshold
 
         if negation:
             initial_pass = not initial_pass
