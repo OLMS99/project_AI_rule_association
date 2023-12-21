@@ -3,9 +3,6 @@ import math
 import numpy as np
 import time
 
-seed = 1
-np.random.seed(seed)
-
 #Node represents a partial premisse or consequent in a rule
 #for now it can represent IFthen structure, still need to see how to build efficiently a MofN structure
 #layerIndex and feature index -> point to what will be compared
@@ -34,6 +31,33 @@ class Node:
     def num_sons(self):
         return int(self.left is not None) + int(self.right is not None)
 
+    def set_label(self, label):
+        self.label = str(label)
+
+    def eval(self, value):
+        if comparison == "=":
+            initial_pass = value == self.threshold
+
+        elif comparison == ">":
+            initial_pass = value > self.threshold
+
+        elif comparison == "<":
+            initial_pass = value < self.threshold
+
+        elif comparison == ">=":
+            initial_pass = value >= self.threshold
+
+        elif comparison == "<=":
+            initial_pass = value <= self.threshold
+
+        elif comparison == "!=":
+            initial_pass = value != self.threshold
+
+        if negation:
+            initial_pass = not initial_pass
+
+        return initial_pass
+
     def is_leaf_node(self):
         return (self.value != "no_input_value") and (self.left is None) and (self.right is None)
 
@@ -47,7 +71,7 @@ class Node:
         pass
 
     def get_node_info(self):
-        return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value)
+        return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
 
     def copy(self):
         copy_node = Node(featureIndex = self.featureIndex,
@@ -70,44 +94,10 @@ class Node:
         if self.is_leaf_node:
             return self.value
 
-        if comparison == "=":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] == self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] == self.threshold
-
-        elif comparison == ">":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] > self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] > self.threshold
-
-        elif comparison == "<":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] < self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] < self.threshold
-
-        elif comparison == ">=":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] >= self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] >= self.threshold
-
-        elif comparison == "<=":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] <= self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] <= self.threshold
-
-        elif comparison == "!=":
-            if self.layerIndex is None:
-                initial_pass = input_values[self.featureIndex] != self.threshold
-            else:
-                initial_pass = input_values[self.layerIndex][self.featureIndex] != self.threshold
-
-        if negation:
-            initial_pass = not initial_pass
+        if self.layerIndex:
+            initial_pass = self.eval(input_values[self.layerIndex][self.featureIndex])
+        else:
+            initial_pass = self.eval(input_values[self.featureIndex])
 
         if initial_pass:
             if self.right:
@@ -123,31 +113,37 @@ class Node:
 
         return "no_input_value"
 
-    def getAntecedent(self, side = 0, origin = None, archive = []):
-        print("entrou na função antecendente")
-        self.print()
+    def getAntecedent(self, side = 0, origin = None, archive = [], debug=False):
+        if debug:
+            print("entrou na função antecendente")
+            self.print()
         if self.is_leaf_node:
-            print("nó folha")
+            if debug:
+                print("nó folha")
             return archive
 
         parcial_premisse = self.get_node_info()
         OR_branch = None
         AND_branch = None
-        print("vendo ramos")
+        if debug:
+            print("vendo ramos")
 
         if self.left:
-            print("ramo esquerdo")
+            if debug:
+                print("ramo esquerdo")
             OR_branch = self.left
             archive = self.left.getAntecendent(side = -1, origin = self, archive = archive)
 
         if self.right:
-            print("ramo direito")
+            if debug:
+                print("ramo direito")
             AND_branch = self.right
             archive = self.right.getAntecendent(side = 1, origin = self, archive = archive)
 
         premisse = [side, origin, parcial_premisse, OR_branch, AND_branch]
         archive.append(premisse)
-        print("novo tamanho da lista: %d; entrada da lista: %s" % (len(archive), premisse))
+        if debug:
+            print("novo tamanho da lista: %d; entrada da lista: %s" % (len(archive), premisse))
         return archive
 
     def getHeight(self):
@@ -208,7 +204,7 @@ class Node:
 
         if self.featureIndex:
             message += str(" neuronio: {}").format(self.featureIndex)
-            message += str("\nneuronio {0} {1}"),format(self.comparison, self.thershold)
+            message += str("\nneuronio {0} {1}").format(self.comparison, str(self.threshold))
 
         print(message)
 

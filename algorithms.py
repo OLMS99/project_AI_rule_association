@@ -15,17 +15,22 @@ def classify(R, E):
 #classify the example with the rules and to a class, consider drop parameter C
 #with each rule pass the examples and check the true and false for each class
     if R is None:
-        return "no_input_value"
+        return "no_rule_here"
 
     prediction = R.step(E)
 
     return prediction
 
-def covered(rule, example, c):
+def covered(rule, example, c, debug=False):
 #check if the example is covered by the rule
 #try to classify with the rule?
     result = classify(rule, example)
 
+    if debug:
+        print("{0} == {1}".format(c,result))
+
+    if result == "no_rule_here":
+        return False
     return c == result
 
 def possible_values(examplesData):
@@ -144,7 +149,7 @@ def filter(antecendents, ant_to_null):
 
     return antecendents[-1][2]
 
-def conjuntive_rule(Exemplo, endResult):
+def conjuntive_rule(Exemplo, endResult, debug = False):
     resultRule = Node.Node(featureIndex=0, threshold=Exemplo[0])
     previousPremisse = resultRule
     for idx in range(1, len(Exemplo)):
@@ -154,35 +159,50 @@ def conjuntive_rule(Exemplo, endResult):
 
     previousPremisse.set_right(endResult)
 
+    if debug:
+        previousPremisse.print()
+
     return resultRule
 
-def label_code_block(R, E, C):
+def label_code_block(R, E, debug = False):
 
     c = classify(R, E)
-
-    if not covered(R, E, C):
-        if R[C]:
-            r = conjuntive_rule(E, R[C])
+    is_covered = covered(R, E, c)
+    if debug:
+        print(c)
+        if is_covered:
+            print("regra atual cobre exemplo")
         else:
-            leaf = Node.Node(value=C)
+            print("regra atual NÃO cobre exemplo")
+
+    if not is_covered:
+
+        if R:
+            r = conjuntive_rule(E, R)
+        else:
+            leaf = Node.Node(value=c)
             r = conjuntive_rule(E, leaf)
-
-        if r:
-            print("conjuntive rule made for %s:"%(C))
-            #r.print()
-        else:
-            print("conjuntive rule not made")
+        if debug:
+            if r:
+                print("conjuntive rule made for %s:"%(c))
+                r.print()
+            else:
+                print("conjuntive rule not made")
 
         ant_r = r.getAntecedent()
-        print("number of antecendents: %d" % (len(ant_r)))
+
+        if debug:
+            print("number of antecendents: %d" % (len(ant_r)))
+
         if ant_r:
             for ri in ant_r:
                 r_ = filter(ant_r, ri)
-                if r:
-                    print("filtered rule made for %s:"%(C))
-                    #r.print()
-                else:
-                    print("filtered rule not made")
+                if debug:
+                    if r:
+                        print("filtered rule made for %s:"%(c))
+                        r.print()
+                    else:
+                        print("filtered rule not made")
 
                 if Subset(c,r_):
                     r = r_
@@ -193,34 +213,41 @@ def label_code_block(R, E, C):
             else:
                 r.set_left(R)
                 R = r
-                if R:
-                    print("updated rule made for %s:"%(C))
-                    #r.print()
-                else:
-                    print("updated rule not made")
+                if debug:
+                    if R:
+                        print("updated rule made for %s:"%(C))
+                        r.print()
+                    else:
+                        print("updated rule not made")
 
     return R
 
-def Rule_extraction_learning_3(M, C, Ex, theta = 0):
-    R = dict() #organizado por c lista de nós com ramos conectados e listados
+def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
+    R = dict() 
     for c in C:
         #TODO: trocar a folha por uma regra feita por um exemplo de uma classe
         R[c] = None
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)
-    outputLayerIndex = M.get_params()["num layers"] - 1
+
+    modelParams = M.get_params()
+    outputLayerIndex = modelParams["num layers"] - 1
+    weightOutputLayer = modelParams["W"+str(outputLayerIndex)]
+    biasOutputLayer = modelParams["b"+str(outputLayerIndex)]
 
     voltas = 0
 
-    print("Iniciou regras e possibilidades")
-    print("numero de labels: %d" % (numClasses))
-    for idx, c in R.items():
-        print("label: {}".format(idx))
-        print(c)
+    if debug:
+        print("Iniciou regras e possibilidades")
+        print("numero de labels: %d" % (numClasses))
+        for idx, c in R.items():
+            print("label: {}".format(idx))
+            print(c)
 
     while voltas < numClasses:
-        print("numero de voltas: %d" % (voltas))
+        if debug:
+            print("numero de voltas: %d" % (voltas))
         voltas += 1
         qtd_exemplos = numClasses * voltas
         E = make_examples(Possibilities, n = qtd_exemplos*1000)
@@ -229,34 +256,40 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0):
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
-            Sum_IO.append(sum(M.get_params()["Z"+str(outputLayerIndex)]))
+            inputToOutput = M.get_params()["A"+str(outputLayerIndex-1)]
+            if debug:
+                print(inputToOutput)
+            Sum_IO.append(sum(inputToOutput))
             O.append(C[np.argmax(model_result)])
 
-        print("exemplos gerados: %d" % (len(E)))
+        if debug:
+            print("exemplos gerados: %d" % (len(E)))
 
         for idx, s in enumerate(Sum_IO):
             for neuron in s:
                 ModelOutput =  O[idx]
+                if debug:
+                    print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
                     #Todo: change function call, consider saving versions of examples devided by the outputs
 
-                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput)
+                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx])
 
-            else:
-                for i in range(len(E[idx])):
-                    for v in Possibilities[i]:
-                        temp = E[idx]
-                        temp[i] = v
-                        #changing the value of ei to vij increase s
-                        modelResult = M.predict(np.array(temp))
-                        newSum = sum(M.get_params()["Z"+str(outputLayerIndex)])
+                else:
+                    for i in range(len(E[idx])):
+                        for v in Possibilities[i]:
+                            temp = E[idx]
+                            temp[i] = v
+                            #changing the value of ei to vij increase s?
+                            modelResult = M.predict(np.array(temp))
+                            newSum = sum(M.get_params()["A"+str(outputLayerIndex-1)])
 
-                        if  newSum > s:
-                            E[idx][i] = v
-                            O[idx] = C[np.argmax(modelResult)]
-                            Sum_IO[idx] = newSum
+                            if  newSum > s:
+                                E[idx][i] = v
+                                O[idx] = C[np.argmax(modelResult)]
+                                Sum_IO[idx] = newSum
 
-                        if s > theta:
-                            R[O[idx]] = label_code_block(R[O[idx]], E[idx], O[idx])
+                            if s > theta:
+                                R[O[idx]] = label_code_block(R[O[idx]], E[idx])
 
     return R
