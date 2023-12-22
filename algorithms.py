@@ -261,8 +261,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
 
     modelParams = M.get_params()
     outputLayerIndex = modelParams["num layers"] - 1
-    weightOutputLayer = modelParams["W"+str(outputLayerIndex)]
-    biasOutputLayer = modelParams["b"+str(outputLayerIndex)]
 
     voltas = 0
 
@@ -284,18 +282,21 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
-            inputToOutput = M.get_params()["A"+str(outputLayerIndex-1)]
+            inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
+
             if debug:
                 print(inputToOutput)
-            Sum_IO.append(sum(inputToOutput))
-            O.append(C[np.argmax(model_result)])
+
+            Sum_IO.append(inputToOutput[np.argmax(model_result)])
+            output_ONeuron = np.argmax(model_result)
+            O.append([output_ONeuron, C[output_ONeuron]])
 
         if debug:
             print("exemplos gerados: %d" % (len(E)))
 
         for idx, s in enumerate(Sum_IO):
             for neuron in s:
-                ModelOutput =  O[idx]
+                ModelOutput =  O[idx][1]
                 if debug:
                     print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
@@ -310,11 +311,10 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                             temp[i] = v
                             #changing the value of ei to vij increase s?
                             modelResult = M.predict(np.array(temp))
-                            newSum = sum(M.get_params()["A"+str(outputLayerIndex-1)])
+                            newSum = M.get_params()["Z"+str(outputLayerIndex)][O[idx][0]]
 
                             if  newSum > s:
                                 E[idx][i] = v
-                                O[idx] = C[np.argmax(modelResult)]
                                 Sum_IO[idx] = newSum
 
                             if s > theta:
