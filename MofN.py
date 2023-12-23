@@ -110,11 +110,14 @@ def getPossibleClusters(clusteredNetwork, cluster, minValue, maxValue, result=[]
         result.append(cluster)
 
         #get cluster1 and cluster2
-        cluster1 = clusteredNetwork[np.where(clusteredNetwork[:, 0] == cluster[0] and cluster[2] != float('inf'))]
-        cluster2 = clusteredNetwork[np.where(clusteredNetwork[:, 1] == cluster[1] and cluster[2] != float('inf'))]
 
-        getPossibleClusters(clusteredNetwork, cluster1[0], minValue, maxValue, result=result)
-        getPossibleClusters(clusteredNetwork, cluster2[0], minValue, maxValue, result=result)
+        cluster1 = clusteredNetwork[np.where(clusteredNetwork[:, 0] == cluster[0] and clusteredNetwork[:, 2] != float('inf'))]
+        cluster2 = clusteredNetwork[np.where(clusteredNetwork[:, 1] == cluster[1] and clusteredNetwork[:, 2] != float('inf'))]
+
+        if len(cluster1) > 0:
+            getPossibleClusters(clusteredNetwork, cluster1[0], minValue, maxValue, result=result)
+        if len(cluster2) > 0:
+            getPossibleClusters(clusteredNetwork, cluster2[0], minValue, maxValue, result=result)
 
     return result
 
