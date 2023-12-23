@@ -63,25 +63,38 @@ def algoritmo_1_KT():
     ANN, _, _, _ = load_example()
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
-    result = KT.KT_1(U)
+    result = KT.KT_1(U, debug=True)
+
+    if len(result) > 0:
+        for r in result:
+            r.print()
+    else:
+        print("no rule made")
+
 
 def algoritmo_2_MofN():
     ANN, _, DataX, Datay = load_example()
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
-    result = MofN.MofN_2(U, ANN, DataX, Datay)
+    result = MofN.MofN_2(U, ANN, DataX, Datay, debug=True)
 
-ANN, C, DataX, _ = load_example()
+    if len(result) > 0:
+        for r in result:
+            r.print()
+    else:
+        print("no rule made")
+
+
+def algoritmo_3_RuleExtractLearning():
+    ANN, C, DataX, _ = load_example()
+    result = algorithms.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
+    for r in result.keys():
+        if result[r]:
+            result[r].print()
+        else:
+            print("no rule made for %s" % (r))
 
 algoritmo_1_KT()
-algoritmo_2_MofN()
-
-
-result = algorithms.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
-
-for r in result.keys():
-    if result[r]:
-        result[r].print()
-    else:
-        print("no rule made for %s" % (r))
+#algoritmo_2_MofN() problema no tratamento de clusters
+algoritmo_3_RuleExtractLearning()
 

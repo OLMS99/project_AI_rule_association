@@ -1,5 +1,5 @@
 import Node
-import NeuralNetwork
+import NeuralNetwork as ANN
 import numpy as np
 import pandas as pd
 
@@ -173,7 +173,7 @@ def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
 
     for idx, feature_check in enumerate(presence_array):
         if not feature_check:
-            partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo)
+            partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo[idx])
 
             if not resultRule:
                 resultRule = partial_premisse
@@ -194,12 +194,11 @@ def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
         return endResult
     return resultRule
 
-def label_code_block(R, E, debug = False):
+def label_code_block(R, E, true_result, debug = False):
 
-    c = classify(R, E)
-    is_covered = covered(R, E, c)
+    is_covered = covered(R, E, true_result, debug=debug)
     if debug:
-        print(c)
+        print(true_result)
         if is_covered:
             print("regra atual cobre exemplo")
         else:
@@ -207,12 +206,12 @@ def label_code_block(R, E, debug = False):
 
     if not is_covered:
 
-        leaf = Node.Node(value=c)
-        r = conjuntive_rule(E, R, leaf)
+        leaf = Node.Node(value=true_result)
+        r = conjuntive_rule(E, R, leaf, debug=debug)
 
         if debug:
             if r:
-                print("conjuntive rule made for %s:"%(c))
+                print("conjuntive rule made for %s:"%(true_result))
                 r.print()
             else:
                 print("conjuntive rule not made")
@@ -227,12 +226,12 @@ def label_code_block(R, E, debug = False):
                 r_ = filter(ant_r, ri)
                 if debug:
                     if r:
-                        print("filtered rule made for %s:"%(c))
+                        print("filtered rule made for %s:"%(true_result))
                         r.print()
                     else:
-                        print("filtered rule not made")
+                        print("rule filtered entirely")
 
-                if Subset(c,r_):
+                if Subset(true_result,r_,E):
                     r = r_
 
             if R is None:
@@ -243,7 +242,7 @@ def label_code_block(R, E, debug = False):
                 R = r
                 if debug:
                     if R:
-                        print("updated rule made for %s:"%(C))
+                        print("updated rule made for %s:"%(true_result))
                         r.print()
                     else:
                         print("updated rule not made")
@@ -284,9 +283,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             model_result = M.predict(np.squeeze(example))
             inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
 
-            if debug:
-                print(inputToOutput)
-
             Sum_IO.append(inputToOutput[np.argmax(model_result)])
             output_ONeuron = np.argmax(model_result)
             O.append([output_ONeuron, C[output_ONeuron]])
@@ -297,12 +293,12 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         for idx, s in enumerate(Sum_IO):
             for neuron in s:
                 ModelOutput =  O[idx][1]
-                if debug:
-                    print("{0} > {1}".format(neuron, theta))
+                #if debug:
+                #    print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
                     #Todo: change function call, consider saving versions of examples devided by the outputs
 
-                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx])
+                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput, debug=debug)
 
                 else:
                     for i in range(len(E[idx])):
@@ -318,6 +314,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                                 Sum_IO[idx] = newSum
 
                             if s > theta:
-                                R[O[idx]] = label_code_block(R[O[idx]], E[idx])
+                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx],O[idx][1])
 
     return R

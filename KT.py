@@ -61,7 +61,7 @@ def KT_1(U, theta = 0, debug = False):
             SumSu = sum(Su)
 
             if debug:
-                print("weights: %s\n bias: %s\nactivation:%s\n" % (neuron_weights, neuron_bias, neuron_activation.__name__))
+                print("weights: %s\n bias: %s\nactivation: %s\n" % (neuron_weights, neuron_bias, neuron_activation))
                 print("Sum of positives weights: %s" % (SumSu))
 
             if SumSu > theta:
