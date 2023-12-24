@@ -225,14 +225,16 @@ class Node:
             self.right.print()
 
     def rotation45():
-    #é assumido que os ramos imediatos não são nulos
     #verifica os nós esquerda e direita, quantos subnós cada um tem, de que lado está conectado
     #primeiro verifica o nós direito e veja os sub nós, quais são folhas
 
-        if self.right is None:
+        if self.right is None and self.left is None:
+            return None
+
+        elif self.right is None:
             return self.left
 
-        if self.left is None:
+        elif self.left is None:
             return self.right
 
         leftLeaf = self.left.is_leaf_node()

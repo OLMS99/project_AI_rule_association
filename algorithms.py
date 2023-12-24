@@ -12,8 +12,7 @@ def Subset(classNN, rules, examples):
     return result
 
 def classify(R, E):
-#classify the example with the rules and to a class, consider drop parameter C
-#with each rule pass the examples and check the true and false for each class
+#classify the example with the rules and to a class
     if R is None:
         return "no_rule_here"
 
@@ -72,7 +71,7 @@ def filter(antecendents, ant_to_null):
     hold_idx = -1
 
     for idx, ant in enumerate(antecendents):
-        if ant.threshold == ant_to_null and ant.comparison == ant_to_null and ant.featureIndex == ant.featureIndex:
+        if ant.threshold == ant_to_null.threshold and ant.comparison == ant_to_null.comparison and ant.featureIndex == ant_to_null.featureIndex:
             hold = ant
             hold_idx = idx
 
@@ -80,72 +79,18 @@ def filter(antecendents, ant_to_null):
         copy_tree = antecendents[-1].copy()
         copy = copy_tree.getAntecedent()
         hold = copy[hold_idx]
-        left_branch = hold.left
-        right_branch = hold.right
 
         side = hold[0]
         origin = hold[1]
 
-        if side == 0:
-            numSons = hold.num_sons()
-            if numSons == 2:
-                resultNode = hold.rotation45()
-                return resultNode
+        resultNode = hold.rotation45()
 
-            elif numSons == 1:
-                if left_branch:
-                    result = hold.left
-                else:
-                    result = hold.right
-                return result
+        if side == 1:
+            origin.set_right(resultNode)
+        elif side == -1:
+            origin.set_left(resultNode)
 
-            else:
-                return None
-
-            copy.pop(hold_idx)
-            return copy_tree
-
-        if not left_branch and not right_branch:
-            #delete hold from list and tree
-            if side == -1:
-                origin.set_left(None)
-
-            elif side == 1:
-                origin.set_right(None)
-
-            copy.pop(hold_idx)
-            return copy_tree
-
-        elif not left_branch:
-            if side == -1:
-                origin.set_left(hold.right)
-
-            elif side == 1:
-                origin.set_right(hold.right)
-
-            copy.pop(hold_idx)
-            return copy_tree
-
-        elif not right_branch:
-            if side == -1:
-                origin.set_left(hold.left)
-
-            elif side == 1:
-                origin.set_right(hold.left)
-
-            copy.pop(hold_idx)
-            return copy_tree
-
-        else:
-            resultNode = hold.rotation45()
-            if side == -1:
-                origin.set_left(resultNode)
-
-            elif side == 1:
-                origin.set_right(resultNode)
-
-            copy.pop(hold_idx)
-            return copy_tree
+        return origin
 
     return antecendents[-1][2]
 

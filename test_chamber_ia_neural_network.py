@@ -94,7 +94,22 @@ def algoritmo_3_RuleExtractLearning():
         else:
             print("no rule made for %s" % (r))
 
-algoritmo_1_KT()
+def generate_ruleTree(height=3, counter=0):
+    node=  Node.Node(featureIndex=np.radint(10),threshold=np.random()*10, negation=True)
+    if counter < height:
+        generate_ruleTree(height=height,counter=counter+1)
+
+    elif counter == height:
+        return node
+
+
+def single_function_test():
+    Ruletree = generate_ruleTree()
+    antecendents = Ruletree.getAntecedent()
+    result = filter(antecendents, random.choice(antecendents))
+
+#algoritmo_1_KT()
 #algoritmo_2_MofN() problema no tratamento de clusters
-algoritmo_3_RuleExtractLearning()
+#algoritmo_3_RuleExtractLearning()
+single_function_test()
 
