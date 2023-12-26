@@ -94,18 +94,25 @@ def algoritmo_3_RuleExtractLearning():
         else:
             print("no rule made for %s" % (r))
 
-def generate_ruleTree(height=3, counter=0):
-    node=  Node.Node(featureIndex=np.radint(10),threshold=np.random()*10, negation=True)
-    if counter < height:
-        generate_ruleTree(height=height,counter=counter+1)
+def generate_random_ruleTree(height=3, counter=0):
+    treeNode = Node.Node(featureIndex=random.randint(0,10), threshold=random.uniform(0.,10.), negation=bool(random.getrandbits(1)))
+    if counter <= height:
+        treeNode.set_right(generate_random_ruleTree(height=height,counter=counter+1))
+        treeNode.set_left(generate_random_ruleTree(height=height,counter=counter+1))
 
-    elif counter == height:
-        return node
+        print("height: %d/%d" % (counter, height))
+        treeNode.right.print()
+        treeNode.left.print()
+
+    return treeNode
 
 
 def single_function_test():
-    Ruletree = generate_ruleTree()
-    antecendents = Ruletree.getAntecedent()
+    Ruletree = generate_random_ruleTree()
+    #Ruletree.print()
+    print("problema no getAntecedents")
+    antecendents = Ruletree.getAntecedent(debug=True)
+    print(len(antecendents))
     result = filter(antecendents, random.choice(antecendents))
 
 #algoritmo_1_KT()

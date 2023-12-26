@@ -66,8 +66,14 @@ class Node:
 
         return initial_pass
 
-    def is_leaf_node(self):
-        return (self.value != "no_input_value") and (self.left is None) and (self.right is None)
+    def is_leaf_node(self, debug=False):
+        statement_1 = self.num_sons() == 0
+        statement_2 = self.value != "no_input_value"
+        if debug:
+            print("é um nó folha?")
+            print("tem nenhum sub-nó: %s"%(statement_1))
+            print("tem um valor diferente de 'no_input_value': %s"%(statement_2))
+        return statement_1 and statement_2
 
     def set_left(self, node):
         self.left = node
@@ -99,7 +105,7 @@ class Node:
 
     def step(self, input_values):
 
-        if self.is_leaf_node:
+        if self.is_leaf_node():
             return self.value
 
         if self.layerIndex:
@@ -124,10 +130,13 @@ class Node:
     def getAntecedent(self, side = 0, origin = None, archive = [], debug=False):
         if debug:
             print("entrou na função antecendente")
-            self.print()
-        if self.is_leaf_node:
+            #self.print()
+
+        if self.is_leaf_node():
             if debug:
                 print("nó folha")
+                print("numero de filhos: %d" % (self.num_sons()))
+                print("valor da folha: %s" % (self.value))
             return archive
 
         parcial_premisse = self.get_node_info()
