@@ -84,6 +84,25 @@ class Node:
     def probabilityPremise(self, P, B, y, j):
         pass
 
+    def equal_antecedent(self, premisse):
+        if premisse[2] == self.featureIndex \
+            and premisse[1] == self.layerIndex \
+            and premisse[3] == self.threshold \
+            and premisse[0] == self.negation \
+            and premisse[4] == self.comparison:
+            return True
+        return False
+
+    def equal_consequent(self, premisse):
+        if premisse[5] == self.value:
+            return True
+        return False
+
+    def equal_premisse(self, premisse):
+        if self.equal_antecedent(premisse) or self.equal_consequent(premisse):
+            return True
+        return False
+
     def get_node_info(self):
         return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
 
@@ -128,20 +147,16 @@ class Node:
         return "no_input_value"
 
     def getAntecedent(self, side = 0, origin = None, archive = [], debug=False):
-        if debug:
-            print("entrou na função antecendente")
-            #self.print()
 
         if self.is_leaf_node():
             if debug:
                 print("nó folha")
-                print("numero de filhos: %d" % (self.num_sons()))
-                print("valor da folha: %s" % (self.value))
             return archive
 
         parcial_premisse = self.get_node_info()
         OR_branch = None
         AND_branch = None
+
         if debug:
             print("vendo ramos")
 
@@ -149,13 +164,13 @@ class Node:
             if debug:
                 print("ramo esquerdo")
             OR_branch = self.left
-            archive = self.left.getAntecendent(side = -1, origin = self, archive = archive)
+            archive = self.left.getAntecedent(side = -1, origin = self, archive = archive, debug=debug)
 
         if self.right:
             if debug:
                 print("ramo direito")
             AND_branch = self.right
-            archive = self.right.getAntecendent(side = 1, origin = self, archive = archive)
+            archive = self.right.getAntecedent(side = 1, origin = self, archive = archive, debug=debug)
 
         premisse = [side, origin, parcial_premisse, OR_branch, AND_branch]
         archive.append(premisse)

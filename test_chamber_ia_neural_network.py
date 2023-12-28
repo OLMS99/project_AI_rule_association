@@ -100,9 +100,9 @@ def generate_random_ruleTree(height=3, counter=0):
         treeNode.set_right(generate_random_ruleTree(height=height,counter=counter+1))
         treeNode.set_left(generate_random_ruleTree(height=height,counter=counter+1))
 
-        print("height: %d/%d" % (counter, height))
-        treeNode.right.print()
-        treeNode.left.print()
+        #print("height: %d/%d" % (counter, height))
+        #treeNode.right.print()
+        #treeNode.left.print()
 
     return treeNode
 
@@ -110,10 +110,14 @@ def generate_random_ruleTree(height=3, counter=0):
 def single_function_test():
     Ruletree = generate_random_ruleTree()
     #Ruletree.print()
-    print("problema no getAntecedents")
-    antecendents = Ruletree.getAntecedent(debug=True)
+    antecendents = Ruletree.getAntecedent()
     print(len(antecendents))
-    result = filter(antecendents, random.choice(antecendents))
+    random_deletion = random.choice(antecendents)
+    #for premissa in antecendents:
+    #    print("antecedente: %s" % (premissa[2]))
+    #print("\npremissa a ser deletada: %s\n" % (random_deletion[2]))
+    result = algorithms.filter(antecendents, random_deletion)
+    print(len(result.getAntecedent()))
 
 #algoritmo_1_KT()
 #algoritmo_2_MofN() problema no tratamento de clusters

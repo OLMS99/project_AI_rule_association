@@ -66,33 +66,48 @@ def make_examples(possibilities, n = 1):
     return result
 
 def filter(antecendents, ant_to_null):
-
-    hold = None
+    #from a list of antecendents, filter the desired antecendent
+    #return the modified copy of the tree
     hold_idx = -1
+    copyTree = antecendents[-2][1].copy()
 
     for idx, ant in enumerate(antecendents):
-        if ant.threshold == ant_to_null.threshold and ant.comparison == ant_to_null.comparison and ant.featureIndex == ant_to_null.featureIndex:
-            hold = ant
+        premisse = ant[2]
+        if premisse == ant_to_null:
             hold_idx = idx
+            side = ant[0]
+            break
 
-    if hold_idx != -1:
-        copy_tree = antecendents[-1].copy()
-        copy = copy_tree.getAntecedent()
-        hold = copy[hold_idx]
+    if hold_idx == -1:
+        #antecendent not found
+        return copyTree
 
-        side = hold[0]
-        origin = hold[1]
+    copy_ant = copyTree.getAntecendent()
+    origin = copy_ant[hold_idx][1]
 
-        resultNode = hold.rotation45()
+    if side == 0:
+        target = copy_ant[-2][1]
 
-        if side == 1:
-            origin.set_right(resultNode)
-        elif side == -1:
-            origin.set_left(resultNode)
+    elif side == -1:
+        target = origin.left
 
-        return origin
+    elif side == 1:
+        target = origin.right
 
-    return antecendents[-1][2]
+    new_branch = target.rotation45()
+
+    #connectar origem da variavel target com o ramo resultante da rotação 45
+
+    if side == 0:
+        return new_branch
+
+    elif side == -1:
+        origin.set_left(new_branch)
+
+    elif side == 1:
+        origin.set_right(new_branch)
+
+    return copyTree
 
 def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
     presence_array = [False] * len(Exemplo)
