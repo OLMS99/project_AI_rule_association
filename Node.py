@@ -20,7 +20,7 @@ class Node:
         self.featureIndex = featureIndex
         self.layerIndex = layerIndex
         self.threshold = threshold
-        self.comparison = comparison# "=","<",">",">=","<=","!="
+        self.comparison = comparison# "=","<",">",">=","<=","!=", "=="
         self.negation = negation
         self.left = left
         self.right = right
@@ -43,7 +43,7 @@ class Node:
         else:
             holder = value
 
-        if comparison == "=":
+        if comparison == "=" or comparison == "==":
             initial_pass = holder == self.threshold
 
         elif comparison == ">":
@@ -106,19 +106,23 @@ class Node:
     def get_node_info(self):
         return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
 
-    def copy(self):
-        copy_node = Node(featureIndex = self.featureIndex,
+    def copy_node(self):
+        return Node(featureIndex = self.featureIndex,
             layerIndex = self.layerIndex,
             threshold = self.threshold,
             comparison = self.comparison,
             value = self.value,
             negation = self.negation)
 
+
+    def copy_tree(self):
+        copy_node = self.copy_node()
+
         if self.left:
-            copy_node.set_left(self.left.copy())
+            copy_node.set_left(self.left.copy_tree())
 
         if self.right:
-            copy_node.set_right(self.right.copy())
+            copy_node.set_right(self.right.copy_tree())
 
         return copy_node
 

@@ -94,7 +94,7 @@ def algoritmo_3_RuleExtractLearning():
         else:
             print("no rule made for %s" % (r))
 
-def generate_random_ruleTree(height=3, counter=0):
+def generate_random_ruleTree(height=2, counter=0):
     treeNode = Node.Node(featureIndex=random.randint(0,10), threshold=random.uniform(0.,10.), negation=bool(random.getrandbits(1)))
     if counter <= height:
         treeNode.set_right(generate_random_ruleTree(height=height,counter=counter+1))
@@ -106,18 +106,49 @@ def generate_random_ruleTree(height=3, counter=0):
 
     return treeNode
 
+def generate_static_ruleTree():
+    height_0 = Node.Node(featureIndex=0, layerIndex=3, threshold=1.5, comparison="!=", negation=False)
+
+    height_1 = [
+        Node.Node(featureIndex=1, layerIndex=2, threshold=3.7, comparison=">=", negation=False),
+        Node.Node(featureIndex=2, layerIndex=1, threshold=4.2, comparison="<=", negation=True)
+    ]
+
+    height_2 = [
+        Node.Node(featureIndex=3, layerIndex=3, threshold=2.8, comparison=">", negation=True),
+        Node.Node(featureIndex=4, layerIndex=2, threshold=5.9, comparison="<", negation=False),
+        Node.Node(featureIndex=5, layerIndex=1, threshold=6.3, comparison="=", negation=True),
+        Node.Node(featureIndex=6, layerIndex=3, threshold=9.6, comparison="!=", negation=True)
+    ]
+
+    height_1[0].set_left(height_2[0])
+    height_1[0].set_right(height_2[1])
+    height_1[1].set_left(height_2[2])
+    height_1[1].set_right(height_2[3])
+
+    height_0.set_left(height_1[0])
+    height_0.set_right(height_1[1])
+
+    return height_0
 
 def single_function_test():
-    Ruletree = generate_random_ruleTree()
+    Ruletree = generate_static_ruleTree()
+    #faca uma arvore de decisão estática de 7 nós para testar
     #Ruletree.print()
     antecendents = Ruletree.getAntecedent()
     print(len(antecendents))
+    antecendents = Ruletree.getAntecedent()
+    print(len(antecendents))
     random_deletion = random.choice(antecendents)
+
+    copia = Ruletree.copy_tree()
+    copied_antecendents = copia.getAntecedent()
+    print(len(copied_antecendents))
     #for premissa in antecendents:
     #    print("antecedente: %s" % (premissa[2]))
     #print("\npremissa a ser deletada: %s\n" % (random_deletion[2]))
-    result = algorithms.filter(antecendents, random_deletion)
-    print(len(result.getAntecedent()))
+    #result = algorithms.filter(antecendents, random_deletion)
+    #print(len(result.getAntecedent()))
 
 #algoritmo_1_KT()
 #algoritmo_2_MofN() problema no tratamento de clusters
