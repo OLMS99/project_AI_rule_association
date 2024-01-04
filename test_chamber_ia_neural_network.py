@@ -133,22 +133,26 @@ def generate_static_ruleTree():
 
 def single_function_test():
     Ruletree = generate_static_ruleTree()
-    #faca uma arvore de decisão estática de 7 nós para testar
-    #Ruletree.print()
-    antecendents = Ruletree.getAntecedent()
-    print(len(antecendents))
-    antecendents = Ruletree.getAntecedent()
-    print(len(antecendents))
-    random_deletion = random.choice(antecendents)
-
     copia = Ruletree.copy_tree()
+
+    antecendents = Ruletree.getAntecedent()
+
+    random_deletion_a = random.choice(antecendents)
+    lado_escolhido = random_deletion_a[0]
+
+    if lado_escolhido == 1:
+        random_deletion_b = random_deletion_a[1].right
+    if lado_escolhido == -1:
+        random_deletion_b = random_deletion_a[1].left
+    else:
+        random_deletion_b = antecendents[-2][1]
+
+
     copied_antecendents = copia.getAntecedent()
     print(len(copied_antecendents))
-    #for premissa in antecendents:
-    #    print("antecedente: %s" % (premissa[2]))
-    #print("\npremissa a ser deletada: %s\n" % (random_deletion[2]))
-    #result = algorithms.filter(antecendents, random_deletion)
-    #print(len(result.getAntecedent()))
+
+    result = algorithms.filter(antecendents, random_deletion_a[2])
+    print(len(result.getAntecedent()))
 
 #algoritmo_1_KT()
 #algoritmo_2_MofN() problema no tratamento de clusters

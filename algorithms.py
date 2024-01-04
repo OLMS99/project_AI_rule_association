@@ -65,12 +65,13 @@ def make_examples(possibilities, n = 1):
 
     return result
 
-def filter(antecendents, ant_to_null):
+def filter(antecendents, ant_to_null, debug=False):
     #from a list of antecendents, filter the desired antecendent
     #return the modified copy of the tree
     hold_idx = -1
-    copyTree = antecendents[-2][1].copy()
+    copyTree = antecendents[-2][1].copy_tree()
 
+    #search for the first matched antecendent to remove
     for idx, ant in enumerate(antecendents):
         premisse = ant[2]
         if premisse == ant_to_null:
@@ -79,35 +80,31 @@ def filter(antecendents, ant_to_null):
             break
 
     if hold_idx == -1:
-        #antecendent not found
+        if debug:
+            print("antecendente não encontrado")
         return copyTree
 
-    copy_ant = copyTree.getAntecendent()
+    copy_ant = copyTree.getAntecedent()
     origin = copy_ant[hold_idx][1]
 
     if side == 0:
-        target = copy_ant[-2][1]
+        new_branch = copy_ant[-2][1].rotation45()
 
-    elif side == -1:
-        target = origin.left
-
-    elif side == 1:
-        target = origin.right
-
-    new_branch = target.rotation45()
-
-    #connectar origem da variavel target com o ramo resultante da rotação 45
-
-    if side == 0:
         return new_branch
 
     elif side == -1:
+        new_branch = origin.left.rotation45()
+
         origin.set_left(new_branch)
+        return copyTree
 
     elif side == 1:
-        origin.set_right(new_branch)
+        new_branch = origin.right.rotation45()
 
-    return copyTree
+        origin.set_right(new_branch)
+        return copyTree
+
+    #connectar origem da variavel target com o ramo resultante da rotação 45
 
 def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
     presence_array = [False] * len(Exemplo)

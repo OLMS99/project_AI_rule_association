@@ -150,7 +150,9 @@ class Node:
 
         return "no_input_value"
 
-    def getAntecedent(self, side = 0, origin = None, archive = [], debug=False):
+    def getAntecedent(self, side = 0, origin = None, debug = False):
+
+        archive = []
 
         if self.is_leaf_node():
             if debug:
@@ -168,18 +170,19 @@ class Node:
             if debug:
                 print("ramo esquerdo")
             OR_branch = self.left
-            archive = self.left.getAntecedent(side = -1, origin = self, archive = archive, debug=debug)
+            archive.extend(self.left.getAntecedent(side = -1, origin = self, debug=debug))
 
         if self.right:
             if debug:
                 print("ramo direito")
             AND_branch = self.right
-            archive = self.right.getAntecedent(side = 1, origin = self, archive = archive, debug=debug)
+            archive.extend(self.right.getAntecedent(side = 1, origin = self, debug=debug))
 
         premisse = [side, origin, parcial_premisse, OR_branch, AND_branch]
         archive.append(premisse)
         if debug:
             print("novo tamanho da lista: %d; entrada da lista: %s" % (len(archive), premisse))
+
         return archive
 
     def getHeight(self):
@@ -252,7 +255,7 @@ class Node:
             print("left branch:")
             self.right.print()
 
-    def rotation45():
+    def rotation45(self):
     #verifica os nós esquerda e direita, quantos subnós cada um tem, de que lado está conectado
     #primeiro verifica o nós direito e veja os sub nós, quais são folhas
 
