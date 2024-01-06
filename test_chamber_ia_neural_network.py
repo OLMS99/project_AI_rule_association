@@ -90,6 +90,7 @@ def algoritmo_3_RuleExtractLearning():
     result = algorithms.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
     for r in result.keys():
         if result[r]:
+            print("rule made for %s" % (r))
             result[r].print()
         else:
             print("no rule made for %s" % (r))
@@ -153,9 +154,11 @@ def single_function_test():
 
     result = algorithms.filter(antecendents, random_deletion_a[2])
     print(len(result.getAntecedent()))
+    result = algorithms.filter(antecendents, random_deletion_a[2])
+    print(len(result.getAntecedent()))
 
 #algoritmo_1_KT()
-#algoritmo_2_MofN() problema no tratamento de clusters
-#algoritmo_3_RuleExtractLearning()
-single_function_test()
+#algoritmo_2_MofN() #problema no tratamento de clusters
+algoritmo_3_RuleExtractLearning()
+#single_function_test()
 

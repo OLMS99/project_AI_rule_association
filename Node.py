@@ -43,25 +43,25 @@ class Node:
         else:
             holder = value
 
-        if comparison == "=" or comparison == "==":
+        if self.comparison == "=" or self.comparison == "==":
             initial_pass = holder == self.threshold
 
-        elif comparison == ">":
+        elif self.comparison == ">":
             initial_pass = holder > self.threshold
 
-        elif comparison == "<":
+        elif self.comparison == "<":
             initial_pass = holder < self.threshold
 
-        elif comparison == ">=":
+        elif self.comparison == ">=":
             initial_pass = holder >= self.threshold
 
-        elif comparison == "<=":
+        elif self.comparison == "<=":
             initial_pass = holder <= self.threshold
 
-        elif comparison == "!=":
+        elif self.comparison == "!=":
             initial_pass = holder != self.threshold
 
-        if negation:
+        if self.negation:
             initial_pass = not initial_pass
 
         return initial_pass
@@ -282,8 +282,8 @@ class Node:
             self.left.set_right(rightLeaf)
             return self.left
 
-        leftSons = (self.left.num_sons(), selt.left.left, selt.left.right)
-        rightSons = (self.right.num_sons(), selt.right.left, selt.right.right)
+        leftSons = (self.left.num_sons(), self.left.left, self.left.right)
+        rightSons = (self.right.num_sons(), self.right.left, self.right.right)
 
         if leftSons[0] == 0:
             self.left.set_right(self.right)

@@ -3,12 +3,10 @@ import NeuralNetwork as ANN
 import numpy as np
 import pandas as pd
 
-def Subset(classNN, rules, examples):
+def Subset(classNN, rules, example):
 #try to classify with the ruleset and compare with class label
-    result = True
-    for e in examples:
-        ruleLabel = classify(rules, e)
-        result = result and (ruleLabel == classNN)
+    ruleLabel = classify(rules, example)
+    result = (ruleLabel == classNN)
     return result
 
 def classify(R, E):
@@ -144,9 +142,6 @@ def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
     if hook:
         hook.set_left(resultRule)
 
-    if debug:
-        resultRule.print()
-
     if endResult:
         return endResult
     return resultRule
@@ -169,7 +164,6 @@ def label_code_block(R, E, true_result, debug = False):
         if debug:
             if r:
                 print("conjuntive rule made for %s:"%(true_result))
-                r.print()
             else:
                 print("conjuntive rule not made")
 
@@ -178,31 +172,31 @@ def label_code_block(R, E, true_result, debug = False):
         if debug:
             print("number of antecendents: %d" % (len(ant_r)))
 
-        if ant_r:
-            for ri in ant_r:
-                r_ = filter(ant_r, ri)
-                if debug:
-                    if r:
-                        print("filtered rule made for %s:"%(true_result))
-                        r.print()
-                    else:
-                        print("rule filtered entirely")
+        if not ant_r:
+            return R
 
-                if Subset(true_result,r_,E):
-                    r = r_
+        for ri in ant_r:
+            r_ = filter(ant_r, ri[2])
+            if debug:
+                if r:
+                    print("filtered rule made for %s:"%(true_result))
+                else:
+                    print("rule filtered entirely")
 
-            if R is None:
-                R = r
+            if Subset(true_result,r_,E):
+                r = r_
 
-            else:
-                r.set_left(R)
-                R = r
-                if debug:
-                    if R:
-                        print("updated rule made for %s:"%(true_result))
-                        r.print()
-                    else:
-                        print("updated rule not made")
+        if R is None:
+            R = r
+
+        else:
+            r.set_left(R)
+            R = r
+            if debug:
+                if R:
+                    print("updated rule made for %s:"%(true_result))
+                else:
+                    print("updated rule not made")
 
     return R
 
@@ -232,7 +226,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             print("numero de voltas: %d" % (voltas))
         voltas += 1
         qtd_exemplos = numClasses * voltas
-        E = make_examples(Possibilities, n = qtd_exemplos*1000)
+        E = make_examples(Possibilities, n = qtd_exemplos)
 
         O = []
         Sum_IO = []
