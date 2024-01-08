@@ -162,6 +162,24 @@ class nnf():
             if debug:
                 print("%s: %s" % (self.params[key], self.params[key].shape))
 
+    def prune(self, inputNeurons):
+
+        target = self.get_params()
+
+        if "W1" in self.params:
+            weight_holder = target["W1"]
+            for idx in inputNeurons:
+                weight_holder[:,idx] = np.zeros(weight_holder.shape[1])
+            target["W1"] = weight_holder
+
+        if "b1" in self.params:
+            bias_holder = target["b1"]
+            for idx in inputNeurons:
+                bias_holder[idx] = 0
+            target["b1"] = bias_holder
+
+        return nnf(target)
+
     def train(self, X_train, y_train, X_val, y_val, epochs=25, learning_rate=0.01, update_weights = True, update_bias = True, debug=False):
         self.epochs = epochs
         self.learning_rate = learning_rate
