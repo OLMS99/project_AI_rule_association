@@ -81,6 +81,19 @@ class Node:
     def set_right(self, node):
         self.right = node
 
+    def append_left(self, node):
+        if self.left:
+            self.left.append_left(node)
+        else:
+            self.set_left(node)
+
+    def append_right(self, node):
+        if self.right:
+            self.right.append_right(node)
+        else:
+            self.set_right(node)
+
+
     def probabilityPremise(self, P, B, y, j):
         pass
 

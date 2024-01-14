@@ -15,10 +15,10 @@ def computeAccuracy(network, dataset, C):
 
 
 
-def createGroup(wrongInstances,targetClass):
+def createGroup(wrongInstances, targetClass):
     group = []
     for e in wrongInstances:
-        if e[] == targetClass:
+        if e[1] == targetClass:
             group.append(e)
     return group
 
@@ -26,33 +26,35 @@ def formSet(groups, error, alpha):
     Q=[]
     for i, g in enumerate(groups):
         size = len(g)
-        if size*size > alpha*error[i]:
+        if size * size > alpha * error[i]:
             Q.append(g)
     return Q
 
 #ideia: L, H, N -> H, H[0] = L, H[-1] = N
-def RxREN_4(NN, L, H, N, C, dataset):
+def RxREN_4(NN, L, H, N, T, y, alpha = 0.1):
     B=[]
     R=[]
+    C = y.unique()
     #Top block of code
     while True:
         B=[]
         E = [[]] * len(L)
         err = [0] * len(L)
-        for i,l in enumerate(L):
+        for i, l in enumerate(L):
             temp_network = NN.prune([l])
             #test the classification
-            temp_network.predict()
-            if #incorrect:
-                E[i].append(#tuple format?(l,y_true[i],temp_network.predict(l)))
+            for number, case in enumerate(T):
+                prediction = temp_network.predict(case)
+                if prediction != y[number]:
+                    E[i].append((l, y[number], prediction))
                     #set of incorrectly classified instances of ANN without li on set of correctly classified instances
             err[i] = len(E[i])
 
         m = len(L)
         theta = err.min()
-        insig = Where_n(err,n=theta)
+        insig = Utils.Where_n(err, n=theta)
         for li in insig: 
-            B.append([li])
+            B.append(li)
 
         NN_ = NN.prune(B)
         L_ = filter(lambda i: i not in B, L)
@@ -72,27 +74,31 @@ def RxREN_4(NN, L, H, N, C, dataset):
     maxMatrix = [[[] for k in range(m)] for j in range(len(C))]
     for i, l in enumerate(L):
         for k, c in enumerate(C):
-            g[i][k] = createGroup(E[i],c)
+            g[i][k] = createGroup(E[i], c)
 
-            alpha = #value [0.1,0.5]
-            Q[i].append(formSet(g[i][k], err[i], alpha))
+            #alpha value [0.1,0.5]
+            Q[i].append(formSet(g[i][k], err, alpha))
             minMatrix[i][k] = min(Q[i])
             maxMatrix[i][k] = max(Q[i])
 
     for k in range(n):
-        j=1
+        j = 1
         for i in m: 
             for k, c in enumerate(C):
-                if len(g[i][k]) > alpha*err:
+                if len(g[i][k]) > alpha * err[i]:
+                    #create node based on this expression
                     cnj = (data(L[i]) >= minMatrix[i][k]) and (data(L[i]) <= maxMatrix[i][k])
 
-                if j=1:
+                if j==1:
                     cn = cnj
                 else:
-                    cn = cn and cnj
+                    #and -> set_right()
+                    cn.append_right(cnj)
 
                 j+=1
-
-        R.append(if cn then Class=ck)#or
+        #or -> set_left()
+        if cn:
+            cn.append_right(ck)
+            R.append_left(cn)
 
 return R

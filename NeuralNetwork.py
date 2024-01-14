@@ -178,7 +178,7 @@ class nnf():
                 bias_holder[idx] = 0
             target["b1"] = bias_holder
 
-        return nnf(target)
+        return nnf(params = target)
 
     def train(self, X_train, y_train, X_val, y_val, epochs=25, learning_rate=0.01, update_weights = True, update_bias = True, debug=False):
         self.epochs = epochs
