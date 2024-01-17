@@ -24,6 +24,19 @@ import RuleExtractionLearning as REL
 seed = 1
 np.random.seed(seed)
 
+def filter_correct_answers(dataset, y, prediction):
+    np.append(ini_array, column_to_be_added, axis=1)
+    dataX = dataset[0].append(dataset[1], ignore_index=False)
+    datay = y[0].append(y[1], ignore_index=False)
+    predictions_cases = prediction[0].append(prediction[1], ignore_index=False)
+
+    comparison = datay == predictions_cases
+
+    returnDataX = dataX[comparison==True]
+    returnDatay = datay[comparison==True]
+
+    return returnDataX, returnDatay
+
 def load_example():
     dataset = load_iris()
     data = dataset.data
@@ -96,6 +109,21 @@ def algoritmo_3_RuleExtractLearning():
         else:
             print("no rule made for %s" % (r))
 
+def algoritmo_4_RxRen():
+    ANN, C, DataX, Datay = load_example()
+
+    params = ANN.get_params()
+    U = Neurons_to_Lists(params)
+
+    predictions = [[],[]]
+    for case in DataX[0]:
+        predictions[0].append(ANN.predict(case))
+    for case in DataX[1]:
+        predictions[1].append(ANN.predict(case))
+
+    T, y = filter_correct_answers(DataX, Datay, predictions)
+    resultado = algorithms.RxREN_4(ANN, U, T, y)
+
 def generate_random_ruleTree(height=2, counter=0):
     treeNode = Node.Node(featureIndex=random.randint(0,10), threshold=random.uniform(0.,10.), negation=bool(random.getrandbits(1)))
     if counter <= height:
@@ -160,6 +188,7 @@ def single_function_test():
 
 #algoritmo_1_KT()
 #algoritmo_2_MofN() #problema no tratamento de clusters
-algoritmo_3_RuleExtractLearning()
+#algoritmo_3_RuleExtractLearning()
+algoritmo_4_RxRen()
 #single_function_test()
 

@@ -30,39 +30,53 @@ def formSet(groups, error, alpha):
             Q.append(g)
     return Q
 
-#ideia: L, H, N -> H, H[0] = L, H[-1] = N
-def RxREN_4(NN, L, H, N, T, y, alpha = 0.1):
+#ideia: L, H, N -> H, L = H[0], N = H[-1] H = H/H[0] and H[-1]
+#T = exemplos que a rede neural classificou corretamente
+#y = resultado esperado
+#alpha = variavel do algoritmo, periodo de valor [0.1, 0.5]
+def RxREN_4(NN, H, T, y, alpha = 0.1):
+    L = H[0]
+    N = H[-1]
     B=[]
     R=[]
     C = y.unique()
+    input_size = len(L)
+    mapL = []
+    for i in range(input_size):
+        mapL.append(i)
     #Top block of code
     while True:
         B=[]
-        E = [[]] * len(L)
-        err = [0] * len(L)
-        for i, l in enumerate(L):
+        E = dict()
+        err = dict()
+        for l in mapL:
             temp_network = NN.prune([l])
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
                 if prediction != y[number]:
-                    E[i].append((l, y[number], prediction))
+                    item = (l, y[number], prediction)
+                    if l in E:
+                        E[l].append(item)
+                    else:
+                        E[l] = [item]
                     #set of incorrectly classified instances of ANN without li on set of correctly classified instances
-            err[i] = len(E[i])
+            err[l] = len(E[l])
 
-        m = len(L)
+        m = input_size
         theta = err.min()
         insig = Utils.Where_n(err, n=theta)
         for li in insig: 
             B.append(li)
 
         NN_ = NN.prune(B)
-        L_ = filter(lambda i: i not in B, L)
+        L_ = filter(lambda i: i not in B, mapL)
         Pacc = computeAccuracy(NN_)
         Nacc = computeAccuracy(NN)
         if Pacc >= (Nacc - 1):
             NN = NN_
-            L = L_
+            mapL = L_
+            input_size = len(mapL)
             #go to top code block
         else:
             break
@@ -74,7 +88,7 @@ def RxREN_4(NN, L, H, N, T, y, alpha = 0.1):
     maxMatrix = [[[] for k in range(m)] for j in range(len(C))]
     for i, l in enumerate(L):
         for k, c in enumerate(C):
-            g[i][k] = createGroup(E[i], c)
+            g[i][k] = createGroup(E[l], c)
 
             #alpha value [0.1,0.5]
             Q[i].append(formSet(g[i][k], err, alpha))
@@ -101,4 +115,4 @@ def RxREN_4(NN, L, H, N, T, y, alpha = 0.1):
             cn.append_right(ck)
             R.append_left(cn)
 
-return R
+    return R
