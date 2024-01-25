@@ -6,14 +6,13 @@ import time
 import Utils
 import Node
 import NeuralNetwork as NN
+import ModelMetrics as MM
 
 def computeAccuracy(network, dataset, C):
     predictions  = []
     for t in dataset:
         predictions.append(network.predict(t))
-    return Utils.Compute_Acc_naive(predictions, C)
-
-
+    return MM.Compute_Acc_naive(predictions, C)
 
 def createGroup(wrongInstances, targetClass):
     group = []
@@ -34,12 +33,11 @@ def formSet(groups, error, alpha):
 #T = exemplos que a rede neural classificou corretamente
 #y = resultado esperado
 #alpha = variavel do algoritmo, periodo de valor [0.1, 0.5]
-def RxREN_4(NN, H, T, y, alpha = 0.1):
+def RxREN_4(NN, H, T, y, C, alpha = 0.1):
     L = H[0]
     N = H[-1]
     B=[]
     R=[]
-    C = y.unique()
     input_size = len(L)
     mapL = []
     for i in range(input_size):
@@ -54,7 +52,7 @@ def RxREN_4(NN, H, T, y, alpha = 0.1):
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
-                if prediction != y[number]:
+                if np.argmax(prediction) != np.argmax(y[number]):
                     item = (l, y[number], prediction)
                     if l in E:
                         E[l].append(item)
@@ -63,20 +61,19 @@ def RxREN_4(NN, H, T, y, alpha = 0.1):
                     #set of incorrectly classified instances of ANN without li on set of correctly classified instances
             err[l] = len(E[l])
 
-        m = input_size
-        theta = err.min()
-        insig = Utils.Where_n(err, n=theta)
+        theta = min(err)
+        insig = MM.Where_n(err, n=theta)
         for li in insig: 
             B.append(li)
 
         NN_ = NN.prune(B)
         L_ = filter(lambda i: i not in B, mapL)
-        Pacc = computeAccuracy(NN_)
-        Nacc = computeAccuracy(NN)
+        Pacc = computeAccuracy(NN_, T, y)
+        Nacc = computeAccuracy(NN, T, y)
         if Pacc >= (Nacc - 1):
             NN = NN_
             mapL = L_
-            input_size = len(mapL)
+            input_size = len(list(mapL))
             #go to top code block
         else:
             break

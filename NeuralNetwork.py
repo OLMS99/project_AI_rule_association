@@ -63,7 +63,7 @@ class nnf():
     def set_acc_metric(self, metric):
         self.accuracy_metric = metric
 
-    def init_weights(self,debug=False):
+    def init_weights(self, debug=False):
 
         params = dict()
 
@@ -76,8 +76,8 @@ class nnf():
         params["output size"] = self.output_size
 
         for x in range(self.layer_num-1):
-            params["W"+str(x+1)] = np.random.randn(self.layer_sizes[x+1],self.layer_sizes[x])
-            params["b"+str(x+1)] = np.random.randn(self.layer_sizes[x+1],1)
+            params["W"+str(x+1)] = np.random.randn(self.layer_sizes[x+1], self.layer_sizes[x])
+            params["b"+str(x+1)] = np.random.randn(self.layer_sizes[x+1], 1)
             params["f"+str(x+1)] = self.act_func[x]
 
         if debug:
@@ -162,19 +162,19 @@ class nnf():
             if debug:
                 print("%s: %s" % (self.params[key], self.params[key].shape))
 
-    def prune(self, inputNeurons):
+    def prune(self, Neurons):
 
         target = self.get_params()
 
         if "W1" in self.params:
             weight_holder = target["W1"]
-            for idx in inputNeurons:
-                weight_holder[:,idx] = np.zeros(weight_holder.shape[1])
+            for idx in Neurons:
+                weight_holder[idx,:] = np.zeros(weight_holder.shape[1])
             target["W1"] = weight_holder
 
         if "b1" in self.params:
             bias_holder = target["b1"]
-            for idx in inputNeurons:
+            for idx in Neurons:
                 bias_holder[idx] = 0
             target["b1"] = bias_holder
 

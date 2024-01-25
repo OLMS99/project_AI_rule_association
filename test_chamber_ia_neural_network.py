@@ -25,15 +25,39 @@ seed = 1
 np.random.seed(seed)
 
 def filter_correct_answers(dataset, y, prediction):
-    np.append(ini_array, column_to_be_added, axis=1)
-    dataX = dataset[0].append(dataset[1], ignore_index=False)
-    datay = y[0].append(y[1], ignore_index=False)
-    predictions_cases = prediction[0].append(prediction[1], ignore_index=False)
+    tamLinha_X = dataset[0].shape[1]
+    tamLinha_y = y[0].shape[1]
+    tamLinha_pred = len(prediction[0][0])
 
-    comparison = datay == predictions_cases
+    #print("dataset 0 shape: (%d, %d)" % (dataset[0].shape[0], dataset[0].shape[1]))
+    #print("dataset 1 shape: (%d, %d)" % (dataset[1].shape[0], dataset[1].shape[1]))
+    #print("y 0 shape: (%d, %d)" % (y[0].shape[0], y[0].shape[1]))
+    #print("y 1 shape: (%d, %d)" % (y[1].shape[0], y[1].shape[1]))
+    #print("prediction 0 shape: %d" % (len(prediction[0])))
+    #print("prediction 1 shape: %d" % (len(prediction[1])))
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print(prediction[0])
+    #print(prediction[1])
 
-    returnDataX = dataX[comparison==True]
-    returnDatay = datay[comparison==True]
+    dataX = np.append(dataset[0], dataset[1]).reshape(-1, tamLinha_X)
+    datay = np.append(y[0], y[1]).reshape(-1, tamLinha_y)
+    predictions_cases = np.append(prediction[0], prediction[1]).reshape(-1, tamLinha_pred)
+
+    #print("size of dataX: %d" % (len(dataX)))
+    #print("size of datay: %d" % (len(datay)))
+    #print("size of predictions_cases: %d" % (len(predictions_cases)))
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print(predictions_cases)
+
+    comparison = []
+    for i in range(len(dataX)):
+        comparison.append(np.argmax(datay[i]) == np.argmax(predictions_cases[i]))
+
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(comparison)
+
+    returnDataX = dataX[comparison]
+    returnDatay = datay[comparison]
 
     return returnDataX, returnDatay
 
@@ -118,11 +142,16 @@ def algoritmo_4_RxRen():
     predictions = [[],[]]
     for case in DataX[0]:
         predictions[0].append(ANN.predict(case))
+    row_size = len(predictions[0][0])
+    predictions[0] = np.concatenate(predictions[0], axis=0).reshape(-1, row_size)
     for case in DataX[1]:
         predictions[1].append(ANN.predict(case))
+    row_size = len(predictions[1][0])
+    predictions[1] = np.concatenate(predictions[1], axis=0).reshape(-1, row_size)
 
     T, y = filter_correct_answers(DataX, Datay, predictions)
-    resultado = algorithms.RxREN_4(ANN, U, T, y)
+
+    resultado = algorithms.RxREN_4(ANN, U, T, y, C)
 
 def generate_random_ruleTree(height=2, counter=0):
     treeNode = Node.Node(featureIndex=random.randint(0,10), threshold=random.uniform(0.,10.), negation=bool(random.getrandbits(1)))
