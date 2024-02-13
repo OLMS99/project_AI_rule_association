@@ -53,8 +53,8 @@ def filter_correct_answers(dataset, y, prediction):
     for i in range(len(dataX)):
         comparison.append(np.argmax(datay[i]) == np.argmax(predictions_cases[i]))
 
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print(comparison)
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print(comparison)
 
     returnDataX = dataX[comparison]
     returnDatay = datay[comparison]

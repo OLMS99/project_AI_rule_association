@@ -21,6 +21,9 @@ def createGroup(wrongInstances, targetClass):
             group.append(e)
     return group
 
+def check_prediction(pred, y):
+    return np.argmax(np.round(pred)) == np.argmax(y)
+
 def formSet(groups, error, alpha):
     Q=[]
     for i, g in enumerate(groups):
@@ -36,6 +39,10 @@ def formSet(groups, error, alpha):
 def RxREN_4(NN, H, T, y, C, alpha = 0.1):
     L = H[0]
     N = H[-1]
+
+    H.remove(H[0])
+    H.remove(H[-1])
+
     B=[]
     R=[]
     input_size = len(L)
@@ -52,7 +59,7 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
-                if np.argmax(prediction) != np.argmax(y[number]):
+                if not check_prediction(prediction, y[number]):
                     item = (l, y[number], prediction)
                     if l in E:
                         E[l].append(item)
@@ -63,8 +70,8 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
 
         theta = min(err)
         insig = MM.Where_n(err, n=theta)
-        for li in insig: 
-            B.append(li)
+        for li in insig:
+            B.append(mapL[li])
 
         NN_ = NN.prune(B)
         L_ = filter(lambda i: i not in B, mapL)
@@ -95,7 +102,7 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
     for k in range(n):
         j = 1
         for i in m: 
-            for k, c in enumerate(C):
+            for idx, c in enumerate(C):
                 if len(g[i][k]) > alpha * err[i]:
                     #create node based on this expression
                     cnj = (data(L[i]) >= minMatrix[i][k]) and (data(L[i]) <= maxMatrix[i][k])
