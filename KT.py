@@ -12,6 +12,7 @@ import ModelMetrics
 import NeuralNetwork
 import Node
 import Utils
+
 #atribute->neuronios e seus resultados de saida (An)? ou antecedentes
 #como representar-> coordenadas? (camada, ordem)?
 

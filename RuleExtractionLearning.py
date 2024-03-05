@@ -203,7 +203,6 @@ def label_code_block(R, E, true_result, debug = False):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
     for c in C:
-        #TODO: trocar a folha por uma regra feita por um exemplo de uma classe
         R[c] = None
 
     Possibilities = possible_values(Ex)
