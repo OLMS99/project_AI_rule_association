@@ -22,7 +22,7 @@ def selectUnusedSubsets(attributes, size, threshold):
     final_selection = []
 
     for group in possible_sets:
-        if sum(group) >= threshold:
+        if sum(group) < threshold:
             final_selection.append(group)
 
     return final_selection

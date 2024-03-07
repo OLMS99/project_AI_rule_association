@@ -15,7 +15,7 @@ import time
 #OR-> left
 
 class Node:
-    def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value="no_input_value", negation = False):
+    def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value="no_output_value", negation = False):
 
         self.featureIndex = featureIndex
         self.layerIndex = layerIndex
@@ -68,7 +68,7 @@ class Node:
 
     def is_leaf_node(self, debug=False):
         statement_1 = self.num_sons() == 0
-        statement_2 = self.value != "no_input_value"
+        statement_2 = self.value != "no_output_value"
         if debug:
             print("é um nó folha?")
             print("tem nenhum sub-nó: %s"%(statement_1))
@@ -92,7 +92,6 @@ class Node:
             self.right.append_right(node)
         else:
             self.set_right(node)
-
 
     def probabilityPremise(self, P, B, y, j):
         pass
@@ -127,7 +126,6 @@ class Node:
             value = self.value,
             negation = self.negation)
 
-
     def copy_tree(self):
         copy_node = self.copy_node()
 
@@ -153,15 +151,15 @@ class Node:
             if self.right:
                 return self.right.step(input_values)
             else:
-                return "no_input_value"
+                return "no_output_value"
 
         else:
             if self.left:
                 return self.left.step(input_values)
             else:
-                return "no_input_value"
+                return "no_output_value"
 
-        return "no_input_value"
+        return "no_output_value"
 
     def getAntecedent(self, side = 0, origin = None, debug = False):
 

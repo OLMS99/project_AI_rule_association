@@ -24,6 +24,9 @@ import RuleExtractionLearning as REL
 seed = 1
 np.random.seed(seed)
 
+def Compute_Acc_naive(RuleTreeOutput, ModelOutput):
+    return
+
 def filter_correct_answers(dataset, y, prediction):
     tamLinha_X = dataset[0].shape[1]
     tamLinha_y = y[0].shape[1]
@@ -98,7 +101,7 @@ def Neurons_to_Lists(params):
     return U
 
 def algoritmo_1_KT():
-    ANN, _, _, _ = load_example()
+    ANN, _, DataX, DataY = load_example()
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
     result = KT.KT_1(U, debug=True)
@@ -109,6 +112,10 @@ def algoritmo_1_KT():
     else:
         print("no rule made")
 
+    for case in DataX[0]:
+        #tenta todas as arvores e ve os resultados
+        resposta = result.step(case)
+        #compare
 
 def algoritmo_2_MofN():
     ANN, _, DataX, Datay = load_example()
@@ -122,6 +129,11 @@ def algoritmo_2_MofN():
     else:
         print("no rule made")
 
+    for case in DataX[0]:
+        #tenta todas as arvores e ve os resultados
+        resposta = resultado.step(case)
+        #compare
+
 
 def algoritmo_3_RuleExtractLearning():
     ANN, C, DataX, _ = load_example()
@@ -132,6 +144,11 @@ def algoritmo_3_RuleExtractLearning():
             result[r].print()
         else:
             print("no rule made for %s" % (r))
+
+    for case in DataX[0]:
+        #tenta todas as arvores e ve qual da true e qual da false
+        resposta = resultado.step(case)
+        #compare
 
 def algoritmo_4_RxRen():
     ANN, C, DataX, Datay = load_example()
@@ -152,6 +169,10 @@ def algoritmo_4_RxRen():
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
     resultado = algorithms.RxREN_4(ANN, U, T, y, C)
+
+    for case in T:
+        resposta = resultado.step(case)
+        #compare
 
 def generate_random_ruleTree(height=2, counter=0):
     treeNode = Node.Node(featureIndex=random.randint(0,10), threshold=random.uniform(0.,10.), negation=bool(random.getrandbits(1)))
