@@ -170,7 +170,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
             print("dados do neuronio: %s" % (u))
             for gi in G[unit_index]:
                 print("gi antes de remover: %s" % (gi))
-                if influence(G[unit_index], gi, threshold):
+                if not influence(G[unit_index], gi, threshold):
                     remove(G[unit_index], gi)
 
                     params = model.get_params()
