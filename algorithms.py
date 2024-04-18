@@ -8,6 +8,9 @@ import Node
 import NeuralNetwork as NN
 import ModelMetrics as MM
 
+def data(value):
+    return 
+
 def computeAccuracy(network, dataset, C):
     predictions  = []
     for t in dataset:
