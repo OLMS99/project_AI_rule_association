@@ -10,12 +10,12 @@ def naive_loss(y, output):
     output_reshaped = output.reshape(-1,1)
     y_reshaped = y.reshape(-1,1)
     return output_reshaped - y_reshaped
-    
+
 def naive_loss_prime(y, output):
     output_reshaped = output.reshape(-1,1)
     y_reshaped = y.reshape(-1,1)
     return output_reshaped - y_reshaped
- 
+
 def mae(y_true, y_pred):
     diff = abs(y_true - y_pred)
     return np.mean(diff* diff)
@@ -23,10 +23,10 @@ def mae(y_true, y_pred):
 def mae_prime(y_true, y_pred):
     if y_pred >= y_true:
         return 1
-    
+
     if y_pred < t_true:
-        return -1    
-    
+        return -1
+
 def mse(y_true, y_pred):
     diff = y_true - y_pred
     return np.mean(diff* diff)

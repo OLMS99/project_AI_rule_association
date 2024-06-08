@@ -1,4 +1,4 @@
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_wine, load_diabetes
 import pandas as pd 
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -101,7 +101,7 @@ def Neurons_to_Lists(params):
     return U
 
 def algoritmo_1_KT():
-    ANN, _, DataX, DataY = load_example()
+    ANN, C, DataX, DataY = load_example()
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
     result = KT.KT_1(U, debug=True)
@@ -110,12 +110,9 @@ def algoritmo_1_KT():
         for r in result:
             r.print()
     else:
-        print("no rule made")
+        print("nenhuma regra feita")
 
-    for case in DataX[0]:
-        #tenta todas as arvores e ve os resultados
-        resposta = result.step(case)
-        #compare
+    
 
 def algoritmo_2_MofN():
     ANN, _, DataX, Datay = load_example()
@@ -236,9 +233,10 @@ def single_function_test():
     result = REL.filter(antecendents, random_deletion_a[2])
     print(len(result.getAntecedent()))
 
-#algoritmo_1_KT()
+algoritmo_1_KT()
 #algoritmo_2_MofN() #problema no tratamento de clusters
 #algoritmo_3_RuleExtractLearning()
-algoritmo_4_RxRen()
+#algoritmo_4_RxRen()
 #single_function_test()
+print("bateria de teste terminado")
 

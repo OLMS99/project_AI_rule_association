@@ -5,8 +5,10 @@ import time
 import Node
 
 class NodeMofN(Node):
-    def __init__(self, lista=[], threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
+    def __init__(self, lista=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
         self.set_comparisons = dict()
+        if lista is None:
+            lista = []
 
         for item in lista:#[(layerIndex,featureIndex),value]
             if not self.set_comparisons[item[0]]:
