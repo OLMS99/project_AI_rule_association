@@ -28,6 +28,11 @@ class Node:
         self.label = None
         self.value = value
 
+    def len():
+        len_left = self.left.len() if self.left is not None else 0
+        len_right = self.right.len() if self.right is not None else 0
+        return 1 + len_left + len_right
+
     def num_sons(self):
         return int(self.left is not None) + int(self.right is not None)
 
@@ -241,7 +246,7 @@ class Node:
 
     def print(self):
         if self.is_leaf_node():
-            print("folha: %s" % (self.value))
+            print("folha: ", self.value)
             return
 
         message =  "neuronio avaliado: "

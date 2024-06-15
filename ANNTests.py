@@ -1,4 +1,4 @@
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_wine, load_diabetes
 import pandas as pd 
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -67,11 +67,57 @@ def teste_iris(seed):
 
     Iris_dnn = NN.nnf([4, 5, 3],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
     Iris_dnn.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
-                
+
     y_pred_train = np.zeros(shape=(train_X.shape[0], Iris_dnn.output_size))
     for i, sample in enumerate(train_X):
-        y_pred = Iris_dnn.predict(sample)
-            
+        y_pred_train[i] = Iris_dnn.predict(sample)
+
     y_pred_valid = np.zeros(shape=(valid_X.shape[0], Iris_dnn.output_size))
     for i, sample in enumerate(valid_X):
-        y_pred = Iris_dnn.predict(sample)
+        y_pred_valid[i] = Iris_dnn.predict(sample)
+
+def teste_diabetes(seed):
+    dataset = load_diabetes()
+    data = dataset.data
+
+    lb = preprocessing.LabelBinarizer()
+    target = lb.fit_transform(dataset.target)
+
+    split_train_size = 0.7
+    split_test_size = 1 - split_train_size
+
+    train_X,valid_X,train_y,valid_y = train_test_split(data, target, test_size=split_test_size, random_state=13)
+
+    Diabetes_dnn = NN.nnf([10, 11, 1],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+    Diabetes_dnn.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
+
+    y_pred_train = np.zeros(shape=(train_X.shape[0], Diabetes_dnn.output_size))
+    for i, sample in enumerate(train_X):
+        y_pred_train[i] = Diabetes_dnn.predict(sample)
+
+    y_pred_valid = np.zeros(shape=(valid_X.shape[0], Diabetes_dnn.output_size))
+    for i, sample in enumerate(valid_X):
+        y_pred_valid[i] = Diabetes_dnn.predict(sample)
+
+def teste_wine(seed):
+    dataset = load_wine()
+    data = dataset.data
+
+    lb = preprocessing.LabelBinarizer()
+    target = lb.fit_transform(dataset.target)
+
+    split_train_size = 0.7
+    split_test_size = 1 - split_train_size
+
+    train_X,valid_X,train_y,valid_y = train_test_split(data, target, test_size=split_test_size, random_state=13)
+
+    Wine_dnn = NN.nnf([13, 14, 3],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+    Wine_dnn.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
+
+    y_pred_train = np.zeros(shape=(train_X.shape[0], Wine_dnn.output_size))
+    for i, sample in enumerate(train_X):
+        y_pred_train[i] = Wine_dnn.predict(sample)
+
+    y_pred_valid = np.zeros(shape=(valid_X.shape[0], Wine_dnn.output_size))
+    for i, sample in enumerate(valid_X):
+        y_pred_valid[i] = Wine_dnn.predict(sample)
