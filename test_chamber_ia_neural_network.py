@@ -112,8 +112,6 @@ def algoritmo_1_KT():
     else:
         print("nenhuma regra feita")
 
-    
-
 def algoritmo_2_MofN():
     ANN, _, DataX, Datay = load_example()
     params = ANN.get_params()

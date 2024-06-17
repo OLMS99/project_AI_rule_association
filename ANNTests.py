@@ -1,4 +1,4 @@
-from sklearn.datasets import load_iris, load_wine, load_diabetes
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 import pandas as pd 
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -76,8 +76,8 @@ def teste_iris(seed):
     for i, sample in enumerate(valid_X):
         y_pred_valid[i] = Iris_dnn.predict(sample)
 
-def teste_diabetes(seed):
-    dataset = load_diabetes()
+def teste_Winsconsin(seed):
+    dataset = load_breast_cancer()
     data = dataset.data
 
     lb = preprocessing.LabelBinarizer()
@@ -88,16 +88,16 @@ def teste_diabetes(seed):
 
     train_X,valid_X,train_y,valid_y = train_test_split(data, target, test_size=split_test_size, random_state=13)
 
-    Diabetes_dnn = NN.nnf([10, 11, 1],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
-    Diabetes_dnn.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
+    Wisconsin_dnn = NN.nnf([30, 31, 2],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+    Wisconsin_dnn.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
 
-    y_pred_train = np.zeros(shape=(train_X.shape[0], Diabetes_dnn.output_size))
+    y_pred_train = np.zeros(shape=(train_X.shape[0], Wisconsin_dnn.output_size))
     for i, sample in enumerate(train_X):
-        y_pred_train[i] = Diabetes_dnn.predict(sample)
+        y_pred_train[i] = Wisconsin_dnn.predict(sample)
 
-    y_pred_valid = np.zeros(shape=(valid_X.shape[0], Diabetes_dnn.output_size))
+    y_pred_valid = np.zeros(shape=(valid_X.shape[0], Wisconsin_dnn.output_size))
     for i, sample in enumerate(valid_X):
-        y_pred_valid[i] = Diabetes_dnn.predict(sample)
+        y_pred_valid[i] = Wisconsin_dnn.predict(sample)
 
 def teste_wine(seed):
     dataset = load_wine()
