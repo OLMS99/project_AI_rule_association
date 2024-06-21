@@ -28,6 +28,9 @@ class Node:
         self.label = None
         self.value = value
 
+    def getInputNeuron():
+        return [self.layerIndex, self.featureIndex]
+
     def len():
         len_left = self.left.len() if self.left is not None else 0
         len_right = self.right.len() if self.right is not None else 0
