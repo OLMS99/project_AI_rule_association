@@ -41,7 +41,7 @@ def cluster_distance(cluster_members):
 
 def cluster_algorithm(networkUnitWeights):
     nSamples = len(networkUnitWeights)
-    cluster_members = dict([(i, [networkUnitWeights[i]]) for i in range(nSamples)])
+    cluster_members = {i : [networkUnitWeights[i]] for i in range(nSamples)}
 
     Z = np.zeros(shape = (nSamples-1, 5)) #c1, c2, distance, count, sum
 
@@ -61,15 +61,17 @@ def cluster_algorithm(networkUnitWeights):
         Z[i, 3] = len(cluster_members[x]) + len(cluster_members[y])
         Z[i, 4] = sum(cluster_members[x]) + sum(cluster_members[y])
 
-
-        cluster_members[i + nSamples] = cluster_members[x] + cluster_members[y]
+        novaLista = []
+        novaLista.extend(cluster_members[x])
+        novaLista.extend(cluster_members[y])
+        cluster_members[i + nSamples] = novaLista
 
         cluster_members[x] = [float('inf')]
         cluster_members[y] = [float('inf')]
 
-    return Z
+    return Z, cluster_members
 
-def influence(clusteredNetwork, cluster, value):
+def influence(cluster, value):
     #clusterNetwork, matrix cada linha tem cluster1, cluster2, distancia, tamanho do super cluster, soma dos valores do super cluster
     #cluster, peso(s) sendo avaliado, uma linha da matrix
     #value, threshold, bias do neuronio que dos pesos originou o cluster analisado
@@ -104,29 +106,16 @@ def getweightIndexes(clusterNetwork, numWeights):
 
     return weightIndexes
 
-def getPossibleClusters(clusteredNetwork, cluster, minValue, maxValue, result=[]):
-
-    if cluster[2] != float('inf') and cluster[4] >= minValue and cluster[4] <= maxValue:
-        result.append(cluster)
-
-        #get cluster1 and cluster2
-
-        cluster1 = clusteredNetwork[np.where(clusteredNetwork[:, 0] == cluster[0] and clusteredNetwork[:, 2] != float('inf'))]
-        cluster2 = clusteredNetwork[np.where(clusteredNetwork[:, 1] == cluster[1] and clusteredNetwork[:, 2] != float('inf'))]
-
-        if len(cluster1) > 0:
-            getPossibleClusters(clusteredNetwork, cluster1[0], minValue, maxValue, result=result)
-        if len(cluster2) > 0:
-            getPossibleClusters(clusteredNetwork, cluster2[0], minValue, maxValue, result=result)
-
+def getPossibleClusters(clusteredNetwork, minValue, maxValue):
+    mascara = (clusteredNetwork[:,2]!=float('inf')) & (clusteredNetwork[:,4] >= minValue) & (clusteredNetwork[:,4] <= maxValue)
+    result = clusteredNetwork[mascara]
     return result
 
-def search_set_Au(clusteredNetwork, cluster):
-    maxValue = cluster[3]
+def search_set_Au(clusternetwork, clusterValue):
+    giSize = clusterValue[3]
+    AuSetsMask = (clusternetwork[:,3] == giSize)
 
-    possible_values = getPossibleClusters(clusteredNetwork, cluster, 0, maxValue)
-
-    return possible_values
+    return clusternetwork[AuSetsMask]
 
 def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
     if idx < len(premisses):
@@ -143,9 +132,6 @@ def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
 
         return cur_node
 
-#todo: modificar o backwards_propagation para otimizar o bias das unidades
-#faça mais dos parametros para NeuralNetwork para fazer a atualização dos pesos e das bias opcional
-#reescreva esta para chamá-la e modifica os bias de U com o dicionário change
 def optimize(U, model, DataX, Datay, debug = False):
 
 
@@ -157,33 +143,34 @@ def optimize(U, model, DataX, Datay, debug = False):
             neuron[1] = params["b"+str(layer_idx+1)][neuron_idx]
 
 def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
-    R=[]
-    K=dict()
-    G=dict()
-
+    R = []
+    K = dict()
+    G = dict()
+    membrosG = dict()
     for layer_index, layer in enumerate(U):
         for unit_index, u in enumerate(layer):
-            G[unit_index]= cluster_algorithm(u[0])
-            K[unit_index]= []
+            G[unit_index], membrosG[unit_index] = cluster_algorithm(u[0])
+            K[unit_index] = []
             threshold = u[1] #bias
 
             print("dados do neuronio: %s" % (u))
             for gi in G[unit_index]:
                 print("gi antes de remover: %s" % (gi))
-                if not influence(G[unit_index], gi, threshold):
+                if not influence(gi, threshold):
                     remove(G[unit_index], gi)
 
                     params = model.get_params()
                     weight_idx = getweightIndexes(G[unit_index], len(u[0]))
                     for w in weight_idx:
-                        params["W"+str(layer_index+1)][unit_index, int(w):int(w+1)] = 0.0
+                        params["W"+str(layer_index+1)][unit_index, int(w)] = 0.0
                     model.load_params(params)
 
+            #limpeza
+            G[unit_index] = G[unit_index][G[unit_index][:,2]!=float('inf')]
+
             for gi in G[unit_index]:
-                if gi[3] == 0:
-                    ki = gi[4]
-                else:
-                    ki = (gi[4]/gi[3])
+                razao = 1 if gi[3] == 0 else gi[3]
+                ki = gi[4]/razao
                 print("gi depois de remover: %s" % (gi))
                 print("ki: %s" % (ki))
                 K[unit_index].append(ki)#or
@@ -200,9 +187,8 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
 
                 if len(Au) == 0:
                     Au = [0]*len(K[u_idx])
-                print("Au: %s" % (Au))
-                print("Ku: %s" % (K[u_idx]))
-
+                    print("Au: %s" % (Au))
+                    print("Ku: %s" % (K[u_idx]))
                 if np.asarray(Au).dot(K[u_idx]) > u[1]:
                     for au in Au:
                         leaf_value = u

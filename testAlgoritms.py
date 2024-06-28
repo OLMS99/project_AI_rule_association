@@ -257,7 +257,7 @@ def load_iris_cobaia(random_state, split_train_size=0.7):
     return classes, train_X, valid_X, train_y, valid_y
 
 def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, nLayers = 1):
-    regras=[nEntrada, nEntrada+1, 2*nEntrada-1, 2*nEntrada, nSaida, nSaida+1, 2*nSaida-1, 2*nSaida, (nEntrada+nSaida)/2,(nEntrada*2+nSaida)/3]
+    regras=[nEntrada, nEntrada+1, 2*nEntrada-1, 2*nEntrada, nSaida, nSaida+1, 2*nSaida-1, 2*nSaida, (nEntrada+nSaida)/2,(nEntrada*2/3+nSaida)]
     results = []
     for caso in regras:
 
@@ -267,7 +267,7 @@ def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, nLa
             ordem.append(caso)
         ordem.append(nSaida)
 
-        model = NN.nnf(ordem,[ACT.sigmoid]*nLayers, Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+        model = NN.nnf(ordem, [ACT.sigmoid]*(nLayers+2), Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
         model.train(x_train, y_train, x_valid, y_valid, epochs=1000, learning_rate=0.01)
 
         params = model.get_params()
@@ -386,8 +386,8 @@ def main_test():
 
     return
 
-algoritmo_1_KT()
-#algoritmo_2_MofN() #problema no tratamento de clusters
+#algoritmo_1_KT()
+algoritmo_2_MofN() #problema no tratamento de clusters
 #algoritmo_3_RuleExtractLearning()
 #algoritmo_4_RxRen()
 #single_function_test()
