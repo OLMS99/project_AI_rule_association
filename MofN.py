@@ -1,4 +1,5 @@
 import Node
+import NodeMofN
 
 import random
 import math
@@ -117,6 +118,14 @@ def search_set_Au(clusternetwork, clusterValue):
 
     return clusternetwork[AuSetsMask]
 
+def makerule(neuron_idx, val, premisses, leaf_value, ruleSet):
+    newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
+    #newRule = NodeMofN.NodeMofN(lista=neuron_idx, threshold=val, comparison="=", negation = False)
+    #folha = Node.Node(value = leaf_value)
+    #newRule.append_right(folha)
+    ruleSet.append(newRule)#or
+
+#trocar pelo NodeMofN e deletar gen_tree
 def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
     if idx < len(premisses):
         cur_node = Node.Node(featureIndex = neuron_idx[1], layerIndex = neuron_idx[0], threshold=val, comparison="=", negation = False)
@@ -191,8 +200,6 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     print("Ku: %s" % (K[u_idx]))
                 if np.asarray(Au).dot(K[u_idx]) > u[1]:
                     for au in Au:
-                        leaf_value = u
-                        tree = gen_tree([layer_idx, u_idx],au, G[u_idx], leaf_value)
-                        R.append(tree)#or
+                        makerule([layer_idx, u_idx], ai, G[u_idx], u, R)
 
     return R

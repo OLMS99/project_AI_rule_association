@@ -80,7 +80,7 @@ class Node:
         if debug:
             print("é um nó folha?")
             print("tem nenhum sub-nó: %s"%(statement_1))
-            print("tem um valor diferente de 'no_input_value': %s"%(statement_2))
+            print("tem um valor diferente de 'no_output_value': %s"%(statement_2))
         return statement_1 and statement_2
 
     def set_left(self, node):
@@ -119,9 +119,7 @@ class Node:
         return False
 
     def equal_premisse(self, premisse):
-        if self.equal_antecedent(premisse) or self.equal_consequent(premisse):
-            return True
-        return False
+        return self.equal_antecedent(premisse) or self.equal_consequent(premisse)
 
     def get_node_info(self):
         return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)

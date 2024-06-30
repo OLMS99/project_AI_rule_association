@@ -60,7 +60,7 @@ class NodeMofN(Node):
         if self.negation:
             message += "NOT "
 
-        message += self.comparison
+        message += self.comparison + " " + self.threshold + " do"
 
         massage += " conjunto de comparações possiveis do nó:"
         for neuron, vals in self.set_comparisons.items():
