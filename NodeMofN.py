@@ -2,8 +2,7 @@ import random
 import math
 import numpy as np
 import time
-import Node
-
+from Node import Node
 class NodeMofN(Node):
     def __init__(self, lista=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
         self.set_comparisons = dict()

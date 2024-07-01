@@ -1,10 +1,7 @@
 import Node
 import NodeMofN
 
-import random
-import math
 import numpy as np
-import time
 
 def distance(data1, data2):
     return abs(sum(data1) - sum(data2))
@@ -114,9 +111,8 @@ def getPossibleClusters(clusteredNetwork, minValue, maxValue):
 
 def search_set_Au(clusternetwork, clusterValue):
     giSize = clusterValue[3]
-    AuSetsMask = (clusternetwork[:,3] == giSize)
-
-    return clusternetwork[AuSetsMask]
+    AuSetsMask = (clusternetwork[:,3] <= giSize)
+    return clusternetwork[AuSetsMask][:,3]
 
 def makerule(neuron_idx, val, premisses, leaf_value, ruleSet):
     newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
@@ -156,50 +152,56 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     K = dict()
     G = dict()
     membrosG = dict()
+
     for layer_index, layer in enumerate(U):
         for unit_index, u in enumerate(layer):
-            G[unit_index], membrosG[unit_index] = cluster_algorithm(u[0])
-            K[unit_index] = []
+            neuron_coord = (layer_index, unit_index)
+            G[neuron_coord], membrosG[neuron_coord] = cluster_algorithm(u[0])
+            K[neuron_coord] = []
             threshold = u[1] #bias
 
             print("dados do neuronio: %s" % (u))
-            for gi in G[unit_index]:
+            for gi in G[neuron_coord]:
                 print("gi antes de remover: %s" % (gi))
                 if not influence(gi, threshold):
-                    remove(G[unit_index], gi)
+                    remove(G[neuron_coord], gi)
 
                     params = model.get_params()
-                    weight_idx = getweightIndexes(G[unit_index], len(u[0]))
+                    weight_idx = getweightIndexes(G[neuron_coord], len(u[0]))
                     for w in weight_idx:
-                        params["W"+str(layer_index+1)][unit_index, int(w)] = 0.0
+                        params["W"+str(layer_index+1)][neuron_coord, int(w)] = 0.0
                     model.load_params(params)
 
             #limpeza
-            G[unit_index] = G[unit_index][G[unit_index][:,2]!=float('inf')]
+            G[neuron_coord] = G[neuron_coord][G[neuron_coord][:,2]!=float('inf')]
 
-            for gi in G[unit_index]:
+            for gi in G[neuron_coord]:
                 razao = 1 if gi[3] == 0 else gi[3]
                 ki = gi[4]/razao
                 print("gi depois de remover: %s" % (gi))
                 print("ki: %s" % (ki))
-                K[unit_index].append(ki)#or
+                K[neuron_coord].append(ki)#or
 
     #Handing the constant G, using back propagation algorithm to optimize the bias of u to Ou
     optimize(U, model, DataX, Datay)
 
     for layer_idx, layer in enumerate(U):
         for u_idx, u in enumerate(layer):
-            for gi in G[u_idx]:
-                Au = search_set_Au(G[u_idx], gi)
-                print("Au: %s" % (Au))
-                print("Ku: %s" % (K[u_idx]))
+            neuron_coord = (layer_idx, u_idx)
+            for gi in G[neuron_coord]:
+                Au = search_set_Au(G[neuron_coord], gi)
+                if debug:
+                    print("Au: %s" % (Au))
+                    print("Ku: %s" % (K[neuron_coord]))
 
                 if len(Au) == 0:
-                    Au = [0]*len(K[u_idx])
-                    print("Au: %s" % (Au))
-                    print("Ku: %s" % (K[u_idx]))
-                if np.asarray(Au).dot(K[u_idx]) > u[1]:
+                    Au = [0]*len(K[neuron_coord])
+                    if debug:
+                        print("Au: %s" % (Au))
+                        print("Ku: %s" % (K[neuron_coord]))
+
+                if np.asarray(Au).dot(K[neuron_coord]) > u[1]:
                     for au in Au:
-                        makerule([layer_idx, u_idx], ai, G[u_idx], u, R)
+                        makerule([layer_idx, u_idx], ai, G[neuron_coord], u, R)
 
     return R
