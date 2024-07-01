@@ -122,9 +122,9 @@ def algoritmo_2_MofN():
     else:
         print("no rule made")
 
-    for case in DataX[0]:
+    #for case in DataX[0]:
         #tenta todas as arvores e ve os resultados
-        resposta = resultado.step(case)
+        #resposta = result.step(case)
         #compare
 
 

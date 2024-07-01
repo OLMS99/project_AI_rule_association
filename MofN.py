@@ -67,7 +67,7 @@ def cluster_algorithm(networkUnitWeights):
         cluster_members[x] = [float('inf')]
         cluster_members[y] = [float('inf')]
 
-    return Z, cluster_members
+    return Z
 
 def influence(cluster, value):
     #clusterNetwork, matrix cada linha tem cluster1, cluster2, distancia, tamanho do super cluster, soma dos valores do super cluster
@@ -114,11 +114,13 @@ def search_set_Au(clusternetwork, clusterValue):
     AuSetsMask = (clusternetwork[:,3] <= giSize)
     return clusternetwork[AuSetsMask][:,3]
 
-def makerule(neuron_idx, val, premisses, leaf_value, ruleSet):
-    newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
-    #newRule = NodeMofN.NodeMofN(lista=neuron_idx, threshold=val, comparison="=", negation = False)
-    #folha = Node.Node(value = leaf_value)
-    #newRule.append_right(folha)
+def makerule(val, premisses, leaf_value, ruleSet):
+    #newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
+    #premisses -> gi
+    #val -> ai
+    newRule = NodeMofN.NodeMofN(lista=premisses, threshold=val, comparison="=", negation = False)
+    folha = Node.Node(value = leaf_value)
+    newRule.append_right(folha)
     ruleSet.append(newRule)#or
 
 #trocar pelo NodeMofN e deletar gen_tree
@@ -139,7 +141,6 @@ def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
 
 def optimize(U, model, DataX, Datay, debug = False):
 
-
     model.train(DataX[0], Datay[0], DataX[1], Datay[1], update_weights = False, debug = debug)
     params = model.get_params()
 
@@ -149,15 +150,20 @@ def optimize(U, model, DataX, Datay, debug = False):
 
 def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     R = []
+
     K = dict()
     G = dict()
-    membrosG = dict()
+    A = dict()
+
+    Backup = dict()
 
     for layer_index, layer in enumerate(U):
         for unit_index, u in enumerate(layer):
             neuron_coord = (layer_index, unit_index)
-            G[neuron_coord], membrosG[neuron_coord] = cluster_algorithm(u[0])
+            G[neuron_coord] = cluster_algorithm(u[0])
+            Backup[neuron_coord] = G[neuron_coord].copy()
             K[neuron_coord] = []
+            A[neuron_coord] = []
             threshold = u[1] #bias
 
             print("dados do neuronio: %s" % (u))
@@ -179,7 +185,13 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                 razao = 1 if gi[3] == 0 else gi[3]
                 ki = gi[4]/razao
                 print("gi depois de remover: %s" % (gi))
-                print("ki: %s" % (ki))
+                Au = search_set_Au(G[neuron_coord], gi)
+                if len(Au) == 0:
+                    Au = [0]*len(K[neuron_coord])
+                if debug:
+                    print("Au: %s" % (Au))
+                    print("Ku: %s" % (K[neuron_coord]))
+                A[neuron_coord].append(Au)
                 K[neuron_coord].append(ki)#or
 
     #Handing the constant G, using back propagation algorithm to optimize the bias of u to Ou
@@ -189,19 +201,11 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
         for u_idx, u in enumerate(layer):
             neuron_coord = (layer_idx, u_idx)
             for gi in G[neuron_coord]:
-                Au = search_set_Au(G[neuron_coord], gi)
                 if debug:
-                    print("Au: %s" % (Au))
-                    print("Ku: %s" % (K[neuron_coord]))
-
-                if len(Au) == 0:
-                    Au = [0]*len(K[neuron_coord])
-                    if debug:
-                        print("Au: %s" % (Au))
-                        print("Ku: %s" % (K[neuron_coord]))
-
-                if np.asarray(Au).dot(K[neuron_coord]) > u[1]:
-                    for au in Au:
-                        makerule([layer_idx, u_idx], ai, G[neuron_coord], u, R)
+                    print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
+                    print("Ou: %s" % (u[1]))
+                for ai in Au:
+                    if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
+                        makerule(ai, gi, neuron_coord, R)
 
     return R

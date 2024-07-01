@@ -9,7 +9,8 @@ class NodeMofN(Node):
         if lista is None:
             lista = []
 
-        for item in lista:#[(layerIndex,featureIndex),value]
+        for item in lista:  #ai -> valor de criterios mínimos
+                            #-> premissas (pegar os indices para comparar)
             if not self.set_comparisons[item[0]]:
                 self.set_comparisons[item[0]] = set(item[1])
             else:
