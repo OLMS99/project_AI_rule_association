@@ -118,7 +118,10 @@ def makerule(val, premisses, leaf_value, ruleSet):
     #newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
     #premisses -> gi
     #val -> ai
-    newRule = NodeMofN.NodeMofN(lista=premisses, threshold=val, comparison="=", negation = False)
+    print(val)
+    print(premisses)
+
+    newRule = NodeMofN.NodeMofN(lista=[[premisses, val]], comparison="=", negation = False)
     folha = Node.Node(value = leaf_value)
     newRule.append_right(folha)
     ruleSet.append(newRule)#or
@@ -206,6 +209,6 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     print("Ou: %s" % (u[1]))
                 for ai in Au:
                     if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
-                        makerule(ai, gi, neuron_coord, R)
+                        makerule(np.asarray(ai), gi, (layer_idx + 1, u_idx), R)
 
     return R

@@ -5,66 +5,34 @@ import time
 from Node import Node
 class NodeMofN(Node):
     def __init__(self, lista=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
-        self.set_comparisons = dict()
-        if lista is None:
-            lista = []
+        self.set_comparisons = []
 
-        for item in lista:  #ai -> valor de criterios mínimos
-                            #-> premissas (pegar os indices para comparar)
-            if not self.set_comparisons[item[0]]:
-                self.set_comparisons[item[0]] = set(item[1])
-            else:
-                self.set_comparisons[item[0]].update(item[1])
+        for item in lista:
+            self.set_comparisons.append(item)
 
         super().__init__(threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
 
     def eval(self, value):
-        count = 0
+        result = False
 
-        for idx, val in value:
-            if isinstance(val, list):
-                for feature_idx, feature_val in val:
-                    if feature_val in self.set_comparisons[(idx,feature_idx)]:
-                        count+=1
-            else:
-                if val in self.set_comparisons[(idx)]:
-                    count+=1
+        for item in self.set_comparisons:
+            M = item[0]
+            N = item[1]
+            for feature, input_val in zip(N, value):
+                count = 0
+                count = count + 1 if feature == input_val else 0
 
-        if comparison == "=":
-            initial_pass = count == self.threshold
+            result  = result or count >= N
 
-        elif comparison == ">":
-            initial_pass = count > self.threshold
+        return result
 
-        elif comparison == "<":
-            initial_pass = count < self.threshold
-
-        elif comparison == ">=":
-            initial_pass = count >= self.threshold
-
-        elif comparison == "<=":
-            initial_pass = count <= self.threshold
-
-        elif comparison == "!=":
-            initial_pass = count != self.threshold
-
-        if negation:
-            initial_pass = not initial_pass
-
-        return initial_pass
-
-    def print():
+    def print(self):
 
         message =  "avaliação MofN: \n"
 
-        if self.negation:
-            message += "NOT "
-
-        message += self.comparison + " " + self.threshold + " do"
-
-        massage += " conjunto de comparações possiveis do nó:"
-        for neuron, vals in self.set_comparisons.items():
-            message += "\nneuronio {0} = {1}".format(neuron,vals)
+        if self.set_comparisons is not None:
+            for MofN in self.set_comparisons:
+                message += "%s of (%s) \n" % (MofN[1], MofN[0])
 
         print(message)
 
