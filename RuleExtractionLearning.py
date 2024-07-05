@@ -24,7 +24,7 @@ def covered(rule, example, c, debug=False):
     result = classify(rule, example)
 
     if debug:
-        print("{0} == {1}".format(c,result))
+        print("{0} == {1}".format(c, result))
 
     if result == "no_rule_here":
         return False
@@ -178,7 +178,7 @@ def label_code_block(R, E, true_result, debug = False):
         for ri in ant_r:
             r_ = filter(ant_r, ri[2])
             if debug:
-                if r:
+                if r_:
                     print("filtered rule made for %s:"%(true_result))
                 else:
                     print("rule filtered entirely")
@@ -218,8 +218,10 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         print("numero de labels: %d" % (numClasses))
         for idx, c in R.items():
             print("label: {}".format(idx))
+            print("class: {}".format(C[idx]))
             print(c)
 
+    #critério de parada escolhido: repete com o numero de labels e gere [n-ésima volta * quantidade total de labels]
     while voltas < numClasses:
         if debug:
             print("numero de voltas: %d" % (voltas))
@@ -231,6 +233,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
+            #label_result = C[model_result]
             inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
 
             Sum_IO.append(inputToOutput[np.argmax(model_result)])

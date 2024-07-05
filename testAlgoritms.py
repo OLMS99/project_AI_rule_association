@@ -138,9 +138,9 @@ def algoritmo_3_RuleExtractLearning():
         else:
             print("no rule made for %s" % (r))
 
-    for case in DataX[0]:
+    #for case in DataX[0]:
         #tenta todas as arvores e ve qual da true e qual da false
-        resposta = resultado.step(case)
+        #resposta = result.step(case)
         #compare
 
 def algoritmo_4_RxRen():
@@ -387,8 +387,8 @@ def main_test():
     return
 
 #algoritmo_1_KT()
-algoritmo_2_MofN() #problema no tratamento de clusters
-#algoritmo_3_RuleExtractLearning()
+#algoritmo_2_MofN()
+algoritmo_3_RuleExtractLearning()
 #algoritmo_4_RxRen()
 #single_function_test()
 print("bateria de teste terminado")
