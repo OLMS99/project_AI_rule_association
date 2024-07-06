@@ -24,7 +24,7 @@ def covered(rule, example, c, debug=False):
     result = classify(rule, example)
 
     if debug:
-        print("{0} == {1}".format(c, result))
+        print("checking cover [expected result == given result]: {0} == {1}".format(c, result))
 
     if result == "no_rule_here":
         return False
@@ -150,7 +150,6 @@ def label_code_block(R, E, true_result, debug = False):
 
     is_covered = covered(R, E, true_result, debug=debug)
     if debug:
-        print(true_result)
         if is_covered:
             print("regra atual cobre exemplo")
         else:
@@ -179,7 +178,7 @@ def label_code_block(R, E, true_result, debug = False):
             r_ = filter(ant_r, ri[2])
             if debug:
                 if r_:
-                    print("filtered rule made for %s:"%(true_result))
+                    print("filtered rule made for %s"%(true_result))
                 else:
                     print("rule filtered entirely")
 

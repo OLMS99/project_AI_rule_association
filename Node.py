@@ -239,7 +239,10 @@ class Node:
 
         return leftHeight - rightHeight
 
-    def getConsequent(self, consequent=[]):
+    def getConsequent(self, consequent=None):
+        if consequent is None:
+            consequent = []
+
         if self.is_leaf_node:
             consequent.append(self.value)
         else:
@@ -266,7 +269,7 @@ class Node:
 
         if self.featureIndex:
             message += str(" neuronio: {}").format(self.featureIndex)
-            message += str("\nneuronio {0} {1}").format(self.comparison, str(self.threshold))
+            message += str("\nvalor do neuronio {0} {1}").format(self.comparison, str(self.threshold))
 
         print(message)
 
