@@ -154,6 +154,7 @@ def algoritmo_4_RxRen():
         predictions[0].append(ANN.predict(case))
     row_size = len(predictions[0][0])
     predictions[0] = np.concatenate(predictions[0], axis=0).reshape(-1, row_size)
+
     for case in DataX[1]:
         predictions[1].append(ANN.predict(case))
     row_size = len(predictions[1][0])
@@ -161,7 +162,7 @@ def algoritmo_4_RxRen():
 
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
-    resultado = algorithms.RxREN_4(ANN, U, T, y, C)
+    resultado =RxREN.RxREN_4(ANN, U, T, y, C)
 
     for case in T:
         resposta = resultado.step(case)
@@ -388,7 +389,7 @@ def main_test():
 
 #algoritmo_1_KT()
 #algoritmo_2_MofN()
-algoritmo_3_RuleExtractLearning()
-#algoritmo_4_RxRen()
+#algoritmo_3_RuleExtractLearning()
+algoritmo_4_RxRen()
 #single_function_test()
 print("bateria de teste terminado")

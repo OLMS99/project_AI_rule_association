@@ -162,21 +162,16 @@ class nnf():
             if debug:
                 print("%s: %s" % (self.params[key], self.params[key].shape))
 
-    def prune(self, Neurons):
+    def prune_input(self, Neurons):
 
         target = self.get_params()
 
         if "W1" in self.params:
             weight_holder = target["W1"]
             for idx in Neurons:
-                weight_holder[idx,:] = np.zeros(weight_holder.shape[1])
+                print(idx)
+                weight_holder[:, idx] = np.zeros(weight_holder.shape[0])
             target["W1"] = weight_holder
-
-        if "b1" in self.params:
-            bias_holder = target["b1"]
-            for idx in Neurons:
-                bias_holder[idx] = 0
-            target["b1"] = bias_holder
 
         return nnf(params = target)
 

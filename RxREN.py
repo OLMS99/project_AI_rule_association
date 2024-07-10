@@ -1,10 +1,8 @@
-import random
-import math
 import numpy as np
-import time
 
 import Utils
 import Node
+
 import NeuralNetwork as NN
 import ModelMetrics as MM
 
@@ -46,19 +44,23 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
     H.remove(H[0])
     H.remove(H[-1])
 
-    B=[]
-    R=[]
-    input_size = len(L)
+    B = []
+    R = []
+
+    input_size = len(L[0])
     mapL = []
     for i in range(input_size):
         mapL.append(i)
+
     #Top block of code
     while True:
-        B=[]
+        B = []
         E = dict()
         err = dict()
+
         for l in mapL:
-            temp_network = NN.prune([l])
+            temp_network = NN.prune_input([l])
+
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
@@ -68,7 +70,8 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
                         E[l].append(item)
                     else:
                         E[l] = [item]
-                    #set of incorrectly classified instances of ANN without li on set of correctly classified instances
+
+            #set of incorrectly classified instances of ANN without li on set of correctly classified instances
             err[l] = len(E[l])
 
         theta = min(err)
@@ -76,7 +79,7 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
         for li in insig:
             B.append(mapL[li])
 
-        NN_ = NN.prune(B)
+        NN_ = NN.prune_input(B)
         L_ = filter(lambda i: i not in B, mapL)
         Pacc = computeAccuracy(NN_, T, y)
         Nacc = computeAccuracy(NN, T, y)
@@ -84,6 +87,7 @@ def RxREN_4(NN, H, T, y, C, alpha = 0.1):
             NN = NN_
             mapL = L_
             input_size = len(list(mapL))
+            print(mapL)
             #go to top code block
         else:
             break
