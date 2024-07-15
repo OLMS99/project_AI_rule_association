@@ -30,6 +30,9 @@ class nnf():
     def get_params(self):
         return self.params
 
+    def copy(self):
+        return nnf(params = self.get_params())
+
     def load_params(self, params):
         self.params = params
 
@@ -169,7 +172,6 @@ class nnf():
         if "W1" in self.params:
             weight_holder = target["W1"]
             for idx in Neurons:
-                print(idx)
                 weight_holder[:, idx] = np.zeros(weight_holder.shape[0])
             target["W1"] = weight_holder
 

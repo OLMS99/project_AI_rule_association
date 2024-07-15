@@ -164,8 +164,13 @@ def algoritmo_4_RxRen():
 
     resultado =RxREN.RxREN_4(ANN, U, T, y, C)
 
-    for case in T:
-        resposta = resultado.step(case)
+    if len(resultado) > 0:
+        for r in resultado:
+            r.print()
+    else:
+        print("nenhuma regra feita")
+    #for case in T:
+        #resposta = resultado.step(case)
         #compare
 
 def generate_static_ruleTree():

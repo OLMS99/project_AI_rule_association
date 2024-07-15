@@ -8,9 +8,17 @@ np.random.seed(seed)
 
 def Where_n(array, n=1):
     positions = []
-    for pos,it in enumerate(array):
-        if it==n:
-            positions.append(pos)
+
+    if array is dict:
+        for key, val in array.items():
+            if val==n:
+                positions.append(key)
+
+    else:
+        for pos, it in enumerate(array):
+            if it==n:
+                positions.append(pos)
+
     return positions
 
 def Calculate_TruePositive(confusion_matrix, y):
