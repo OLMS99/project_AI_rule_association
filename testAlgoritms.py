@@ -263,7 +263,7 @@ def load_iris_cobaia(random_state, split_train_size=0.7):
     return classes, train_X, valid_X, train_y, valid_y
 
 def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, nLayers = 1):
-    regras=[nEntrada, nEntrada+1, 2*nEntrada-1, 2*nEntrada, nSaida, nSaida+1, 2*nSaida-1, 2*nSaida, (nEntrada+nSaida)/2,(nEntrada*2/3+nSaida)]
+    regras = [nEntrada, nEntrada+1, 2*nEntrada-1, 2*nEntrada, nSaida, nSaida+1, 2*nSaida-1, 2*nSaida, (nEntrada+nSaida)/2,(nEntrada*2+nSaida)/3]
     results = []
     for caso in regras:
 

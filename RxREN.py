@@ -39,6 +39,13 @@ def formSet(groups, erri, alpha):
             Q.append(g)
     return Q
 
+def lenElem(setQi):
+    result = []
+    for qi in setQi:
+        result.append(len(qi))
+
+    return result
+
 #ideia: L, H, N -> H, L = H[0], N = H[-1] H = H/H[0] and H[-1]
 #T = exemplos que a rede neural classificou corretamente
 #y = resultado esperado
@@ -70,7 +77,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
                 if not check_prediction(prediction, y[number]):
-                    item = (l, y[number], prediction)
+                    item = (l, y[number], prediction, case)
                     if l in E:
                         E[l].append(item)
                     else:
@@ -117,8 +124,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             g[i][k] = createGroup(E[l], c)
             #alpha value [0.1,0.5]
             Q[i].append(formSet(g[i][k], err[i], alpha))
-            minMatrix[i][k] = min(Q[i]) if len(Q[i]) > 0 else float('inf')
-            maxMatrix[i][k] = max(Q[i]) if len(Q[i]) > 0 else float('-inf')
+            lenQi = lenElem(Q[i])
+            minMatrix[i][k] = min(lenQi) if len(Q[i]) > 0 else float('inf')
+            maxMatrix[i][k] = max(lenQi) if len(Q[i]) > 0 else float('-inf')
 
     #extraindo regras
 
