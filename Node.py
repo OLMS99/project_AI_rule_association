@@ -37,6 +37,26 @@ class Node:
 
         return [self.layerIndex, self.featureIndex]
 
+    def getOutputs():
+        outputs = []
+        left = self.left
+        right = self.right
+        if left is not None:
+            if left.is_leaf_node():
+                outputs.append(left.value)
+            else:
+                outputs.extend(left.getOutputs)
+
+        if right is not None:
+            if right.is_leaf_node():
+                outputs.append(right.value)
+            else:
+                outputs.extend(right.getOutputs)
+
+        outputs = list(set(outputs)).remove("no_output_value")
+
+        return outputs
+
     def len():
         len_left = self.left.len() if self.left is not None else 0
         len_right = self.right.len() if self.right is not None else 0

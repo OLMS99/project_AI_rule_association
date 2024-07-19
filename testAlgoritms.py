@@ -22,9 +22,6 @@ import MofN
 import RuleExtractionLearning as REL
 import RxREN
 
-seed = 1
-np.random.seed(seed)
-
 def filter_correct_answers(dataset, y, prediction):
     tamLinha_X = dataset[0].shape[1]
     tamLinha_y = y[0].shape[1]
@@ -127,7 +124,6 @@ def algoritmo_2_MofN():
         #resposta = result.step(case)
         #compare
 
-
 def algoritmo_3_RuleExtractLearning():
     ANN, C, DataX, _ = load_example()
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
@@ -162,7 +158,7 @@ def algoritmo_4_RxRen():
 
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
-    resultado =RxREN.RxREN_4(ANN, U, T, y, C)
+    resultado =RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
 
     if len(resultado) > 0:
         for r in resultado:
@@ -172,56 +168,6 @@ def algoritmo_4_RxRen():
     #for case in T:
         #resposta = resultado.step(case)
         #compare
-
-def generate_static_ruleTree():
-    height_0 = Node.Node(featureIndex=0, layerIndex=3, threshold=1.5, comparison="!=", negation=False)
-
-    height_1 = [
-        Node.Node(featureIndex=1, layerIndex=2, threshold=3.7, comparison=">=", negation=False),
-        Node.Node(featureIndex=2, layerIndex=1, threshold=4.2, comparison="<=", negation=True)
-    ]
-
-    height_2 = [
-        Node.Node(featureIndex=3, layerIndex=3, threshold=2.8, comparison=">", negation=True),
-        Node.Node(featureIndex=4, layerIndex=2, threshold=5.9, comparison="<", negation=False),
-        Node.Node(featureIndex=5, layerIndex=1, threshold=6.3, comparison="=", negation=True),
-        Node.Node(featureIndex=6, layerIndex=3, threshold=9.6, comparison="!=", negation=True)
-    ]
-
-    height_1[0].set_left(height_2[0])
-    height_1[0].set_right(height_2[1])
-    height_1[1].set_left(height_2[2])
-    height_1[1].set_right(height_2[3])
-
-    height_0.set_left(height_1[0])
-    height_0.set_right(height_1[1])
-
-    return height_0
-
-def single_function_test():
-    Ruletree = generate_static_ruleTree()
-    copia = Ruletree.copy_tree()
-
-    antecendents = Ruletree.getAntecedent()
-
-    random_deletion_a = random.choice(antecendents)
-    lado_escolhido = random_deletion_a[0]
-
-    if lado_escolhido == 1:
-        random_deletion_b = random_deletion_a[1].right
-    if lado_escolhido == -1:
-        random_deletion_b = random_deletion_a[1].left
-    else:
-        random_deletion_b = antecendents[-2][1]
-
-
-    copied_antecendents = copia.getAntecedent()
-    print(len(copied_antecendents))
-
-    result = REL.filter(antecendents, random_deletion_a[2])
-    print(len(result.getAntecedent()))
-    result = REL.filter(antecendents, random_deletion_a[2])
-    print(len(result.getAntecedent()))
 
 def load_wine_cobaia(random_state, split_train_size=0.7):
     dataset = load_wine()
@@ -262,57 +208,76 @@ def load_iris_cobaia(random_state, split_train_size=0.7):
     train_X,valid_X,train_y,valid_y = train_test_split(data, label_target, test_size=split_test_size, random_state=random_state)
     return classes, train_X, valid_X, train_y, valid_y
 
-def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, nLayers = 1):
+def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, nLayers = 1, debug = False):
+    if debug:
+                print("x train: (%d, %d)" % (x_train.shape[0] ,x_train.shape[1]))
+                print("y train: (%d, %d)" % (y_train.shape[0], y_train.shape[1]))
+                print("x valid: (%d, %d)" % (x_valid.shape[0], x_valid.shape[1]))
+                print("y valid: (%d, %d)" % (y_valid.shape[0], y_valid.shape[1]))
+
     regras = [nEntrada, nEntrada+1, 2*nEntrada-1, 2*nEntrada, nSaida, nSaida+1, 2*nSaida-1, 2*nSaida, (nEntrada+nSaida)/2,(nEntrada*2+nSaida)/3]
+
     results = []
-    for caso in regras:
+    if nLayers > 0:
+        for caso in regras:
 
-        ordem = []
-        ordem.append(nEntrada)
-        for i in range(nLayers):
-            ordem.append(caso)
-        ordem.append(nSaida)
+            ordem = []
+            ordem.append(nEntrada)
+            for i in range(nLayers):
+                ordem.append(caso)
+            ordem.append(nSaida)
 
-        model = NN.nnf(ordem, [ACT.sigmoid]*(nLayers+2), Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+            model = NN.nnf(ordem, [ACT.sigmoid]*(nLayers+1), Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
+            model.train(x_train, y_train, x_valid, y_valid, epochs=1000, learning_rate=0.01)
+            params = model.get_params()
+
+            pred_train = np.zeros(shape=(x_train.shape[0], nSaida))
+            pred_valid = np.zeros(shape=(x_valid.shape[0], nSaida))
+            for i, sample in enumerate(x_train):
+                pred_train[i] = self.predict(sample)
+
+            for i, sample in enumerate(x_valid):
+                pred_valid[i] = self.predict(sample)
+
+            T, y = filter_correct_answers([x_train,x_valid],[y_train,y_valid],[pred_train,pred_valid])
+            correct_cases = [T, y]
+            acc = metrics.Compute_Acc_naive(pred_valid, y_valid)
+            results.append([model, params, correct_cases, acc])
+
+    else:
+        model = NN.nnf([nEntrada, nSaida], [ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
         model.train(x_train, y_train, x_valid, y_valid, epochs=1000, learning_rate=0.01)
-
         params = model.get_params()
-        results.append([model, params])
+
+        pred_train = np.zeros(shape=(x_train.shape[0], nSaida))
+        pred_valid = np.zeros(shape=(x_valid.shape[0], nSaida))
+        for i, sample in enumerate(x_train):
+            pred_train[i] = model.predict(sample)
+
+        for i, sample in enumerate(x_valid):
+            pred_valid[i] = model.predict(sample)
+
+        correct_cases = filter_correct_answers([x_train,x_valid],[y_train,y_valid],[pred_train,pred_valid])
+        acc = metrics.Compute_Acc_naive(pred_valid, y_valid)
+        results.append([model, params, correct_cases, acc])
 
     return results
 
-def test_algorithms(classes, x_train, y_train, x_valid, y_valid, params, model):
+def test_algorithms(modelParamsList, dataBase, classes, debug = False):
 
-    U = Neurons_to_Lists(params)
-    result_KT = KT.KT_1(U)
+    results = []
+    for case in modelParamsList:
+        model = case[0]
+        params = case[1]
+        correct_cases = case[2]
 
-    result_MofN = MofN.Mof_2(model, [x_train, x_valid],[y_train, y_valid])
+        algo1_result = KT.KT_1(model.get_params(), debug = debug)
+        algo2_result = MofN.MofN_2(model.get_params(), model.copy(), dataBase[0], dataBase[1], debug = debug)
+        algo3_result = REL.Rule_extraction_learning_3(model.copy(), classes, dataBase, debug = debug)
+        algo4_result = RxREN.RxREN_4(model.copy(), model.get_params(), correct_cases[0], correct_cases[1], classes, debug = debug)
 
-    exemplos_classificados_corretamente = filter_correct_answers()
-    result_REL = REL.Rule_extraction_learning_3(model, classes, x_train)
-
-    result_RxREN = 0
-
-    return
-
-def step_kt(conjuntoRegras, conjuntoInput):
-    conjuntoRegrasLocal = np.array(conjuntoRegras)
-    conjuntoInputLocal = np.array(conjuntoInput)
-    lastLayer = 0
-    for regra in conjuntoRegrasLocal:
-        lastLayer = max(lastLayer, regra.getInputNeuron()[0]+1)
-
-    RegrasDivididas = []
-    for layer in range(lastLayer):
-        RegrasCamada = [conjuntoRegrasLocal[i] for i in range(len(conjuntoRegrasLocal)) if conjuntoRegrasLocal[i].getInputNeuron()[0] == layer]
-        RegrasDivididas.append(RegrasCamada)
-
-    ConjuntoResultado = None
-    for layer in regrasDivididas:
-        ConjuntoResultado = [i.step(conjuntoInputLocal) for i in layer]
-        conjuntoInputLocal = [ConjuntoResultado[i] for i in range(len(ConjuntoResultado))]
-
-    return ConjuntoResultado
+        results.append([algo1_result, algo2_result, algo3_result, algo4_result])
+    return results
 
 def main_test():
     decisionTreeSeed = 42
@@ -322,8 +287,11 @@ def main_test():
     #carregar exemplos e classes dos exemplos
     Iris_classes, X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid = load_iris_cobaia(seed)
     Wine_classes, X_Wine_train, X_Wine_valid, y_Wine_train, y_Wine_valid = load_wine_cobaia(seed)
-    Wisconsin_classes, X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid = load_Wisconsin_cobaia(seed)
+    Wisconsin_classes, X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid = load_wisconsin_cobaia(seed)
 
+    Iris_Database = [[X_Iris_train, X_Iris_valid],[y_Iris_train, y_Iris_valid]]
+    Wine_Database = [[X_Wine_train, X_Wine_valid],[y_Wine_train, y_Wine_valid]]
+    Wisconsin_Database = [[X_Wisconsin_train, X_Wisconsin_valid],[y_Wisconsin_train, y_Wisconsin_valid]]
 
     #montar arvores de decisão
     decisionTree_Wine = DecisionTreeClassifier(max_depth = 3, random_state = decisionTreeSeed)
@@ -338,63 +306,54 @@ def main_test():
     #montar redes neurais
 
     #0 hidden layer
-    Wine_NN_0h = NN.nnf([4, 3],[ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
-    Wine_NN_0h.train(X_Wine_train, y_Wine_train, X_Wine_valid, y_Wine_valid, epochs=1000, learning_rate=0.01)
 
-    Wine_0h_params = Wine_NN_0h.get_params()
-    Wine_0h_U = Neurons_to_Lists(Wine_0h_params)
+    Wine_model_cases_n0 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train,  y_Wine_valid, 13, 3, nLayers = 0, debug = True)
+    Wisconsin_model_cases_n0 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, nLayers = 0, debug = True)
+    Iris_model_cases_n0 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, nLayers = 0, debug = True)
 
-    Wine_0h_regras_1_KT = KT.KT_1(Wine_0h_U)
-    Wine_0h_regras_2_MofN = MofN.MofN_2(Wine_0h_U, Wine_NN_0h, X_Wine_train, y_Wine_train)
-    Wine_0h_regras_3_RuleExtractingLearning = REL.Rule_extraction_learning_3(Wine_NN_0h, Wine_classes, X_Wine_train)
-    Wine_0h_regras_4_RxREN = RxREN.RxREN_4(Wine_NN_0h, Wine_0h_U,[],[], Wine_classes)
-
-    Wisconsin_NN_0h = NN.nnf([30, 2],[ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
-    Wisconsin_NN_0h.train(X_Wisconsin_train, y_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_valid, epochs=1000, learning_rate=0.01)
-
-    Wisconsin_0h_params = Wisconsin_NN_0h.get_params()
-    Wisconsin_0h_U = Neurons_to_Lists(Wisconsin_0h_params)
-
-    Wisconsin_0h_regras_1_KT = KT.KT_1(Wisconsin_0h_U)
-    Wisconsin_0h_regras_2_MofN = MofN.MofN_2(Wisconsin_0h_U, Wisconsin_NN_0h, X_Wisconsin_train, y_Wisconsin_train)
-    Wisconsin_0h_regras_3_RuleExtractingLearning = REL.Rule_extraction_learning_3(Wisconsin_NN_0h, Wisconsin_classes, X_Wisconsin_train)
-    Wisconsin_0h_regras_4_RxREN = RxREN.RxREN_4(Wisconsin_NN_0h, Wisconsin_0h_U,[],[], Wisconsin_classes)
-
-    Iris_NN_0h = NN.nnf([13, 3],[ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
-    Iris_NN_0h.train(X_Iris_train, y_Iris_train, X_Iris_valid, y_Iris_valid, epochs=1000, learning_rate=0.01)
-
-    Iris_0h_params = Iris_NN_0h.get_params()
-    Iris_0h_U = Neurons_to_Lists(Iris_0h_params)
-
-    Iris_0h_regras_1_KT = KT.KT_1(Iris_0h_U)
-    Iris_0h_regras_2_MofN = MofN.MofN_2(Iris_0h_U, Iris_NN_0h, X_Iris_train, y_Iris_train)
-    Iris_0h_regras_3_RuleExtractingLearning = REL.Rule_extraction_learning_3(Iris_NN_0h, Iris_classes, X_Iris_train)
-    Iris_0h_regras_4_RxREN = RxREN.RxREN_4(Iris_NN_0h, Iris_0h_U,[],[], Iris_classes)
+    ruleSetsResults_0H_Wine = test_algorithms(Wine_model_cases_n0, Wine_Database, Wine_classes,debug=True)
+    ruleSetsResults_0H_Wisconsin = test_algorithms(Wisconsin_model_cases_n0, Wisconsin_Database, Wisconsin_classes,debug=True)
+    ruleSetsResults_0H_Iris = test_algorithms(Iris_model_cases_n0, Iris_Database, Iris_classes,debug=True)
 
     #1 hidden layer
 
-    Wine_model_cases_n1 = load_models_params(X_Wine_train, y_Wine_train, X_Wine_valid, y_Wine_valid, 4, 3)
-    Wisconsin_model_cases_n1 = load_models_params(X_Wisconsin_train, y_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_valid, 30, 2)
-    Iris_model_cases_n1 = load_models_params(X_Iris_train, y_Iris_train, X_Iris_valid, y_Iris_valid, 13, 3)
+    #Wine_model_cases_n1 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train, y_Wine_valid, 13, 3, debug = True)
+    #Wisconsin_model_cases_n1 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, debug = True)
+    #Iris_model_cases_n1 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, debug = True)
+
+    #ruleSetsResults_1H_Wine = test_algorithms(Wine_model_cases_n1, Wine_Database, Wine_classes)
+    #ruleSetsResults_1H_Wisconsin = test_algorithms(Wisconsin_model_cases_n1, Wisconsin_Database, Wisconsin_classes)
+    #ruleSetsResults_1H_Iris = test_algorithms(Iris_model_cases_n1, Iris_Database, Iris_classes)
 
     #2 hidden layers
 
-    Wine_model_cases_n2 = load_models_params(X_Wine_train, y_Wine_train, X_Wine_valid, y_Wine_valid, 4, 3, nLayer = 2)
-    Wisconsin_model_cases_n2 = load_models_params(X_Wisconsin_train, y_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_valid, 30, 2, nLayer = 2)
-    Iris_model_cases_n2 = load_models_params(X_Iris_train, y_Iris_train, X_Iris_valid, y_Iris_valid, 13, 3, nLayer = 2)
+    #Wine_model_cases_n2 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train, y_Wine_valid, 13, 3, nLayers = 2, debug = True)
+    #Wisconsin_model_cases_n2 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, nLayers = 2, debug = True)
+    #Iris_model_cases_n2 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train,  y_Iris_valid, 4, 3, nLayers = 2, debug = True)
+
+    #ruleSetsResults_2H_Wine = test_algorithms(Wine_model_cases_n2, Wine_Database, Wine_classes)
+    #ruleSetsResults_2H_Wisconsin = test_algorithms(Wisconsin_model_cases_n2, Wisconsin_Database, Wisconsin_classes)
+    #ruleSetsResults_2H_Iris = test_algorithms(Iris_model_cases_n2, Iris_Database, Iris_classes)
 
     #3 hidden layers
 
-    Wine_model_cases_n3 = load_models_params(X_Wine_train, y_Wine_train, X_Wine_valid, y_Wine_valid, 4, 3, nLayer = 3)
-    Wisconsin_model_cases_n3 = load_models_params(X_Wisconsin_train, y_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_valid, 30, 2, nLayer = 3)
-    Iris_model_cases_n3 = load_models_params(X_Iris_train, y_Iris_train, X_Iris_valid, y_Iris_valid, 13, 3, nLayer = 3)
+    #Wine_model_cases_n3 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train, y_Wine_valid, 13, 3, nLayers = 3, debug = True)
+    #Wisconsin_model_cases_n3 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, nLayers = 3, debug = True)
+    #Iris_model_cases_n3 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, nLayers = 3, debug = True)
+
+    #ruleSetsResults_3H_Wine = test_algorithms(Wine_model_cases_n3, Wine_Database, Wine_classes)
+    #ruleSetsResults_3H_Wisconsin = test_algorithms(Wisconsin_model_cases_n3, Wisconsin_Database, Wisconsin_classes)
+    #ruleSetsResults_3H_Iris = test_algorithms(Iris_model_cases_n3, Iris_Database, Iris_classes)
+
+    #Avaliar Conjunto de regras resultantes
+
 
 
     return
 
-#algoritmo_1_KT()
-#algoritmo_2_MofN()
-#algoritmo_3_RuleExtractLearning()
-algoritmo_4_RxRen()
-#single_function_test()
+seed = 1
+np.random.seed(seed)
+
+main_test()
+
 print("bateria de teste terminado")

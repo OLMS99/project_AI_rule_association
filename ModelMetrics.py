@@ -1,10 +1,5 @@
-import random
 import math
 import numpy as np
-import time
-
-seed = 1
-np.random.seed(seed)
 
 def Where_n(array, n=1):
     positions = []
