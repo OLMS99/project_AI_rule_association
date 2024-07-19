@@ -60,7 +60,9 @@ def KT_1(U, theta = 0, debug = False):
     for layer_idx, u in enumerate(U):
         for order_idx, neuron in enumerate(u):
             if debug:
-                print("neuron: %s, layer: %s\n" % (order_idx, layer_idx + 1))
+                print("neuron: %s, layer: %s" % (order_idx, layer_idx + 1))
+                print("info:", neuron)
+                print("\n")
 
             neuron_weights = neuron[0] #array with the weights of a unit
             neuron_bias = neuron[1] #bias of the unit
@@ -102,7 +104,7 @@ def KT_1(U, theta = 0, debug = False):
                             for element in negSubset:
                                 for item in p:
                                     R.append(makeRule_KT(layer_idx, order_idx, item, element, {"camada":layer_idx + 1, "neuronio":order_idx}))
-    return R
+    return combine_rules(R, len(U))
 
 def combine_rules(R, numLayers):
     newRules=[]
@@ -110,12 +112,12 @@ def combine_rules(R, numLayers):
     sorted_rules = dict()
 
     for rule in R:
-        if sorted_rules[rule.getInputNeuron()[0]] is None:
-            sorted_rules[rule.getInputNeuron()[0]] = [rule.copy()]
-        else:
+        if rule.getInputNeuron()[0] in sorted_rules:
             sorted_rules[rule.getInputNeuron()[0]].append(rule.copy())
+        else:
+            sorted_rules[rule.getInputNeuron()[0]] = [rule.copy()]
 
-    for i in reversed(range(numLayers)): 
+    for i in reversed(range(1, numLayers)): 
         current_layer = sorted_rules[i]
         previousLayerRules = []
 

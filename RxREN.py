@@ -72,18 +72,18 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
 
         for idx, l in enumerate(mapL):
             temp_network = local_NN.copy().prune_input([l])
-
+            E[l] = []
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
                 if not check_prediction(prediction, y[number]):
                     item = (l, y[number], prediction, case)
-                    if l in E:
-                        E[l].append(item)
-                    else:
-                        E[l] = [item]
+                    E[l].append(item)
 
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
+            if debug:
+                print(E[l])
+
             err[l] = len(E[l])
             if debug:
                 print("neuronio de entrada %s: numero de erros: %s" % (l, err[l]))

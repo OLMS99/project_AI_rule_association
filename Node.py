@@ -28,7 +28,14 @@ class Node:
         self.label = None
         self.value = value
 
-    def getInputNeuron():
+    def copy(self):
+        esquerda = self.left.copy() if self.left is not None else None
+        direita = self.right.copy() if self.right is not None else None
+        newNode = Node(featureIndex=self.featureIndex, layerIndex=self.layerIndex, threshold=self.threshold, comparison = self.comparison, left = esquerda, right = direita, value = self.value, negation = self.negation)
+        newNode.label = self.label
+        return newNode
+
+    def getInputNeuron(self):
 
         if self.layerIndex is None:
             return self.featureIndex
@@ -37,7 +44,7 @@ class Node:
 
         return [self.layerIndex, self.featureIndex]
 
-    def getOutputs():
+    def getOutputs(self):
         outputs = []
         left = self.left
         right = self.right
@@ -57,7 +64,7 @@ class Node:
 
         return outputs
 
-    def len():
+    def len(self):
         len_left = self.left.len() if self.left is not None else 0
         len_right = self.right.len() if self.right is not None else 0
         return 1 + len_left + len_right
