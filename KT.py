@@ -103,3 +103,30 @@ def KT_1(U, theta = 0, debug = False):
                                 for item in p:
                                     R.append(makeRule_KT(layer_idx, order_idx, item, element, {"camada":layer_idx + 1, "neuronio":order_idx}))
     return R
+
+def combine_rules(R, numLayers):
+    newRules=[]
+
+    sorted_rules = dict()
+
+    for rule in R:
+        if sorted_rules[rule.getInputNeuron()[0]] is None:
+            sorted_rules[rule.getInputNeuron()[0]] = [rule.copy()]
+        else:
+            sorted_rules[rule.getInputNeuron()[0]].append(rule.copy())
+
+    for i in reversed(range(numLayers)): 
+        current_layer = sorted_rules[i]
+        previousLayerRules = []
+
+        for neuronRulePrv in sorted_rules[i-1]:
+            previousLayerRules.append(neuronRulePrv.right.right)
+
+        for neuronRule in current_layer:
+            ruleInput = neuronRule.getInputNeuron()
+            neuronFeature = ruleInput["neuronio"]
+            regraAnterior = previousLayerRules[neuronFeature]
+            regraAnterior.set_right(neuronRule)
+
+
+    return newRules
