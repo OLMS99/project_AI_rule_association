@@ -126,7 +126,7 @@ def combine_rules(R, numLayers):
 
         for neuronRule in current_layer:
             ruleInput = neuronRule.getInputNeuron()
-            neuronFeature = ruleInput["neuronio"]
+            neuronFeature = ruleInput[1]
             regraAnterior = previousLayerRules[neuronFeature]
             regraAnterior.set_right(neuronRule)
 
