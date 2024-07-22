@@ -103,10 +103,10 @@ def KT_1(U, theta = 0, debug = False):
                         if sum_weights(p) + (sum_weights(N) - sum_weights(negSubset)) > neuron_bias:
                             for element in negSubset:
                                 for item in p:
-                                    R.append(makeRule_KT(layer_idx, order_idx, item, element, {"camada" : layer_idx + 1, "neuronio" : order_idx}))
+                                    R.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
 
-    #return combine_rules(R, len(U))
-    return R
+    return combine_rules(R, len(U))
+    #return R
 
 def combine_rules(R, numLayers):
     newRules = []
@@ -124,13 +124,13 @@ def combine_rules(R, numLayers):
         previousLayerRules = dict()
 
         for neuronRulePrv in sorted_rules[i-1]:
-            previousLayerLeaf = neuronRulePrv.right.right.right
-            previousLayerRules[previousLayerLeaf["neuronio"]] = neuronRulePrv.right.right
+            previousLayerLeaf = neuronRulePrv.right.right
+            previousLayerRules[previousLayerLeaf.value[1]] = neuronRulePrv.right
 
-        for neuronRule in current_layer:
-            neuronFeature = neuronRule.getInputNeuron()[1]
+        for neuronRuleCurr in current_layer:
+            neuronFeature = neuronRuleCurr.getInputNeuron()[1]
             regraAnterior = previousLayerRules[neuronFeature]
-            regraAnterior.set_right(neuronRule.copy())
+            regraAnterior.set_right(neuronRuleCurr.copy())
 
     for r in sorted_rules[0]:
         newRules.append(r)
