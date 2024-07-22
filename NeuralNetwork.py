@@ -227,3 +227,17 @@ class nnf():
 
         output = self.forward_pass(X.reshape(-1,1))
         return np.squeeze(output, axis=None)
+
+    def getInputHiddenLayers(self, InputLayer = False):
+        results = []
+
+        if InputLayer:
+            for i in range(self.layer_num - 1):
+                results.append(self.params["A"+str(i)])
+
+            return results
+
+        for i in range(1, self.layer_num - 1):
+            results.append(self.params["A"+str(i)])
+
+        return results
