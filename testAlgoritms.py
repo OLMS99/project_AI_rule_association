@@ -381,8 +381,8 @@ def main_test():
 
 
     return
-seed = 1
-algoritmo_1_KT(seed)
-#main_test()
+#seed = 1
+#algoritmo_1_KT(seed)
+main_test()
 
 print("bateria de teste terminado")
