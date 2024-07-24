@@ -4,13 +4,13 @@ import numpy as np
 import time
 from Node import Node
 class NodeMofN(Node):
-    def __init__(self, lista=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
+    def __init__(self, featureIndex=None, layerIndex=None, lista=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
         self.set_comparisons = []
 
         for item in lista:
             self.set_comparisons.append(item)
 
-        super().__init__(threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
+        super().__init__(featureIndex=featureIndex, layerIndex=layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
 
     def eval(self, value):
         result = False

@@ -152,3 +152,10 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             R.append(cn)
 
     return R
+
+def parseRules(classRuleSets, inputValues):
+    resultBatch = []
+    for ruleSet in classRuleSets:
+        for rule in ruleSet:
+            resultBatch.append(rule.step(inputValues))
+    return list(set(resultBatch).remove("no_output_value"))

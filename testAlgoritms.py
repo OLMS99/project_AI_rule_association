@@ -158,7 +158,7 @@ def algoritmo_4_RxRen(seed):
 
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
-    resultado =RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
+    resultado = RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
 
     if len(resultado) > 0:
         for r in resultado:
@@ -381,8 +381,15 @@ def main_test():
 
 
     return
-#seed = 1
-#algoritmo_1_KT(seed)
-main_test()
 
-print("bateria de teste terminado")
+def simpleTest():
+    seed = 1
+    algoritmo_1_KT(seed)
+    algoritmo_2_MofN(seed)
+    algoritmo_3_RuleExtractLearning(seed)
+    algoritmo_4_RxREN(seed)
+    print("bateria de teste terminado")
+    return
+
+#simpleTest()
+main_test()

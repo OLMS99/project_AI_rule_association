@@ -269,3 +269,10 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                                 R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx],O[idx][1])
 
     return R
+
+def parseRules(ruleSet, inputValues):
+    resultBatch = []
+    for ruleSet in classRuleSets:
+        for rule in ruleSet:
+            resultBatch.append(rule.step(inputValues))
+    return list(set(resultBatch).remove("no_output_value"))

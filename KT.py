@@ -137,3 +137,21 @@ def combine_rules(R, numLayers):
 
 
     return newRules
+
+def parseRules(ruleSet, inputValues):
+    sorted_rules = dict()
+
+    for rule in R:
+        layerIndex = rule.getInputNeuron()[0]
+        if layerIndex in sorted_rules:
+            sorted_rules[layerIndex].append(rule.copy())
+        else:
+            sorted_rules[layerIndex] = [rule.copy()]
+
+    currNeurons = []
+    for layer in sorted_rules.keys:
+        currNeurons = []
+        for rule in sorted_rules[layer]:
+            currNeurons.append(rule.step(inputValues[layer]))
+
+    return currNeurons
