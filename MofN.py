@@ -201,6 +201,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     optimize(U, model, DataX, Datay)
 
     for layer_idx, layer in enumerate(U):
+        layerRules = []
         for u_idx, u in enumerate(layer):
             neuron_coord = (layer_idx, u_idx)
             for gi in G[neuron_coord]:
@@ -209,12 +210,18 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     print("Ou: %s" % (u[1]))
                 for ai in Au:
                     if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
-                        makerule(np.asarray(ai), gi, (layer_idx + 1, u_idx), R)
+                        makerule(layer_idx, u_idx, np.asarray(ai), gi, (layer_idx + 1, u_idx), layerRules)
+
+        R.append(layerRules)
 
     return R
 
 def parseRules(ruleSet, inputValues):
-    resultBatch = []
-    for rule in ruleSet:
-        resultBatch.append(rule.step(inputValues))
-    return resultBatch
+    results = []
+    for layerRules in ruleSet:
+        currResults = []
+        for rule in layerRules:
+            currResults.append(rule.step(inputValues))
+        results = list(set(currResults).remove("no_output_values"))
+
+    return results

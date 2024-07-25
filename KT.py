@@ -58,6 +58,7 @@ def KT_1(U, theta = 0, debug = False):
     R=[]
 
     for layer_idx, u in enumerate(U):
+        layerRules = []
         for order_idx, neuron in enumerate(u):
             if debug:
                 print("neuron: %s, layer: %s" % (order_idx, layer_idx + 1))
@@ -103,27 +104,19 @@ def KT_1(U, theta = 0, debug = False):
                         if sum_weights(p) + (sum_weights(N) - sum_weights(negSubset)) > neuron_bias:
                             for element in negSubset:
                                 for item in p:
-                                    R.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
+                                    layerRules.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
+        R.append(layerRules)
 
-    return combine_rules(R, len(U))
-    #return R
+    return R
 
 def combine_rules(R, numLayers):
     newRules = []
 
-    sorted_rules = dict()
-
-    for l in range(numLayers):
-        sorted_rules[l] = []
-
-    for rule in R:
-        sorted_rules[rule.getInputNeuron()[0]].append(rule.copy())
-
     for i in reversed(range(1, numLayers)): 
-        current_layer = sorted_rules[i]
+        current_layer = R[i]
         previousLayerRules = dict()
 
-        for neuronRulePrv in sorted_rules[i-1]:
+        for neuronRulePrv in R[i-1]:
             previousLayerLeaf = neuronRulePrv.right.right
             previousLayerRules[previousLayerLeaf.value[1]] = neuronRulePrv.right
 
@@ -132,26 +125,19 @@ def combine_rules(R, numLayers):
             regraAnterior = previousLayerRules[neuronFeature]
             regraAnterior.set_right(neuronRuleCurr.copy())
 
-    for r in sorted_rules[0]:
+    for r in R[0]:
         newRules.append(r)
 
 
     return newRules
 
 def parseRules(ruleSet, inputValues):
-    sorted_rules = dict()
 
-    for rule in R:
-        layerIndex = rule.getInputNeuron()[0]
-        if layerIndex in sorted_rules:
-            sorted_rules[layerIndex].append(rule.copy())
-        else:
-            sorted_rules[layerIndex] = [rule.copy()]
+    results = []
+    for layerRules in ruleSet:
+        currResults = []
+        for rule in layerRules:
+            currResults.append(rule.step(inputValues))
+        results = list(set(currResults).remove("no_output_values"))
 
-    currNeurons = []
-    for layer in sorted_rules.keys:
-        currNeurons = []
-        for rule in sorted_rules[layer]:
-            currNeurons.append(rule.step(inputValues[layer]))
-
-    return currNeurons
+    return results

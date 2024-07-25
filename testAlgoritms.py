@@ -70,7 +70,7 @@ def load_example(RNGseed):
     split_train_size = 0.7
     split_test_size = 1 - split_train_size
 
-    train_X, valid_X, train_y, valid_y = train_test_split(data, label_target, test_size = split_test_size, random_state = 13)
+    train_X, valid_X, train_y, valid_y = train_test_split(data, label_target, test_size = split_test_size, random_state = RNGseed)
 
     ANN = NN.nnf([4, 5, 3],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = RNGseed)
     ANN.train(train_X,train_y,valid_X,valid_y, epochs=1000, learning_rate=0.01)
@@ -119,9 +119,9 @@ def algoritmo_2_MofN(seed):
     else:
         print("no rule made")
 
-    #for case in DataX[0]:
+    for case in DataX[0]:
         #tenta todas as arvores e ve os resultados
-        #resposta = result.step(case)
+        #resposta = MofN.parseRules(result, )
         #compare
 
 def algoritmo_3_RuleExtractLearning(seed):
@@ -278,10 +278,6 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), debug = debug)
         algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
         algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
-
-        if debug:
-            print(correct_cases)
-
         algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes, debug = debug)
 
         results.append([algo1_result, algo2_result, algo3_result, algo4_result])
@@ -387,9 +383,9 @@ def simpleTest():
     algoritmo_1_KT(seed)
     algoritmo_2_MofN(seed)
     algoritmo_3_RuleExtractLearning(seed)
-    algoritmo_4_RxREN(seed)
+    algoritmo_4_RxRen(seed)
     print("bateria de teste terminado")
     return
 
-#simpleTest()
-main_test()
+simpleTest()
+#main_test()
