@@ -222,6 +222,9 @@ def parseRules(ruleSet, inputValues):
         currResults = []
         for rule in layerRules:
             currResults.append(rule.step(inputValues))
-        results = list(set(currResults).remove("no_output_values"))
+
+        currResults = set(currResults)
+        currResults = currResults.remove("no_output_values") if "no_output_values" in currResults else currResults
+        results = list(currResults)
 
     return results

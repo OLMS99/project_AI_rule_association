@@ -158,4 +158,9 @@ def parseRules(classRuleSets, inputValues):
     for ruleSet in classRuleSets:
         for rule in ruleSet:
             resultBatch.append(rule.step(inputValues))
-    return list(set(resultBatch).remove("no_output_value"))
+
+        resultBatch = set(resultBatch)
+        resultBatch = resultBatch.remove("no_output_values") if "no_output_values" in resultBatch else resultBatch
+        resultBatch = list(resultBatch)
+
+    return resultBatch
