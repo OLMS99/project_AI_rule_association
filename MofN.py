@@ -216,12 +216,13 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
 
     return R
 
-def parseRules(ruleSet, inputValues):
+def parseRules(ruleSet, model, inputValues):
+    model_values = model.predict(inputValues).getAtributes()
     results = []
     for layerRules in ruleSet:
         currResults = []
         for rule in layerRules:
-            currResults.append(rule.step(inputValues))
+            currResults.append(rule.step(model_values))
 
         currResults = set(currResults)
         currResults = currResults.remove("no_output_values") if "no_output_values" in currResults else currResults
