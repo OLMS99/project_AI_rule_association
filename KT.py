@@ -96,15 +96,20 @@ def KT_1(U, theta = 0, debug = False):
                 N = selectNegatives(neuron_weights)
                 if debug:
                     print("Tamanho de N %s" % (len(N)))
+
+                WeightSumP = sum_weights(p)
+                WeightSumN = sum_weights(N)
                 for j in range(1, len(N) + 1):
+                    comparison = neuron_bias - (WeightSumP + WeightSumN)
                     n = list(combinations(N, j))
-                    for negSubset in n:
+                    filteredn = [comb for comb in n if sum_weights(comb) > comparison]
+                    for negSubset in filteredn:
+                        WeightSumNegSub = sum_weights(negSubset)
                         if debug:
-                            print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (sum_weights(p), sum_weights(N), sum_weights(negSubset)))
-                        if sum_weights(p) + (sum_weights(N) - sum_weights(negSubset)) > neuron_bias:
-                            for element in negSubset:
-                                for item in p:
-                                    layerRules.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
+                            print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (WeightSumP, WeightSumN, WeightSumNegSub))
+                        for element in negSubset:
+                            for item in p:
+                                layerRules.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
         R.append(layerRules)
 
     return R

@@ -103,7 +103,8 @@ def algoritmo_1_KT(seed):
 
     if len(result) > 0:
         for r in result:
-            r.print()
+            for rule in r:
+                rule.print()
     else:
         print("nenhuma regra feita")
 
@@ -115,7 +116,8 @@ def algoritmo_2_MofN(seed):
 
     if len(result) > 0:
         for r in result:
-            r.print()
+            for rule in r:
+                rule.print()
     else:
         print("no rule made")
 
@@ -123,6 +125,7 @@ def algoritmo_2_MofN(seed):
         #tenta todas as arvores e ve os resultados
         #resposta = MofN.parseRules(result, )
         #compare
+        pass
 
 def algoritmo_3_RuleExtractLearning(seed):
     ANN, C, DataX, _ = load_example(seed)
@@ -243,8 +246,7 @@ def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, see
 
             T, y = filter_correct_answers([x_train,x_valid],[y_train,y_valid],[pred_train,pred_valid])
             correct_cases = [T, y]
-            acc = metrics.Compute_Acc_naive(pred_valid, y_valid)
-            results.append([model, correct_cases, acc])
+            results.append([model, correct_cases])
 
     else:
         model = NN.nnf([nEntrada, nSaida], [ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = seed)
@@ -260,10 +262,12 @@ def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, see
             pred_valid[i] = model.predict(sample)
 
         correct_cases = filter_correct_answers([x_train,x_valid],[y_train,y_valid],[pred_train,pred_valid])
-        acc = metrics.Compute_Acc_naive(pred_valid, y_valid)
-        results.append([model, correct_cases, acc])
+        results.append([model, correct_cases])
 
     return results
+
+def getModelAcc(model, X, y):
+    predictions = []
 
 def test_algorithms(modelParamsList, dataBase, classes, debug = False):
 
@@ -287,7 +291,8 @@ def parseRulesTest(model, ruleSets, X):
     pred_results = []
 
     for x_case in X:
-        input_A = model.predict(x_case).getAtributes()
+        model.predict(x_case)
+        input_A = model.getAtributes()
 
         KT_result = KT.parseRules(ruleSets[0], input_A)
         MofN_result = MofN.parseRules(ruleSets[1], input_A)
@@ -362,15 +367,36 @@ def main_test():
     #Wisconsin_model_cases_n0 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, regrasWisconsin, RNGseed, nLayers = 0, debug = True)
     #Iris_model_cases_n0 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, regrasIris, RNGseed, nLayers = 0, debug = True)
 
-    #ruleSetsResults_0H_Wine = test_algorithms(Wine_model_cases_n0, Wine_Database, Wine_classes, debug = True)
-    #ruleSetsResults_0H_Wisconsin = test_algorithms(Wisconsin_model_cases_n0, Wisconsin_Database, Wisconsin_classes, debug = True)
-    #ruleSetsResults_0H_Iris = test_algorithms(Iris_model_cases_n0, Iris_Database, Iris_classes, debug = True)
+    #ruleSetsResults_0H_Wine_train = test_algorithms(Wine_model_cases_n0, X_Wine_train, Wine_classes, debug = True)
+    #ruleSetsResults_0H_Wisconsin_train = test_algorithms(Wisconsin_model_cases_n0, X_Wisconsin_train, Wisconsin_classes, debug = True)
+    #ruleSetsResults_0H_Iris_train = test_algorithms(Iris_model_cases_n0, X_Iris_train, Iris_classes, debug = True)
+
+    #ruleSetsResults_0H_Wine_valid = test_algorithms(Wine_model_cases_n0, X_Wine_valid, Wine_classes, debug = True)
+    #ruleSetsResults_0H_Wisconsin_valid = test_algorithms(Wisconsin_model_cases_n0, X_Wisconsin_valid, Wisconsin_classes, debug = True)
+    #ruleSetsResults_0H_Iris_valid = test_algorithms(Iris_model_cases_n0, X_Iris_valid, Iris_classes, debug = True)
+
+    #ruleSetsResults_0H_Wine = [ruleSetsResults_0H_Wine_train, ruleSetsResults_0H_Wine_valid]
+    #ruleSetsResults_0H_Wisconsin = [ruleSetsResults_0H_Wisconsin_train, ruleSetsResults_0H_Wisconsin_valid]
+    #ruleSetsResults_0H_Iris = [ruleSetsResults_0H_Iris_train, ruleSetsResults_0H_Iris_valid]
 
     #for idx in range(len(ruleSetResults_0H_Wine)):
     #   get predictions of ruleSets and the accuracy
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wine [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wisconsin [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Iris [train, valid]
+    #   parseRulesTest(model, ruleSetsResults_0H_Wine, Wine_Database[0])
+    #   computer_acc_rules_naive(ruleSetsResults_0H_Wine, Wine_Database, Wine_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_0H_Wisconsin, Wisconsin_Database, Wisconsin_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_0H_Iris, Iris_Database, Iris_classes)
+	
+	#acc_models_Wine_n0 = [[],[]]
+	#acc_models_Wisconsin_n0 = [[],[]]
+	#acc_models_Iris_n0 = [[],[]]
+	#
+	#for idx in range(len(Wine_model_cases_n0)):
+	#	acc_models_Wine_n0[0].append(metrics.compute_acc_naive(Wine_model_cases_n0[idx].predict(X_Wine_train),y_Wine_train))
+	#	acc_models_Wine_n0[1].append(metrics.compute_acc_naive(Wine_model_cases_n0[idx].predict(X_Wine_valid),y_Wine_valid))
+	#	acc_models_Wisconsin_n0[0].append(metrics.compute_acc_naive(Wisconsin_model_cases_n0[idx].predict(X_Wisconsin_train),y_Wisconsin_train))
+	#	acc_models_Wisconsin_n0[1].append(metrics.compute_acc_naive(Wisconsin_model_cases_n0[idx].predict(X_Wisconsin_valid),y_Wisconsin_valid))
+	#	acc_models_Iris_n0[0].append(metrics.compute_acc_naive(Iris_model_cases_n0[idx].predict(X_Iris_train),y_Iris_train))
+	#	acc_models_Iris_n0[1].append(metrics.compute_acc_naive(Iris_model_cases_n0[idx].predict(X_Iris_valid),y_Iris_Valid))
 
     #1 hidden layer
 
@@ -378,15 +404,36 @@ def main_test():
     Wisconsin_model_cases_n1 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, regrasWisconsin[3:6], RNGseed, debug = True)
     Iris_model_cases_n1 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, regrasIris[3:6], RNGseed, debug = True)
 
-    ruleSetsResults_1H_Wine = test_algorithms(Wine_model_cases_n1, Wine_Database, Wine_classes, debug = True)
-    ruleSetsResults_1H_Wisconsin = test_algorithms(Wisconsin_model_cases_n1, Wisconsin_Database, Wisconsin_classes, debug = True)
-    ruleSetsResults_1H_Iris = test_algorithms(Iris_model_cases_n1, Iris_Database, Iris_classes, debug = True)
+    ruleSetsResults_1H_Wine_train = test_algorithms(Wine_model_cases_n1, X_Wine_train, Wine_classes, debug = True)
+    ruleSetsResults_1H_Wisconsin_train = test_algorithms(Wisconsin_model_cases_n1, X_Wisconsin_train, Wisconsin_classes, debug = True)
+    ruleSetsResults_1H_Iris_train = test_algorithms(Iris_model_cases_n1, X_Iris_train, Iris_classes, debug = True)
 
-    #for idx in range(len(ruleSetResults_1H_Wine)):
+    ruleSetsResults_1H_Wine_valid = test_algorithms(Wine_model_cases_n1, X_Wine_valid, Wine_classes, debug = True)
+    ruleSetsResults_1H_Wisconsin_valid = test_algorithms(Wisconsin_model_cases_n1, X_Wisconsin_valid, Wisconsin_classes, debug = True)
+    ruleSetsResults_1H_Iris_valid = test_algorithms(Iris_model_cases_n1, X_Iris_valid, Iris_classes, debug = True)
+
+    ruleSetsResults_1H_Wine = [ruleSetsResults_1H_Wine_train, ruleSetsResults_1H_Wine_valid]
+    ruleSetsResults_1H_Wisconsin = [ruleSetsResults_1H_Wisconsin_train, ruleSetsResults_1H_Wisconsin_valid]
+    ruleSetsResults_1H_Iris = [ruleSetsResults_1H_Iris_train, ruleSetsResults_1H_Iris_valid]
+
+   #for idx in range(len(ruleSetResults_1H_Wine)):
     #   get predictions of ruleSets and the accuracy
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wine [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wisconsin [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Iris [train, valid]
+    #   parseRulesTest(model, ruleSetsResults_1H_Wine, Wine_Database[0])
+    #   computer_acc_rules_naive(ruleSetsResults_1H_Wine, Wine_Database, Wine_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_1H_Wisconsin, Wisconsin_Database, Wisconsin_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_1H_Iris, Iris_Database, Iris_classes)
+	
+	#acc_models_Wine_n1 = [[],[]]
+	#acc_models_Wisconsin_n1 = [[],[]]
+	#acc_models_Iris_n1 = [[],[]]
+	#
+	#for idx in range(len(Wine_model_cases_n1)):
+	#	acc_models_Wine_n1[0].append(metrics.compute_acc_naive(Wine_model_cases_n1[idx].predict(X_Wine_train),y_Wine_train))
+	#	acc_models_Wine_n1[1].append(metrics.compute_acc_naive(Wine_model_cases_n1[idx].predict(X_Wine_valid),y_Wine_valid))
+	#	acc_models_Wisconsin_n1[0].append(metrics.compute_acc_naive(Wisconsin_model_cases_n1[idx].predict(X_Wisconsin_train),y_Wisconsin_train))
+	#	acc_models_Wisconsin_n1[1].append(metrics.compute_acc_naive(Wisconsin_model_cases_n1[idx].predict(X_Wisconsin_valid),y_Wisconsin_valid))
+	#	acc_models_Iris_n1[0].append(metrics.compute_acc_naive(Iris_model_cases_n1[idx].predict(X_Iris_train),y_Iris_train))
+	#	acc_models_Iris_n1[1].append(metrics.compute_acc_naive(Iris_model_cases_n1[idx].predict(X_Iris_valid),y_Iris_Valid))
 
     #2 hidden layers
 
@@ -394,15 +441,36 @@ def main_test():
     #Wisconsin_model_cases_n2 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, regrasWisconsin, RNGseed, nLayers = 2, debug = True)
     #Iris_model_cases_n2 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train,  y_Iris_valid, 4, 3, regrasIris, RNGseed, nLayers = 2, debug = True)
 
-    #ruleSetsResults_2H_Wine = test_algorithms(Wine_model_cases_n2, Wine_Database, Wine_classes, debug = True)
-    #ruleSetsResults_2H_Wisconsin = test_algorithms(Wisconsin_model_cases_n2, Wisconsin_Database, Wisconsin_classes, debug = True)
-    #ruleSetsResults_2H_Iris = test_algorithms(Iris_model_cases_n2, Iris_Database, Iris_classes, debug = True)
+    #ruleSetsResults_2H_Wine_train = test_algorithms(Wine_model_cases_n2, X_Wine_train, Wine_classes, debug = True)
+    #ruleSetsResults_2H_Wisconsin_train = test_algorithms(Wisconsin_model_cases_n2, X_Wisconsin_train, Wisconsin_classes, debug = True)
+    #ruleSetsResults_2H_Iris_train = test_algorithms(Iris_model_cases_n2, X_Iris_train, Iris_classes, debug = True)
+
+    #ruleSetsResults_2H_Wine_valid = test_algorithms(Wine_model_cases_n2, X_Wine_valid, Wine_classes, debug = True)
+    #ruleSetsResults_2H_Wisconsin_valid = test_algorithms(Wisconsin_model_cases_n2, X_Wisconsin_valid, Wisconsin_classes, debug = True)
+    #ruleSetsResults_2H_Iris_valid = test_algorithms(Iris_model_cases_n2, X_Iris_valid, Iris_classes, debug = True)
+
+    #ruleSetsResults_2H_Wine = [ruleSetsResults_2H_Wine_train, ruleSetsResults_2H_Wine_valid]
+    #ruleSetsResults_2H_Wisconsin = [ruleSetsResults_2H_Wisconsin_train, ruleSetsResults_2H_Wisconsin_valid]
+    #ruleSetsResults_2H_Iris = [ruleSetsResults_2H_Iris_train, ruleSetsResults_2H_Iris_valid]
 
     #for idx in range(len(ruleSetResults_2H_Wine)):
     #   get predictions of ruleSets and the accuracy
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wine [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wisconsin [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Iris [train, valid]
+    #   parseRulesTest(model, ruleSetsResults_2H_Wine, Wine_Database[0])
+    #   computer_acc_rules_naive(ruleSetsResults_2H_Wine, Wine_Database, Wine_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_2H_Wisconsin, Wisconsin_Database, Wisconsin_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_2H_Iris, Iris_Database, Iris_classes)
+	
+	#acc_models_Wine_n2 = [[],[]]
+	#acc_models_Wisconsin_n2 = [[],[]]
+	#acc_models_Iris_n2 = [[],[]]
+	#
+	#for idx in range(len(Wine_model_cases_n2)):
+	#	acc_models_Wine_n2[0].append(metrics.compute_acc_naive(Wine_model_cases_n2[idx].predict(X_Wine_train),y_Wine_train))
+	#	acc_models_Wine_n2[1].append(metrics.compute_acc_naive(Wine_model_cases_n2[idx].predict(X_Wine_valid),y_Wine_valid))
+	#	acc_models_Wisconsin_n2[0].append(metrics.compute_acc_naive(Wisconsin_model_cases_n2[idx].predict(X_Wisconsin_train),y_Wisconsin_train))
+	#	acc_models_Wisconsin_n2[1].append(metrics.compute_acc_naive(Wisconsin_model_cases_n2[idx].predict(X_Wisconsin_valid),y_Wisconsin_valid))
+	#	acc_models_Iris_n2[0].append(metrics.compute_acc_naive(Iris_model_cases_n2[idx].predict(X_Iris_train),y_Iris_train))
+	#	acc_models_Iris_n2[1].append(metrics.compute_acc_naive(Iris_model_cases_n2[idx].predict(X_Iris_valid),y_Iris_Valid))
 
     #3 hidden layers
 
@@ -410,20 +478,36 @@ def main_test():
     #Wisconsin_model_cases_n3 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, regrasWisconsin, RNGseed, nLayers = 3, debug = True)
     #Iris_model_cases_n3 = load_models_params(X_Iris_train, X_Iris_valid, y_Iris_train, y_Iris_valid, 4, 3, regrasIris, RNGseed, nLayers = 3, debug = True)
 
-    #ruleSetsResults_3H_Wine = test_algorithms(Wine_model_cases_n3, Wine_Database, Wine_classes, debug = True)
-    #ruleSetsResults_3H_Wisconsin = test_algorithms(Wisconsin_model_cases_n3, Wisconsin_Database, Wisconsin_classes, debug = True)
-    #ruleSetsResults_3H_Iris = test_algorithms(Iris_model_cases_n3, Iris_Database, Iris_classes, debug = True)
+    #ruleSetsResults_3H_Wine_train = test_algorithms(Wine_model_cases_n3, X_Wine_train, Wine_classes, debug = True)
+    #ruleSetsResults_3H_Wisconsin_train = test_algorithms(Wisconsin_model_cases_n3, X_Wisconsin_train, Wisconsin_classes, debug = True)
+    #ruleSetsResults_3H_Iris_train = test_algorithms(Iris_model_cases_n3, X_Iris_train, Iris_classes, debug = True)
+
+    #ruleSetsResults_3H_Wine_valid = test_algorithms(Wine_model_cases_n3, X_Wine_valid, Wine_classes, debug = True)
+    #ruleSetsResults_3H_Wisconsin_valid = test_algorithms(Wisconsin_model_cases_n3, X_Wisconsin_valid, Wisconsin_classes, debug = True)
+    #ruleSetsResults_3H_Iris_valid = test_algorithms(Iris_model_cases_n3, X_Iris_valid, Iris_classes, debug = True)
+
+    #ruleSetsResults_3H_Wine = [ruleSetsResults_3H_Wine_train, ruleSetsResults_3H_Wine_valid]
+    #ruleSetsResults_3H_Wisconsin = [ruleSetsResults_3H_Wisconsin_train, ruleSetsResults_3H_Wisconsin_valid]
+    #ruleSetsResults_3H_Iris = [ruleSetsResults_3H_Iris_train, ruleSetsResults_3H_Iris_valid]
 
     #for idx in range(len(ruleSetResults_3H_Wine)):
     #   get predictions of ruleSets and the accuracy
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wine [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Wisconsin [train, valid]
-    #   computer_acc_rules_naive(ruleResults, y, classes) Iris [train, valid]
-
-    #Avaliar Conjunto de regras resultantes
-
-
-
+    #   parseRulesTest(model, ruleSetsResults_3H_Wine, Wine_Database[0])
+    #   computer_acc_rules_naive(ruleSetsResults_3H_Wine, Wine_Database, Wine_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_3H_Wisconsin, Wisconsin_Database, Wisconsin_classes)
+    #   computer_acc_rules_naive(ruleSetsResults_3H_Iris, Iris_Database, Iris_classes)
+	
+	#acc_models_Wine_n3 = [[],[]]
+	#acc_models_Wisconsin_n3 = [[],[]]
+	#acc_models_Iris_n3 = [[],[]]
+	#
+	#for idx in range(len(Wine_model_cases_n3)):
+	#	acc_models_Wine_n3[0].append(metrics.compute_acc_naive(Wine_model_cases_n3[idx].predict(X_Wine_train),y_Wine_train))
+	#	acc_models_Wine_n3[1].append(metrics.compute_acc_naive(Wine_model_cases_n3[idx].predict(X_Wine_valid),y_Wine_valid))
+	#	acc_models_Wisconsin_n3[0].append(metrics.compute_acc_naive(Wisconsin_model_cases_n3[idx].predict(X_Wisconsin_train),y_Wisconsin_train))
+	#	acc_models_Wisconsin_n3[1].append(metrics.compute_acc_naive(Wisconsin_model_cases_n3[idx].predict(X_Wisconsin_valid),y_Wisconsin_valid))
+	#	acc_models_Iris_n3[0].append(metrics.compute_acc_naive(Iris_model_cases_n3[idx].predict(X_Iris_train),y_Iris_train))
+	#	acc_models_Iris_n3[1].append(metrics.compute_acc_naive(Iris_model_cases_n3[idx].predict(X_Iris_valid),y_Iris_Valid))
 
     return
 
@@ -436,5 +520,5 @@ def simpleTest():
     print("bateria de teste terminado")
     return
 
-simpleTest()
-#main_test()
+#simpleTest()
+main_test()

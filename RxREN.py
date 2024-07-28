@@ -81,10 +81,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                     E[l].append(item)
 
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
-            if debug:
-                print(E[l])
 
             err[l] = len(E[l])
+    
             if debug:
                 print("neuronio de entrada %s: numero de erros: %s" % (l, err[l]))
 
