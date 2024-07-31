@@ -8,6 +8,7 @@ import random
 import math
 import numpy as np
 import time
+import csv
 
 import ActivationFunctions as ACT
 import ANNTests
@@ -369,6 +370,15 @@ def main_test():
     acc_decisionTree_Iris_train = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_train), y_Iris_train)
     acc_decisionTree_Iris_valid = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_valid), y_Iris_valid)
 
+    with open('resultados/resultados_arvores.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([acc_decisionTree_Wine_train])
+        writer.writerow([acc_decisionTree_Wine_valid])
+        writer.writerow([acc_decisionTree_Wisconsin_train])
+        writer.writerow([acc_decisionTree_Wisconsin_valid])
+        writer.writerow([acc_decisionTree_Iris_train])
+        writer.writerow([acc_decisionTree_Iris_valid])
+
     #0 hidden layer
 
     #Wine_model_cases_n0 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train,  y_Wine_valid, 13, 3, regrasWine, RNGseed, nLayers = 0, debug = True)
@@ -388,6 +398,16 @@ def main_test():
     #ruleAcc_0H_Wine = [compute_acc_rules_naive(rulePred_0H_Wine, Wine_database, Wine_classes) for ruleSet in ruleSetsResults_0H_Wine]
     #ruleAcc_0H_Wisconsin = [compute_acc_rules_naive(rulePred_0H_Wisconsin, Winsconsin_database, Winsconsin_classes) for ruleSet in ruleSetsResults_0H_Wisconsin]
     #ruleAcc_0H_Iris = [compute_acc_rules_naive(rulePred_0H_Iris, Iris_database, Iris_classes) for ruleSet in ruleSetsResults_0H_Iris]
+
+    #with open('resultados/resultados_tests.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+    #    writer = csv.writer(csvfile)
+    #    writer.writerows(regras)
+    #    writer.writerows(model_Wine_n0_cases_Acc)
+    #    writer.writerows(ruleAcc_0H_Wine)
+    #    writer.writerows(model_Wisconsin_n0_cases_Acc)
+    #    writer.writerows(ruleAcc_0H_Wisconsin)
+    #    writer.writerows(model_Iris_n0_cases_Acc)
+    #    writer.writerows(ruleAcc_0H_Iris)
 
     #1 hidden layer
 
@@ -409,7 +429,7 @@ def main_test():
     ruleAcc_1H_Wisconsin = [compute_acc_rules_naive(rulePred, Winsconsin_database, Winsconsin_classes) for rulePred in rulePred_1H_Wisconsin]
     ruleAcc_1H_Iris = [compute_acc_rules_naive(rulePred, Iris_database, Iris_classes) for rulePred in rulePred_1H_Iris]
 
-    with open('resultados_tests_1H.csv', 'w', newline= '') as csvfile:
+    with open('resultados/resultados_tests_1H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(regras)
         writer.writerows(model_Wine_n1_cases_Acc)
@@ -439,9 +459,15 @@ def main_test():
     #ruleAcc_2H_Wisconsin = [compute_acc_rules_naive(rulePred_2H_Wisconsin, Winsconsin_database, Winsconsin_classes) for ruleSet in ruleSetsResults_2H_Wisconsin]
     #ruleAcc_2H_Iris = [compute_acc_rules_naive(rulePred_2H_Iris, Iris_database, Iris_classes) for ruleSet in ruleSetsResults_2H_Iris]
 
-    #with open('resultados_tests.csv', 'w', newline= '') as csvfile:
+    #with open('resultados/resultados_tests.csv', 'w', newline= '', encoding='utf-8') as csvfile:
     #    writer = csv.writer(csvfile)
-    #    writer.writerows()
+    #    writer.writerows(regras)
+    #    writer.writerows(model_Wine_n2_cases_Acc)
+    #    writer.writerows(ruleAcc_2H_Wine)
+    #    writer.writerows(model_Wisconsin_n2_cases_Acc)
+    #    writer.writerows(ruleAcc_2H_Wisconsin)
+    #    writer.writerows(model_Iris_n2_cases_Acc)
+    #    writer.writerows(ruleAcc_2H_Iris)
 
     #3 hidden layers
 
@@ -463,9 +489,15 @@ def main_test():
     #ruleAcc_3H_Wisconsin = [compute_acc_rules_naive(rulePred_3H_Wisconsin, Winsconsin_database, Winsconsin_classes) for ruleSet in ruleSetsResults_3H_Wisconsin]
     #ruleAcc_3H_Iris = [compute_acc_rules_naive(rulePred_3H_Iris, Iris_database, Iris_classes) for ruleSet in ruleSetsResults_3H_Iris]
 
-    #with open('resultados_tests.csv', 'w', newline= '') as csvfile:
+    #with open('resultados/resultados_tests.csv', 'w', newline= '', encoding='utf-8') as csvfile:
     #    writer = csv.writer(csvfile)
-    #    writer.writerows()
+    #    writer.writerows(regras)
+    #    writer.writerows(model_Wine_n3_cases_Acc)
+    #    writer.writerows(ruleAcc_3H_Wine)
+    #    writer.writerows(model_Wisconsin_n3_cases_Acc)
+    #    writer.writerows(ruleAcc_3H_Wisconsin)
+    #    writer.writerows(model_Iris_n3_cases_Acc)
+    #    writer.writerows(ruleAcc_3H_Iris)
 
     return
 
