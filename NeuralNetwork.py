@@ -18,7 +18,7 @@ class nnf():
         self.layer_num = len(layer_sizes)
         self.input_size = layer_sizes[0]
         self.output_size = layer_sizes[-1]
-
+        self.accuracy_metric = metrics.Compute_Acc_naive
         self.loss = loss
         self.loss_prime = loss_prime
 
@@ -241,3 +241,11 @@ class nnf():
             results.append(self.params["A"+str(i)])
 
         return results
+
+    def accuracy(self, X, y):
+        y_pred = []
+        for idx, x_pred in enumerate(X):
+            y_pred.append(self.predict(X[idx, :]))
+        y_pred = np.array([np.array(yi) for yi in y_pred])
+
+        return self.accuracy_metric(y_pred, y)

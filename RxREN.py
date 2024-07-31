@@ -83,7 +83,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
 
             err[l] = len(E[l])
-    
+
             if debug:
                 print("neuronio de entrada %s: numero de erros: %s" % (l, err[l]))
 
@@ -98,9 +98,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         Nacc = computeAccuracy(local_NN, T, y)
 
         if debug:
-            print("%s < %s - 1" % (Pacc, Nacc))
+            print("%s < %s - 0.01" % (Pacc, Nacc))
 
-        if Pacc < (Nacc - 1):
+        if 100*Pacc < (100*Nacc - 1):
             local_NN = NN_
             mapL = L_
             input_size = len(list(mapL))
