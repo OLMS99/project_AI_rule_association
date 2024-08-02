@@ -58,7 +58,7 @@ class nnf():
     def getAtributes(self):
 
         returnValues = []
-        for i in range(self.layer_num+1):
+        for i in range(self.layer_num):
             returnValues.append(self.params["A"+str(i)])
 
         return returnValues

@@ -96,6 +96,7 @@ def KT_1(U, theta = 0, debug = False):
                 N = selectNegatives(neuron_weights)
                 if debug:
                     print("Tamanho de N %s" % (len(N)))
+                    print("p: ", p)
 
                 WeightSumP = sum_weights(p)
                 WeightSumN = sum_weights(N)
