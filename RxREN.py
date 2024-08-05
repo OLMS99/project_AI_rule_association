@@ -58,7 +58,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     for i in range(input_size):
         mapL.append(i)
 
-    R = []
+    R = dict()
+    for c in C:
+        R[c] = []
 
     B = []
     E = dict()
@@ -146,9 +148,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                     cn.append_right(cnj)
 
         if cn:
-            ck = Node.Node(value=C[k])
+            ck = Node.Node(value = C[k])
             cn.append_right(ck)
-            R.append(cn)
+            R[C[k]].append(cn)
 
     return R
 

@@ -138,15 +138,32 @@ def combine_rules(R, numLayers):
     return newRules
 
 def parseRules(ruleSet, model, inputValues):
-    model_values = model.predict(inputValues).getAtributes()
+    print(ruleSet)
+    if len(ruleSet) is 0:
+        return []
+
+    model.predict(inputValues)
+    model_values = model.getAtributes()
     results = []
-    for layerRules in ruleSet:
+    for layerRule in ruleSet[0]:
+        for rule in layerRule:
+            results.append(rule.step(model_values))
+
+    results = set(results)
+    results = results.remove("no_output_values") if "no_output_values" in results else results
+
+    for idx, layerRules in enumerate(ruleSet):
         currResults = []
         for rule in layerRules:
+            print(rule)
+            inputNeuron = rule.getInputNeuron()
+            uso = inputNeuron in results
+            if not uso:
+                continue
+
             currResults.append(rule.step(model_values))
 
-        currResults = set(currResults)
-        currResults = currResults.remove("no_output_values") if "no_output_values" in currResults else currResults
-        results = list(currResults)
+        results = set(currResults)
+        results = results.remove("no_output_values") if "no_output_values" in results else results
 
-    return results
+    return list(results)

@@ -217,7 +217,8 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     return R
 
 def parseRules(ruleSet, model, inputValues):
-    model_values = model.predict(inputValues).getAtributes()
+    model.predict(inputValues)
+    model_values = model.getAtributes()
     results = []
     for layerRules in ruleSet:
         currResults = []

@@ -202,7 +202,7 @@ def label_code_block(R, E, true_result, debug = False):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
     for c in C:
-        R[c] = None
+        R[c] = []
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)

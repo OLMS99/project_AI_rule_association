@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 import time
+import copy
 
 import ActivationFunctions as ACT
 import LossFunctions as Loss
@@ -31,7 +32,7 @@ class nnf():
         return self.params
 
     def copy(self):
-        return nnf(params = self.get_params())
+        return nnf(params = copy.deepcopy(self.get_params()))
 
     def load_params(self, params):
         self.params = params
