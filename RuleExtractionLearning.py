@@ -13,8 +13,16 @@ def classify(R, E):
 #classify the example with the rules and to a class
     if R is None:
         return "no_rule_here"
+    if isinstance(R, list):
+        if len(R) <= 0:
+            return "no_rule_here"
 
-    prediction = R.step(E)
+    if isinstance(R, list):
+        prediction = [r.step(E) for r in R]
+        results = set(prediction)
+        prediction = list(results.remove("no_output_value") if  "no_output_value" in results else results)
+    else:
+        prediction = [R.step(E)]
 
     return prediction
 
@@ -225,14 +233,13 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         if debug:
             print("numero de voltas: %d" % (voltas))
         voltas += 1
-        qtd_exemplos = numClasses * voltas
+        qtd_exemplos = numClasses * numClasses * voltas
         E = make_examples(Possibilities, n = qtd_exemplos)
 
         O = []
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
-            #label_result = C[model_result]
             inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
 
             Sum_IO.append(inputToOutput[np.argmax(model_result)])
@@ -248,7 +255,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                 #if debug:
                 #    print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
-                    #Todo: change function call, consider saving versions of examples devided by the outputs
 
                     R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput, debug=debug)
 

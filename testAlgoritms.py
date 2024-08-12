@@ -109,6 +109,7 @@ def algoritmo_1_KT(seed):
                 rule.print()
     else:
         print("nenhuma regra feita")
+    print(result)
 
 def algoritmo_2_MofN(seed):
     ANN, _, DataX, Datay = load_example(seed)
@@ -116,33 +117,26 @@ def algoritmo_2_MofN(seed):
     U = Neurons_to_Lists(params)
     result = MofN.MofN_2(U, ANN, DataX, Datay, debug=True)
 
-    if len(result) > 0:
-        for r in result:
+    for r in result:
+        if len(r) > 0:
             for rule in r:
                 rule.print()
-    else:
-        print("no rule made")
+        else:
+            print("no rule made")
 
-    for case in DataX[0]:
-        #tenta todas as arvores e ve os resultados
-        #resposta = MofN.parseRules(result, )
-        #compare
-        pass
+    print(result)
 
 def algoritmo_3_RuleExtractLearning(seed):
     ANN, C, DataX, _ = load_example(seed)
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
-    for r in result.keys():
-        if result[r]:
-            print("rule made for %s" % (r))
-            result[r].print()
+    for label,ruleset in result.items():
+        if ruleset is not None:
+            print("rule made for %s" % (label))
+            ruleset.print()
         else:
-            print("no rule made for %s" % (r))
+            print("no rule made for %s" % (label))
 
-    #for case in DataX[0]:
-        #tenta todas as arvores e ve qual da true e qual da false
-        #resposta = result.step(case)
-        #compare
+    print(result)
 
 def algoritmo_4_RxRen(seed):
     ANN, C, DataX, Datay = load_example(seed)
@@ -165,14 +159,14 @@ def algoritmo_4_RxRen(seed):
 
     resultado = RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
 
-    if len(resultado) > 0:
-        for r in resultado:
-            r.print()
-    else:
-        print("nenhuma regra feita")
-    #for case in T:
-        #resposta = resultado.step(case)
-        #compare
+    for r in resultado.values():
+        if len(r) <= 0:
+            print("nenhuma regra feita")
+        else:
+            for rule in r:
+                print(rule)
+
+    print(resultado)
 
 def load_wine_cobaia(random_state, split_train_size=0.7):
     dataset = load_wine()
@@ -334,7 +328,7 @@ def testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, debug 
     modelCasesAcc = [[model[0].accuracy(Database[0][0], Database[1][0]) for model in modelCases],[model[0].accuracy(Database[0][1], Database[1][1]) for model in modelCases]]
 
     ruleSetsResults = test_algorithms(modelCases, Database, Classes, debug = debug)
-    rulePred = [parseRulesTest(model[0], ruleSet, Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
+    rulePred = [parseRulesTest(model[0], ruleSet, Database) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
 
     return [modelCasesAcc, ruleAcc]
@@ -394,6 +388,8 @@ def main_test():
         writer.writerow(["Wisconsin", "valid", acc_decisionTree_Wisconsin_valid])
         writer.writerow(["Iris", "train", acc_decisionTree_Iris_train])
         writer.writerow(["Iris", "valid", acc_decisionTree_Iris_valid])
+
+    #testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, debug = False)
 
     #1 hidden layer
 
@@ -466,9 +462,9 @@ def main_test():
 
     #3 hidden layers
 
-    Wine_3H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 3, 13, 3, RNGseed, debug = True)
+    #Wine_3H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 3, 13, 3, RNGseed, debug = True)
     #Wisconsin_3H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 3, 30, 2, RNGseed, debug = True)
-    #Iris_3H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 3, 4, 3, RNGseed, debug = True)
+    Iris_3H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 3, 4, 3, RNGseed, debug = True)
 
     #Wine_model_cases_n3 = load_models_params(X_Wine_train, X_Wine_valid, y_Wine_train, y_Wine_valid, 13, 3, regrasWine[0], RNGseed, nLayers = 3, debug = True)
     #Wisconsin_model_cases_n3 = load_models_params(X_Wisconsin_train, X_Wisconsin_valid, y_Wisconsin_train, y_Wisconsin_valid, 30, 2, regrasWisconsin[0], RNGseed, nLayers = 3, debug = True)
@@ -498,6 +494,7 @@ def main_test():
     #    writer.writerows(model_Iris_n3_cases_Acc)
     #    writer.writerows(ruleAcc_3H_Iris)
 
+    print("bateria de teste principal terminado")
     return
 
 def simpleTest():
@@ -506,8 +503,8 @@ def simpleTest():
     algoritmo_2_MofN(seed)
     algoritmo_3_RuleExtractLearning(seed)
     algoritmo_4_RxRen(seed)
-    print("bateria de teste terminado")
+    print("bateria de teste simples terminado")
     return
 
-#simpleTest()
+simpleTest()
 main_test()
