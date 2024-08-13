@@ -187,14 +187,20 @@ class Node:
             initial_pass = self.eval(input_values[self.featureIndex])
 
         if initial_pass:
-            if self.right:
-                return self.right.step(input_values)
+            if self.right is not None:
+                if isinstance(self.right, Node):
+                    return self.right.step(input_values)
+                else:
+                    return self.right
             else:
                 return "no_output_value"
 
         else:
-            if self.left:
-                return self.left.step(input_values)
+            if self.left is not None:
+                if isinstance(self.left, Node):
+                    return self.left.step(input_values)
+                else:
+                    return self.left
             else:
                 return "no_output_value"
 
