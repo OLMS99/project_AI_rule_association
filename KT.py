@@ -111,7 +111,7 @@ def KT_1(U, theta = 0, debug = False):
                         for element in negSubset:
                             for item in p:
                                 layerRules.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
-        R.append(layerRules)
+        R.append(layerRules.copy())
 
     return R
 

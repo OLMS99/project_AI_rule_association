@@ -163,7 +163,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     for layer_index, layer in enumerate(U):
         for unit_index, u in enumerate(layer):
             neuron_coord = (layer_index, unit_index)
-            G[neuron_coord] = cluster_algorithm(u[0])
+            G[neuron_coord] = cluster_algorithm(u[0]) #weights
             Backup[neuron_coord] = G[neuron_coord].copy()
             K[neuron_coord] = []
             A[neuron_coord] = []
@@ -178,7 +178,8 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     params = model.get_params()
                     weight_idx = getweightIndexes(G[neuron_coord], len(u[0]))
                     for w in weight_idx:
-                        params["W"+str(layer_index+1)][neuron_coord, int(w)] = 0.0
+
+                        params["W"+str(layer_index+1)][unit_index, int(w)] = 0.0
                     model.load_params(params)
 
             #limpeza
@@ -212,7 +213,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
                         makerule(layer_idx, u_idx, np.asarray(ai), gi, (layer_idx + 1, u_idx), layerRules)
 
-        R.append(layerRules)
+        R.append(layerRules.copy())
 
     return R
 

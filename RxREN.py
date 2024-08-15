@@ -102,7 +102,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         if debug:
             print("%s < %s - 0.01" % (Pacc, Nacc))
 
-        if 100*Pacc < (100*Nacc - 1):
+        if 100 * Pacc < (100 * Nacc - 1):
             local_NN = NN_
             mapL = L_
             input_size = len(list(mapL))
@@ -147,7 +147,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                     #and -> set_right()
                     cn.append_right(cnj)
 
-        if cn:
+        if cn is not None:
             ck = Node.Node(value = C[k])
             cn.append_right(ck)
             R[C[k]].append(cn)
