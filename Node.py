@@ -22,11 +22,21 @@ class Node:
         self.threshold = threshold
         self.comparison = comparison# "=","<",">",">=","<=","!=", "=="
         self.negation = negation
-        self.left = left
-        self.right = right
+
+        if not isinstance(left, Node) and left is not None:
+            raise Exception("Node only accept Nodes or derivates as sons, left is not a node")
+
+        self.left = left if isinstance(left, Node) else None
+
+        if not isinstance(right, Node) and right is not None:
+            raise Exception("Node only accept Nodes or derivates as sons, right is not a node")
+
+        self.right = right if isinstance(right, Node) else None
 
         self.label = None
         self.value = value
+        self.numSons = int(self.left is not None) + int(self.right is not None)
+        self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
     def copy(self):
         esquerda = self.left.copy() if self.left is not None else None
@@ -70,7 +80,7 @@ class Node:
         return 1 + len_left + len_right
 
     def num_sons(self):
-        return int(self.left is not None) + int(self.right is not None)
+        return self.numSons
 
     def set_label(self, label):
         self.label = str(label)
@@ -117,10 +127,18 @@ class Node:
         return statement_1 and statement_2
 
     def set_left(self, node):
+        if not isinstance(node, Node) and node is not None:
+            raise Exception("Node only accept Nodes or derivates as sons, tried set left with a non node")
         self.left = node
+        self.numSons = int(self.left is not None) + int(self.right is not None)
+        self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
     def set_right(self, node):
+        if not isinstance(node, Node) and node is not None:
+            raise Exception("Node only accept Nodes or derivates as sons, tried set right with a non node")
         self.right = node
+        self.numSons = int(self.left is not None) + int(self.right is not None)
+        self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
     def append_left(self, node):
         if self.left:
@@ -188,19 +206,20 @@ class Node:
 
         if initial_pass:
             if self.right is not None:
-                if isinstance(self.right, Node):
-                    return self.right.step(input_values)
-                else:
+                print(self.right)
+                if self.right.is_leaf_node():
                     return self.right
+                return self.right.step(input_values)
             else:
                 return "no_output_value"
 
         else:
             if self.left is not None:
-                if isinstance(self.left, Node):
-                    return self.left.step(input_values)
-                else:
+                print(self.left)
+                if self.left.is_leaf_node():
                     return self.left
+                return self.left.step(input_values)
+
             else:
                 return "no_output_value"
 
@@ -222,13 +241,13 @@ class Node:
         if debug:
             print("vendo ramos")
 
-        if self.left:
+        if self.left is not None:
             if debug:
                 print("ramo esquerdo")
             OR_branch = self.left
             archive.extend(self.left.getAntecedent(side = -1, origin = self, debug=debug))
 
-        if self.right:
+        if self.right is not None:
             if debug:
                 print("ramo direito")
             AND_branch = self.right
