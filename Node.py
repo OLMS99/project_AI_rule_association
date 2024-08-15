@@ -38,6 +38,16 @@ class Node:
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
+    def equal(self, node):
+        comp1 = self.label == node.label
+        comp2 = self.featureIndex == node.featureIndex
+        comp3 = self.layerIndex == node.layerIndex
+        comp4 = self.comparison == node.comparison
+        comp5 = self.negation == node.negation
+        comp6 = self.threshold == node.threshold
+        comp7 = self.value == node.value
+        return comp1 and comp2 and comp3 and comp4 and comp5 and comp6 and comp7
+
     def copy(self):
         esquerda = self.left.copy() if self.left is not None else None
         direita = self.right.copy() if self.right is not None else None
