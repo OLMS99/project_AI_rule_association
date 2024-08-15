@@ -22,7 +22,7 @@ def classify(R, E):
         results = set(prediction)
         prediction = list(results.remove("no_output_value") if  "no_output_value" in results else results)
     else:
-        prediction = [R.step(E)]
+        prediction = R.step(E)
 
     return prediction
 
@@ -210,7 +210,7 @@ def label_code_block(R, E, true_result, debug = False):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
     for c in C:
-        R[c] = []
+        R[c] = None
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)
@@ -272,7 +272,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                                 Sum_IO[idx] = newSum
 
                             if s > theta:
-                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx],O[idx][1])
+                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1])
 
     return R
 
