@@ -274,10 +274,10 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
             if debug: 
                 print(Neurons_to_Lists(model.get_params()))
 
-            algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), debug = debug)
-            algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
-            algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
-            algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes, debug = debug)
+            algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()))
+            algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1])
+            algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1])
+            algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
 
             result.append([algo1_result, algo2_result, algo3_result, algo4_result])
         results.append(result)
