@@ -17,7 +17,6 @@ def classify(R, E):
         if len(R) <= 0:
             return "no_rule_here"
 
-    if isinstance(R, list):
         prediction = [r.step(E) for r in R]
         results = set(prediction)
         prediction = list(results.remove("no_output_value") if  "no_output_value" in results else results)
@@ -117,15 +116,19 @@ def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
     current_node = endResult
     hook = None
 
-    if endResult:
+    if endResult is not None:
         while not current_node.is_leaf_node():
             judge = current_node.eval(Exemplo)
             if judge:
                 presence_array[current_node.featureIndex] = True
-                current_node = current_node.right
+                if current_node.right is not None:
+                    current_node = current_node.right
+                else:
+                    hook = current_node
+                    break
 
             else:
-                if current_node.left:
+                if current_node.left is not None:
                     current_node = current_node.left
                 else:
                     hook = current_node
@@ -163,47 +166,53 @@ def label_code_block(R, E, true_result, debug = False):
         else:
             print("regra atual NÃO cobre exemplo")
 
-    if not is_covered:
+    if is_covered:
+        return R
 
-        leaf = Node.Node(value=true_result)
-        r = conjuntive_rule(E, R, leaf, debug=debug)
 
+    leaf = Node.Node(value=true_result)
+    r = conjuntive_rule(E, R, leaf, debug=debug)
+
+    if debug:
+        if r:
+            print("conjuntive rule made for %s:"%(true_result))
+        else:
+            print("conjuntive rule not made")
+
+    ant_r = r.getAntecedent()
+
+    if debug:
+       print("number of antecendents: %d" % (len(ant_r)))
+
+    if not ant_r:
+        return R
+
+    for ri in ant_r:
+        r_ = filter(ant_r, ri[2])
+        print("=====================================")
+        print(r_)
+        print("=====================================")
+        if debug:
+            if r_:
+                print("filtered rule made for %s"%(true_result))
+            else:
+                print("rule filtered entirely")
+
+        if Subset(true_result,r_,E):
+            print("+++++++++++++++++++++++++++++++++")
+            print(r_)
+            print("+++++++++++++++++++++++++++++++++")
+            r = r_
+
+    if R is None:
+        R = r
+        if debug:
+            print("new initial rule made for %s:"%(true_result))
+    else:
+        R = r.append_left(R)
         if debug:
             if r:
-                print("conjuntive rule made for %s:"%(true_result))
-            else:
-                print("conjuntive rule not made")
-
-        ant_r = r.getAntecedent()
-
-        if debug:
-            print("number of antecendents: %d" % (len(ant_r)))
-
-        if not ant_r:
-            return R
-
-        for ri in ant_r:
-            r_ = filter(ant_r, ri[2])
-            if debug:
-                if r_:
-                    print("filtered rule made for %s"%(true_result))
-                else:
-                    print("rule filtered entirely")
-
-            if Subset(true_result,r_,E):
-                r = r_
-
-        if R is None:
-            R = r
-
-        else:
-            r.set_left(R)
-            R = r
-            if debug:
-                if R:
-                    print("updated rule made for %s:"%(true_result))
-                else:
-                    print("updated rule not made")
+                print("updated rule for %s:"%(true_result))
 
     return R
 
@@ -255,7 +264,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                 #if debug:
                 #    print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
-
                     R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput, debug=debug)
 
                 else:
@@ -272,7 +280,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                                 Sum_IO[idx] = newSum
 
                             if s > theta:
-                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1])
+                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1], debug=debug)
 
     return R
 

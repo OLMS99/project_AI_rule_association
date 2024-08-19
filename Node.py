@@ -39,6 +39,9 @@ class Node:
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
     def equal(self, node):
+        if node is None:
+            return False
+
         comp1 = self.label == node.label
         comp2 = self.featureIndex == node.featureIndex
         comp3 = self.layerIndex == node.layerIndex
@@ -139,6 +142,9 @@ class Node:
     def set_left(self, node):
         if not isinstance(node, Node) and node is not None:
             raise Exception("Node only accept Nodes or derivates as sons, tried set left with a non node")
+        if self.equal(node):
+            raise Exception("Node doesn't connect to itself")
+
         self.left = node
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
@@ -146,6 +152,9 @@ class Node:
     def set_right(self, node):
         if not isinstance(node, Node) and node is not None:
             raise Exception("Node only accept Nodes or derivates as sons, tried set right with a non node")
+        if self.equal(node):
+            raise Exception("Node doesn't connect to itself")
+
         self.right = node
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
