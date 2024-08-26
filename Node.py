@@ -61,9 +61,9 @@ class Node:
     def getInputNeuron(self):
 
         if self.layerIndex is None:
-            return self.featureIndex
+            return [self.featureIndex]
         if self.featureIndex is None:
-            return self.layerIndex
+            return [self.layerIndex]
 
         return [self.layerIndex, self.featureIndex]
 
@@ -369,7 +369,7 @@ class Node:
         rightLeaf = self.right.is_leaf_node()
 
         if leftLeaf and rightLeaf:
-            return
+            return None
 
         elif leftLeaf:
             self.right.set_left(leftLeaf)

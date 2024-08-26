@@ -354,6 +354,10 @@ def main_test():
 
     regras = ["E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"]
 
+    lista_Sem_Regras_Iris = []
+    lista_Sem_Regras_Wine = []
+    lista_Sem_Regras_Wiscosin = []
+
     #montar arvores de decisão
     decisionTree_Wine = DecisionTreeClassifier(max_depth = 3, random_state = decisionTreeSeed)
     decisionTree_Wine.fit(X_Wine_train, y_Wine_train)
@@ -385,6 +389,8 @@ def main_test():
     #Wine_1H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 1, 13, 3, RNGseed, debug = True)
     #Wisconsin_1H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 1, 30, 2, RNGseed, debug = True)
     Iris_1H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 1, 4, 3, RNGseed, debug = True)
+    
+
 
     with open('resultados/resultados_tests_1H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
@@ -430,6 +436,11 @@ def main_test():
 
     print("bateria de teste principal terminado")
     return
+
+def print_missing_entries(listaCasos):
+    os.mkdir("log")
+    with open('log/casos_sem_regras.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+        pass
 
 def simpleTest():
     seed = 1

@@ -75,6 +75,7 @@ def filter(antecendents, ant_to_null, debug=False):
     #return the modified copy of the tree
     hold_idx = -1
     copyTree = antecendents[-2][1].copy_tree()
+    copy_ant = copyTree.getAntecedent()
 
     #search for the first matched antecendent to remove
     for idx, ant in enumerate(antecendents):
@@ -89,43 +90,33 @@ def filter(antecendents, ant_to_null, debug=False):
             print("antecendente não encontrado")
         return copyTree
 
-    copy_ant = copyTree.getAntecedent()
     origin = copy_ant[hold_idx][1]
 
     if side == 0:
         new_branch = copy_ant[-2][1].rotation45()
 
-        return new_branch
-
     elif side == -1:
         new_branch = origin.left.rotation45()
-
-        origin.set_left(new_branch)
-        return copyTree
 
     elif side == 1:
         new_branch = origin.right.rotation45()
 
-        origin.set_right(new_branch)
-        return copyTree
+    return copyTree
 
     #connectar origem da variavel target com o ramo resultante da rotação 45
 
-def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
+def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
     presence_array = [False] * len(Exemplo)
-    current_node = endResult
+    current_node = previousRule
     hook = None
+    leafNode = Node.Node(value=leaf)
 
-    if endResult is not None:
+    if previousRule is not None:
         while not current_node.is_leaf_node():
             judge = current_node.eval(Exemplo)
             if judge:
                 presence_array[current_node.featureIndex] = True
-                if current_node.right is not None:
-                    current_node = current_node.right
-                else:
-                    hook = current_node
-                    break
+                current_node = current_node.right
 
             else:
                 if current_node.left is not None:
@@ -138,23 +129,23 @@ def conjuntive_rule(Exemplo, endResult, leaf, debug = False):
     previousPremisse = None
 
     for idx, feature_check in enumerate(presence_array):
-        if not feature_check:
-            partial_premisse = Node.Node(featureIndex=idx, threshold=Exemplo[idx])
+        if feature_check:
+            continue
 
-            if not resultRule:
-                resultRule = partial_premisse
-            else:
-                previousPremisse.set_right(partial_premisse)
+        partial_premisse = Node.Node(featureIndex = idx, threshold = Exemplo[idx])
 
-            previousPremisse = partial_premisse
+        if resultRule is None:
+            resultRule = partial_premisse
+        else:
+            previousPremisse.set_right(partial_premisse)
+        previousPremisse = partial_premisse
 
-    previousPremisse.set_right(leaf)
+    if previousPremisse is not None:
+        previousPremisse.set_right(leafNode)
 
-    if hook:
+    if hook is not None:
         hook.set_left(resultRule)
 
-    if endResult:
-        return endResult
     return resultRule
 
 def label_code_block(R, E, true_result, debug = False):
@@ -169,52 +160,28 @@ def label_code_block(R, E, true_result, debug = False):
     if is_covered:
         return R
 
-
-    leaf = Node.Node(value=true_result)
-    r = conjuntive_rule(E, R, leaf, debug=debug)
+    r = conjuntive_rule(E, R, true_result, debug=debug)
 
     if debug:
-        if r:
+        if r is not None:
             print("conjuntive rule made for %s:"%(true_result))
         else:
             print("conjuntive rule not made")
+
+    if R is None:
+        if debug:
+            print("new initial rule made for %s:"%(true_result))
+        return r
+
+    if r is None:
+        return R
 
     ant_r = r.getAntecedent()
 
     if debug:
        print("number of antecendents: %d" % (len(ant_r)))
 
-    if not ant_r:
-        return R
-
-    for ri in ant_r:
-        r_ = filter(ant_r, ri[2])
-        print("=====================================")
-        print(r_)
-        print("=====================================")
-        if debug:
-            if r_:
-                print("filtered rule made for %s"%(true_result))
-            else:
-                print("rule filtered entirely")
-
-        if Subset(true_result,r_,E):
-            print("+++++++++++++++++++++++++++++++++")
-            print(r_)
-            print("+++++++++++++++++++++++++++++++++")
-            r = r_
-
-    if R is None:
-        R = r
-        if debug:
-            print("new initial rule made for %s:"%(true_result))
-    else:
-        R = r.append_left(R)
-        if debug:
-            if r:
-                print("updated rule for %s:"%(true_result))
-
-    return R
+    return r
 
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
