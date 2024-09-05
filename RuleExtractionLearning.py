@@ -11,7 +11,7 @@ def Subset(classNN, rules, example):
 
 def classify(R, E):
 #classify the example with the rules and to a class
-    if R is None:
+    if R is "no rule yet":
         return "no_rule_here"
     if isinstance(R, list):
         if len(R) <= 0:
@@ -111,7 +111,7 @@ def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
     hook = None
     leafNode = Node.Node(value=leaf)
 
-    if previousRule is not None:
+    if previousRule is not "no rule yet":
         while not current_node.is_leaf_node():
             judge = current_node.eval(Exemplo)
             if judge:
@@ -186,7 +186,7 @@ def label_code_block(R, E, true_result, debug = False):
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
     for c in C:
-        R[c] = None
+        R[c] = "no rule yet"
 
     Possibilities = possible_values(Ex)
     numClasses = len(C)
@@ -262,3 +262,9 @@ def parseRules(ruleSet, inputValues):
         resultBatch = list(resultBatch)
 
     return resultBatch
+
+def isComplete(RELruleSet):
+    for classLabel, classRules in RELruleSet.items():
+        if classRules is "no rule yet":
+            return False
+    return True

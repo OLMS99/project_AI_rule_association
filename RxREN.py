@@ -156,7 +156,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
 
 def parseRules(classRuleSets, inputValues):
     resultBatch = []
-    for ruleSet in classRuleSets:
+    for ruleSet in classRuleSets.values():
         for rule in ruleSet:
             resultBatch.append(rule.step(inputValues))
 
@@ -165,3 +165,9 @@ def parseRules(classRuleSets, inputValues):
         resultBatch = list(resultBatch)
 
     return resultBatch
+
+def isComplete(RxRENruleSet):
+    for classLabel, classRules in RxRENruleSet.items():
+        if classRules is []:
+            return False
+    return True

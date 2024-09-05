@@ -231,3 +231,9 @@ def parseRules(ruleSet, model, inputValues):
         results = list(currResults)
 
     return results
+
+def isComplete(MofNruleSet):
+    for layerRules in MofNruleSet:
+        if len(layerRules) <= 0:
+            return False
+    return True

@@ -265,22 +265,19 @@ def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, see
 def test_algorithms(modelParamsList, dataBase, classes, debug = False):
 
     results = []
-    for dataFrame in dataBase:
-        result = []
-        for case in modelParamsList:
-            model = case[0].copy()
-            correct_cases = case[1]
+    for case in modelParamsList:
+        model = case[0].copy()
+        correct_cases = case[1]
 
-            if debug: 
-                print(Neurons_to_Lists(model.get_params()))
+        if debug: 
+            print(Neurons_to_Lists(model.get_params()))
 
-            algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()))
-            algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1])
-            algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1])
-            algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
+        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()))
+        algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1])
+        algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1])
+        algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
 
-            result.append([algo1_result, algo2_result, algo3_result, algo4_result])
-        results.append(result)
+    results.append([algo1_result, algo2_result, algo3_result, algo4_result])
     return results
 
 def parseRulesTest(model, ruleSets, X):
@@ -288,17 +285,14 @@ def parseRulesTest(model, ruleSets, X):
 
     for x_set in X:
         set_results = []
-
         for x_case in x_set:
-            for x_row in x_case:
+            print(ruleSets)
+            KT_result = KT.parseRules(ruleSets[0], model, x_case) if KT.isComplete(ruleSets[0]) else "Error"
+            MofN_result = MofN.parseRules(ruleSets[1], model, x_case) if MofN.isComplete(ruleSets[1]) else "Error"
+            REL_result = REL.parseRules(ruleSets[2], x_case) if REL.isComplete(ruleSets[2]) else "Error"
+            RxREN_result = RxREN.parseRules(ruleSets[3], x_case) if RxREN.isComplete(ruleSets[3]) else "Error"
 
-                KT_result = KT.parseRules(ruleSets[0], model, x_row)
-                MofN_result = MofN.parseRules(ruleSets[1], model, x_row)
-                REL_result = REL.parseRules(ruleSets[2], x_row)
-                RxREN_result = RxRen.parseRules(ruleSets[3], x_row)
-
-                results = [KT_result, MofN_result, REL_result, RxREN_result]
-                set_results.append(results)
+            set_results.append([KT_result, MofN_result, REL_result, RxREN_result])
 
         pred_results.append(set_results)
 
@@ -307,8 +301,14 @@ def parseRulesTest(model, ruleSets, X):
 def compute_acc_rules_naive(ruleResults, y, classes):
     results = []
     for setIdx, ruleSetResults in enumerate(ruleResults):
+        
         curr_ySet = y[setIdx]
-        caseSize = curr_ySet.shape[0]
+
+        if isinstance(curr_ySet, np.ndarray):
+            caseSize = curr_ySet.shape[0]
+        else:
+            caseSize = len(curr_ySet)
+
         totals = [0, 0, 0, 0]
         for idx, ruleCase in enumerate(ruleSetResults):
             print(ruleCase)
@@ -327,11 +327,30 @@ def testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, debug 
     modelCases = load_models_params(Database[0][0], Database[0][1], Database[1][0], Database[1][1], entrada, saida, regras, RNGseed, debug = True)
     modelCasesAcc = [[model[0].accuracy(Database[0][0], Database[1][0]) for model in modelCases],[model[0].accuracy(Database[0][1], Database[1][1]) for model in modelCases]]
 
-    print(modelCases)
-    print(modelCasesAcc)
+    if debug:
+        print(modelCases)
+        print(modelCasesAcc)
 
     ruleSetsResults = test_algorithms(modelCases, Database, Classes, debug = debug)
-    rulePred = [parseRulesTest(model[0], ruleSet, Database) for model, ruleSet in zip(modelCases, ruleSetsResults)]
+
+    missing_entries = []
+    for idx, ruleSetCase in enumerate(ruleSetsResults):
+
+        if not KT.isComplete(ruleSetCase[0]):
+            missing_entries.append([entrada, saida, numHLayers, regras[idx], "KT", ruleSetCase[0]])
+
+        if not MofN.isComplete(ruleSetCase[1]):
+            missing_entries.append([entrada, saida, numHLayers, regras[idx], "MofN", ruleSetCase[1]])
+
+        if not REL.isComplete(ruleSetCase[2]):
+            missing_entries.append([entrada, saida, numHLayers, regras[idx], "REL", ruleSetCase[2]])
+
+        if not RxREN.isComplete(ruleSetCase[3]):
+            missing_entries.append([entrada, saida, numHLayers, regras[idx], "RxREN", ruleSetCase[3]])
+
+    print_missing_entries(missing_entries)
+
+    rulePred = [parseRulesTest(model[0], ruleSet, Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
 
     return [modelCasesAcc, ruleAcc]
@@ -389,8 +408,6 @@ def main_test():
     #Wine_1H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 1, 13, 3, RNGseed, debug = True)
     #Wisconsin_1H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 1, 30, 2, RNGseed, debug = True)
     Iris_1H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 1, 4, 3, RNGseed, debug = True)
-    
-
 
     with open('resultados/resultados_tests_1H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
@@ -438,9 +455,17 @@ def main_test():
     return
 
 def print_missing_entries(listaCasos):
-    os.mkdir("log")
-    with open('log/casos_sem_regras.csv', 'w', newline= '', encoding='utf-8') as csvfile:
-        pass
+    if not os.path.exists("log"):
+        os.mkdir("log")
+
+    if not os.path.exists("log/casos_sem_regras.csv"):
+        with open('log/casos_sem_regras.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["entrada","saida","numero de camadas ocultas","tamanho camada oculta","algoritmo","visao do resultado"])
+
+    with open('log/casos_sem_regras.csv', 'a+', newline= '', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(listaCasos)
 
 def simpleTest():
     seed = 1

@@ -138,10 +138,11 @@ def combine_rules(R, numLayers):
     return newRules
 
 def parseRules(ruleSet, model, inputValues):
+    print("=======================================================")
     print(ruleSet)
     if len(ruleSet) is 0:
         return []
-
+    print(inputValues)
     model.predict(inputValues)
     model_values = model.getAtributes()
     results = []
@@ -151,7 +152,7 @@ def parseRules(ruleSet, model, inputValues):
 
     results = set(results)
     results = results.remove("no_output_values") if "no_output_values" in results else results
-
+    print("=======================================================")
     for idx, layerRules in enumerate(ruleSet):
         currResults = []
         for rule in layerRules:
@@ -167,3 +168,9 @@ def parseRules(ruleSet, model, inputValues):
         results = results.remove("no_output_values") if "no_output_values" in results else results
 
     return list(results)
+
+def isComplete(KTruleSet):
+    for layerRules in KTruleSet:
+        if len(layerRules) <= 0:
+            return False
+    return True
