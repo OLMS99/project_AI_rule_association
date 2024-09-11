@@ -261,7 +261,7 @@ def parseRules(ruleSet, inputValues):
         resultBatch = resultBatch.remove("no_output_values") if "no_output_values" in resultBatch else resultBatch
         resultBatch = list(resultBatch)
 
-    return resultBatch
+    return resultBatch if len(resultBatch) > 0 else ["no_results"]
 
 def isComplete(RELruleSet):
     for classLabel, classRules in RELruleSet.items():

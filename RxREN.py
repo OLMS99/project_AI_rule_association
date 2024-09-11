@@ -164,7 +164,7 @@ def parseRules(classRuleSets, inputValues):
         resultBatch = resultBatch.remove("no_output_values") if "no_output_values" in resultBatch else resultBatch
         resultBatch = list(resultBatch)
 
-    return resultBatch
+    return resultBatch if len(resultBatch) > 0 else ["no_results"]
 
 def isComplete(RxRENruleSet):
     for classLabel, classRules in RxRENruleSet.items():

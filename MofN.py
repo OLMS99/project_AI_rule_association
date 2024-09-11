@@ -118,8 +118,6 @@ def makerule(layer_idx, neuron_idx, val, premisses, leaf_value, ruleSet):
     #newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
     #premisses -> gi
     #val -> ai
-    print(val)
-    print(premisses)
 
     newRule = NodeMofN.NodeMofN(featureIndex = neuron_idx, layerIndex = layer_idx, lista=[[premisses, val]], comparison="=", negation = False)
     folha = Node.Node(value = leaf_value)
@@ -169,9 +167,11 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
             A[neuron_coord] = []
             threshold = u[1] #bias
 
-            print("dados do neuronio: %s" % (u))
+            if debug:
+                print("dados do neuronio: %s" % (u))
             for gi in G[neuron_coord]:
-                print("gi antes de remover: %s" % (gi))
+                if debug:
+                    print("gi antes de remover: %s" % (gi))
                 if not influence(gi, threshold):
                     remove(G[neuron_coord], gi)
 
@@ -188,7 +188,8 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
             for gi in G[neuron_coord]:
                 razao = 1 if gi[3] == 0 else gi[3]
                 ki = gi[4]/razao
-                print("gi depois de remover: %s" % (gi))
+                if debug:
+                    print("gi depois de remover: %s" % (gi))
                 Au = search_set_Au(G[neuron_coord], gi)
                 if len(Au) == 0:
                     Au = [0]*len(K[neuron_coord])
@@ -230,7 +231,7 @@ def parseRules(ruleSet, model, inputValues):
         currResults = currResults.remove("no_output_values") if "no_output_values" in currResults else currResults
         results = list(currResults)
 
-    return results
+    return results if len(results) > 0 else ["no_results"]
 
 def isComplete(MofNruleSet):
     for layerRules in MofNruleSet:
