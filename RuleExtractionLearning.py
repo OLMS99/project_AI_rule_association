@@ -35,6 +35,7 @@ def covered(rule, example, c, debug=False):
 
     if result == "no_rule_here":
         return False
+
     return c == result
 
 def possible_values(examplesData):

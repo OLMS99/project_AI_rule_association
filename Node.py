@@ -38,6 +38,12 @@ class Node:
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
+    def getValue(self):
+        return self.value
+
+    def getLabel(self):
+        return self.label
+
     def equal(self, node):
         if node is None:
             return False
@@ -225,18 +231,16 @@ class Node:
 
         if initial_pass:
             if self.right is not None:
-                print(self.right)
                 if self.right.is_leaf_node():
-                    return self.right
+                    return self.right.value
                 return self.right.step(input_values)
             else:
                 return "no_output_value"
 
         else:
             if self.left is not None:
-                print(self.left)
                 if self.left.is_leaf_node():
-                    return self.left
+                    return self.left.value
                 return self.left.step(input_values)
 
             else:

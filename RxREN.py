@@ -114,32 +114,30 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
 
     m = len(mapL)
     n = len(C)
-    Q = [[]] * m
     g = [[[] for k in range(n)] for j in range(m)]
     minMatrix = [[float('inf') for k in range(n)] for j in range(m)]
     maxMatrix = [[float('-inf') for k in range(n)] for j in range(m)]
-
 
     for i, l in enumerate(mapL):
         for k, c in enumerate(C):
             g[i][k] = createGroup(E[l], c)
             #alpha value [0.1,0.5]
-            Q[i].append(formSet(g[i][k], err[i], alpha))
-            lenQi = lenElem(Q[i])
-            minMatrix[i][k] = min(lenQi) if len(Q[i]) > 0 else float('inf')
-            maxMatrix[i][k] = max(lenQi) if len(Q[i]) > 0 else float('-inf')
+            Qi = formSet(g[i][k], err[i], alpha)
+            lenQi = lenElem(Qi)
+            minMatrix[i][k] = min(lenQi) if len(Qi) > 0 else float('inf')
+            maxMatrix[i][k] = max(lenQi) if len(Qi) > 0 else float('-inf')
 
     #extraindo regras
 
-    for k in range(n):
+    for k, c in enumerate(C):
         cn = None
-        for i in range(m):
+        for i, l in enumerate(mapL):
             for idx, c in enumerate(C):
                 cnj = None
                 if len(g[i][k]) > alpha * err[i]:
                     #create node based on this expression
                     #cnj = (mapL[i] >= minMatrix[i][k]) and (mapL[i] <= maxMatrix[i][k])
-                    cnj = makerule_RxREN(minMatrix[i][k], maxMatrix[i][k], mapL[i])
+                    cnj = makerule_RxREN(minMatrix[i][k], maxMatrix[i][k], l)
 
                 if cn is None:
                     cn = cnj
@@ -148,9 +146,9 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                     cn.append_right(cnj)
 
         if cn is not None:
-            ck = Node.Node(value = C[k])
+            ck = Node.Node(value = c)
             cn.append_right(ck)
-            R[C[k]].append(cn)
+            R[c].append(cn)
 
     return R
 

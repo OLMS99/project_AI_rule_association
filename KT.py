@@ -44,7 +44,7 @@ def sum_weights(pesos):
 
     return total
 
-def makeRule_KT(layer_index, order_index, valorAprovado, valorRecusado, classe):
+def makeRule_KT(layer_index, valorAprovado, valorRecusado, classe):
     premise1 = Node.Node(layerIndex = layer_index, featureIndex = valorAprovado[0], threshold = valorAprovado[1])
     premise2 = Node.Node(layerIndex = layer_index, featureIndex = valorRecusado[0], threshold = valorRecusado[1], negation = True)
 
@@ -110,7 +110,7 @@ def KT_1(U, theta = 0, debug = False):
                             print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (WeightSumP, WeightSumN, WeightSumNegSub))
                         for element in negSubset:
                             for item in p:
-                                layerRules.append(makeRule_KT(layer_idx, order_idx, item, element, [layer_idx + 1, order_idx]))
+                                layerRules.append(makeRule_KT(layer_idx, item, element, [layer_idx + 1, order_idx]))
         R.append(layerRules.copy())
 
     return R

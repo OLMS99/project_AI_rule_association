@@ -114,7 +114,7 @@ def search_set_Au(clusternetwork, clusterValue):
     AuSetsMask = (clusternetwork[:,3] <= giSize)
     return clusternetwork[AuSetsMask][:,3]
 
-def makerule(layer_idx, neuron_idx, val, premisses, leaf_value, ruleSet):
+def makerule(layer_idx, neuron_idx, val, premisses, leaf_value):
     #newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
     #premisses -> gi
     #val -> ai
@@ -122,7 +122,7 @@ def makerule(layer_idx, neuron_idx, val, premisses, leaf_value, ruleSet):
     newRule = NodeMofN.NodeMofN(featureIndex = neuron_idx, layerIndex = layer_idx, lista=[[premisses, val]], comparison="=", negation = False)
     folha = Node.Node(value = leaf_value)
     newRule.append_right(folha)
-    ruleSet.append(newRule)#or
+    return newRule
 
 #caso precise de uma arvore de node convencional, esta função gera regras sem nodes MofN
 def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
@@ -212,9 +212,10 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                     print("Ou: %s" % (u[1]))
                 for ai in Au:
                     if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
-                        makerule(layer_idx, u_idx, np.asarray(ai), gi, (layer_idx + 1, u_idx), layerRules)
+                        newRule = makerule(layer_idx, u_idx, np.asarray(ai), gi, (layer_idx + 1, u_idx))
+                        layerRules.append(newRule)#or
 
-        R.append(layerRules.copy())
+        R.append(layerRules)
 
     return R
 
