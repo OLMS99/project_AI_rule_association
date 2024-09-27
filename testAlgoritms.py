@@ -272,12 +272,17 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         if debug: 
             print(Neurons_to_Lists(model.get_params()))
 
+        tempoInicio = time.time()
         algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()))
+        tempoCheckpoint1 = time.time()
         algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1])
+        tempoCheckpoint2 = time.time()
         algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1])
+        tempoCheckpoint3 = time.time()
         algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
+        tempoCheckpoint4 = time.time()
 
-    results.append([algo1_result, algo2_result, algo3_result, algo4_result])
+    results.append([[algo1_result, algo2_result, algo3_result, algo4_result], [tempoCheckpoint1 - tempoInicio, tempoCheckpoint2 - tempoCheckpoint1, tempoCheckpoint3 - tempoCheckpoint2, tempoCheckpoint4 - tempoCheckpoint4]])
     return results
 
 def parseRulesTest(model, ruleSets, X):
@@ -304,7 +309,7 @@ def classArrayConvertion(preds, classes):
         if predCase == "Error" or predCase == float('inf') or predCase[0] == "no_results" or predCase[0] == "no_output_value":
             preds01.append([0 for classVal in classes])
         else:
-            preds01.append([int(classVal == predCase) for classVal in classes])
+            preds01.append([int(classVal in predCase) for classVal in classes])
 
     return preds01
 
@@ -336,7 +341,7 @@ def compute_acc_rules_naive(ruleResults, Database, classes):
 
     return Acc_results
 
-def testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, debug = False):
+def testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, nomeDatabase, debug = False):
     #Database = [[X_train, X_valid],[y_train, y_valid]]
     regras = [entrada, entrada + 1, 2*entrada - 1, 2*entrada, saida, saida + 1, 2*saida - 1, 2*saida, math.ceil((saida + entrada)/2), math.ceil((2*entrada + saida)/3)]
     modelCases = load_models_params(Database[0][0], Database[0][1], Database[1][0], Database[1][1], entrada, saida, regras, RNGseed, debug = True)
@@ -350,25 +355,27 @@ def testesBateria(Database, Classes, numHLayers, entrada, saida, RNGseed, debug 
 
     missing_entries = []
     for idx, ruleSetCase in enumerate(ruleSetsResults):
+        setEvaluation = ruleSetCase[0]
 
-        if not KT.isComplete(ruleSetCase[0]):
-            missing_entries.append([entrada, saida, numHLayers, regras[idx], "KT", ruleSetCase[0]])
+        if not KT.isComplete(setEvaluation[0]):
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, regras[idx], "KT", setEvaluation[0]])
 
-        if not MofN.isComplete(ruleSetCase[1]):
-            missing_entries.append([entrada, saida, numHLayers, regras[idx], "MofN", ruleSetCase[1]])
+        if not MofN.isComplete(setEvaluation[1]):
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, regras[idx], "MofN", setEvaluation[1]])
 
-        if not REL.isComplete(ruleSetCase[2]):
-            missing_entries.append([entrada, saida, numHLayers, regras[idx], "REL", ruleSetCase[2]])
+        if not REL.isComplete(setEvaluation[2]):
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, regras[idx], "REL", setEvaluation[2]])
 
-        if not RxREN.isComplete(ruleSetCase[3]):
-            missing_entries.append([entrada, saida, numHLayers, regras[idx], "RxREN", ruleSetCase[3]])
+        if not RxREN.isComplete(setEvaluation[3]):
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, regras[idx], "RxREN", setEvaluation[3]])
 
     print_missing_entries(missing_entries)
 
-    rulePred = [parseRulesTest(model[0], ruleSet, Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
+    rulePred = [parseRulesTest(model[0], ruleSet[0], Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
+    ExecuteTime = [ruleSet[1] for ruleSet in ruleSetsResults]
 
-    return [modelCasesAcc, ruleAcc]
+    return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test():
     decisionTreeSeed = 42
@@ -408,6 +415,7 @@ def main_test():
     acc_decisionTree_Iris_train = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_train), y_Iris_train)
     acc_decisionTree_Iris_valid = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_valid), y_Iris_valid)
 
+    enunciadoLinha = ["Algoritmo"].extend(regras)
     with open('resultados/resultados_arvores.csv', 'w', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Database","Set","acuracy"])
@@ -418,87 +426,116 @@ def main_test():
         writer.writerow(["Iris", "train", acc_decisionTree_Iris_train])
         writer.writerow(["Iris", "valid", acc_decisionTree_Iris_valid])
 
+    WineEntrada = 13
+    WineSaida = 3
+    WineHiddenLayerLen = [WineEntrada, WineEntrada + 1, 2*WineEntrada - 1, 2*WineEntrada, WineSaida, WineSaida + 1, 2*WineSaida - 1, 2*WineSaida, math.ceil((WineSaida + WineEntrada)/2), math.ceil((2*WineEntrada + WineSaida)/3)]
+
+    WisconsinEntrada = 13
+    WisconsinSaida = 3
+    WisconsinHiddenLayerLen = [WisconsinEntrada, WisconsinEntrada + 1, 2*WisconsinEntrada - 1, 2*WisconsinEntrada, WisconsinSaida, WisconsinSaida + 1, 2*WisconsinSaida - 1, 2*WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
+
+    IrisEntrada = 13
+    IrisSaida = 3
+    WineHiddenLayerLen = [IrisEntrada, IrisEntrada + 1, 2*IrisEntrada - 1, 2*IrisEntrada, IrisSaida, IrisSaida + 1, 2*IrisSaida - 1, 2*IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
+
     #1 hidden layer
 
-    Wine_1H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 1, 13, 3, RNGseed, debug = True)
-    #Wisconsin_1H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 1, 30, 2, RNGseed, debug = True)
-    Iris_1H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 1, 4, 3, RNGseed, debug = True)
+    Wine_1H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 1, 13, 3, RNGseed, "Wine", debug = False)
+    #Wisconsin_1H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 1, 30, 2, RNGseed, "Wisconsin", debug = True)
+    Iris_1H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 1, 4, 3, RNGseed, "Iris", debug = False)
 
     with open('resultados/resultados_tests_1H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Wine_model_train","Wine_model_valid"])
         writer.writerow(Wine_1H_AccModelRule[0])
-        writer.writerow(regras)
-        writer.writerow(Wine_1H_AccModelRule[1][0][0])
-        writer.writerow(Wine_1H_AccModelRule[1][0][1])
-        writer.writerow(Wine_1H_AccModelRule[1])
-        #writer.writerow(["Wisconsin","train"])
-        #writer.writerow(regras)
-        #writer.writerows(Wisconsin_1H_AccModelRule[0])
-        #writer.writerow(["Wisconsin","valid"])
-        #writer.writerow(regras)
-        #writer.writerows(Wisconsin_1H_AccModelRule[1])
-        #writer.writerow(["Iris","train"])
-        #writer.writerow(regras)
-        #writer.writerows(Iris_1H_AccModelRule[0])
-        #writer.writerow(["Iris","valid"])
-        #writer.writerow(regras)
-        #writer.writerows(Iris_1H_AccModelRule[1])
+        writer.writerow(enunciadoLinha)
+        #writer.writerow(["KT"].extend([accuracyCase[0] for accuracyCase in Wine_1H_AccModelRule[1][0]]))
+        #writer.writerow(["MofN"].extend([accuracyCase[1] for accuracyCase in Wine_1H_AccModelRule[1][0]]))
+        #writer.writerow(["REL"].extend([accuracyCase[2] for accuracyCase in Wine_1H_AccModelRule[1][0]]))
+        #writer.writerow(["RxREN"].extend([accuracyCase[3] for accuracyCase in Wine_1H_AccModelRule[1][0]]))
+        writer.writerow(Wine_1H_AccModelRule[1][0])
+        writer.writerow("time of execution")
+        #writer.writerow(["KT"].extend([accuracyCase[0] for accuracyCase in Wine_1H_AccModelRule[2][0]]))
+        #writer.writerow(["MofN"].extend([accuracyCase[1] for accuracyCase in Wine_1H_AccModelRule[2][0]]))
+        #writer.writerow(["REL"].extend([accuracyCase[2] for accuracyCase in Wine_1H_AccModelRule[2][0]]))
+        #writer.writerow(["RxREN"].extend([accuracyCase[3] for accuracyCase in Wine_1H_AccModelRule[2][0]]))
+        writer.writerow(Wine_1H_AccModelRule[2][0])
+        #writer.writerow(["Wisconsin_model_train","Wisconsin_model_valid"])
+        #writer.writerow(Wisconsin_1H_AccModelRule[0])
+        #writer.writerow(enunciadoLinha)
+        #writer.writerow(Wisconsin_1H_AccModelRule[1][0][0])
+        #writer.writerow(Wisconsin_1H_AccModelRule[1][0][1])
+        #writer.writerow(Wisconsin_1H_AccModelRule[1])
+        writer.writerow(["Iris_model_train","Iris_model_valid"])
+        writer.writerow(Iris_1H_AccModelRule[0])
+        writer.writerow(enunciadoLinha)
+        writer.writerow(Iris_1H_AccModelRule[1][0][0])
+        writer.writerow(Iris_1H_AccModelRule[1][0][1])
+        writer.writerow(Iris_1H_AccModelRule[1])
 
     #2 hidden layers
 
-    Wine_2H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 2, 13, 3, RNGseed, debug = True)
-    #Wisconsin_2H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 2, 30, 2, RNGseed, debug = True)
-    Iris_2H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 2, 4, 3, RNGseed, debug = True)
+    Wine_2H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 2, 13, 3, RNGseed, "Wine", debug = False)
+    #Wisconsin_2H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 2, 30, 2, RNGseed, "Wisconsin", debug = True)
+    Iris_2H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 2, 4, 3, RNGseed, "Iris", debug = False)
 
-    #with open('resultados/resultados_tests_2H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
-    #    writer = csv.writer(csvfile)
-    #    writer.writerow(["Wine","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wine_2H_AccModelRule[0])
-    #    writer.writerow(["Wine","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wine_2H_AccModelRule[1])
-    #    writer.writerow(["Wisconsin","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wisconsin_2H_AccModelRule[0])
-    #    writer.writerow(["Wisconsin","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wisconsin_2H_AccModelRule[1])
-    #    writer.writerow(["Iris","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Iris_2H_AccModelRule[0])
-    #    writer.writerow(["Iris","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Iris_2H_AccModelRule[1])
+    with open('resultados/resultados_tests_2H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Wine_model_train","Wine_model_valid"])
+        writer.writerow(Wine_2H_AccModelRule[0])
+        writer.writerow(enunciadoLinha)
+        writer.writerow(Wine_2H_AccModelRule[1])
+        writer.writerow(Wine_2H_AccModelRule[2])
+        #writer.writerow(["Wisconsin_model_train","Wisconsin_model_valid"])
+        #writer.writerow(Wisconsin_2H_AccModelRule[0])
+        #writer.writerow(enunciadoLinha)
+        #writer.writerow(Wisconsin_2H_AccModelRule[1][0][0])
+        #writer.writerow(Wisconsin_2H_AccModelRule[1][0][1])
+        #writer.writerow(Wisconsin_2H_AccModelRule[1])
+        writer.writerow(["Iris_model_train","Iris_model_valid"])
+        writer.writerow(Iris_2H_AccModelRule[0])
+        writer.writerow(enunciadoLinha)
+        writer.writerow(Iris_2H_AccModelRule[1][0][0])
+        writer.writerow(Iris_2H_AccModelRule[1][0][1])
+        writer.writerow(Iris_2H_AccModelRule[1])
 
     #3 hidden layers
 
-    Wine_3H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 3, 13, 3, RNGseed, debug = True)
-    #Wisconsin_3H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 3, 30, 2, RNGseed, debug = True)
-    Iris_3H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 3, 4, 3, RNGseed, debug = True)
+    Wine_3H_AccModelRule = testesBateria(Wine_Database, Wine_classes, 3, 13, 3, RNGseed, "Wine", debug = False)
+    #Wisconsin_3H_AccModelRule = testesBateria(Wisconsin_Database, Wisconsin_classes, 3, 30, 2, RNGseed, "Wisconsin", debug = True)
+    Iris_3H_AccModelRule = testesBateria(Iris_Database, Iris_classes, 3, 4, 3, RNGseed, "Iris", debug = False)
 
-    #with open('resultados/resultados_tests_3H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
-    #    writer = csv.writer(csvfile)
-    #    writer.writerow(["Wine","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wine_3H_AccModelRule[0])
-    #    writer.writerow(["Wine","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wine_3H_AccModelRule[1])
-    #    writer.writerow(["Wisconsin","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wisconsin_3H_AccModelRule[0])
-    #    writer.writerow(["Wisconsin","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Wisconsin_3H_AccModelRule[1])
-    #    writer.writerow(["Iris","train"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Iris_3H_AccModelRule[0])
-    #    writer.writerow(["Iris","valid"])
-    #    writer.writerow(regras)
-    #    writer.writerows(Iris_3H_AccModelRule[1])
 
+    with open('resultados/resultados_tests_3H.csv', 'w', newline= '', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Wine_model_train","Wine_model_valid"])
+        writer.writerow(Wine_3H_AccModelRule[0])
+        writer.writerow(enunciadoLinha)
+        writer.writerow(Wine_3H_AccModelRule[1])
+        writer.writerow(Wine_3H_AccModelRule[2])
+
+        #writer.writerow(["Wisconsin_model_train","Wisconsin_model_valid"])
+        #writer.writerow(Wisconsin_3H_AccModelRule[0])
+        #writer.writerow(enunciadoLinha)
+        #writer.writerow(Wisconsin_3H_AccModelRule[1][0][0])
+        #writer.writerow(Wisconsin_3H_AccModelRule[1][0][1])
+        #writer.writerow(Wisconsin_3H_AccModelRule[1])
+        writer.writerow(["Iris_model_train","Iris_model_valid"])
+        writer.writerow(Iris_3H_AccModelRule[0])
+        writer.writerow(enunciadoLinha)
+        writer.writerow(Iris_3H_AccModelRule[1][0][0])
+        writer.writerow(Iris_3H_AccModelRule[1][0][1])
+        writer.writerow(Iris_3H_AccModelRule[1])
+
+    print("###################################################################################################")
+    print(Wine_1H_AccModelRule)
+    print(Iris_1H_AccModelRule)
+    print("###################################################################################################")
+    print(Wine_2H_AccModelRule)
+    print(Iris_2H_AccModelRule)
+    print("###################################################################################################")
+    print(Wine_3H_AccModelRule)
+    print(Iris_3H_AccModelRule)
     print("bateria de teste principal terminado")
     return
 
@@ -509,7 +546,7 @@ def print_missing_entries(listaCasos):
     if not os.path.exists("log/casos_sem_regras.csv"):
         with open('log/casos_sem_regras.csv', 'w', newline= '', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["entrada","saida","numero de camadas ocultas","tamanho camada oculta","algoritmo","visao do resultado"])
+            writer.writerow(["Database", "entrada","saida","numero de camadas ocultas","tamanho camada oculta","algoritmo","visao do resultado"])
 
     with open('log/casos_sem_regras.csv', 'a+', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)

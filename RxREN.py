@@ -48,7 +48,7 @@ def lenElem(setQi):
 
 #ideia: L, H, N -> H, L = H[0], N = H[-1] H = H/H[0] and H[-1]
 #T = exemplos que a rede neural classificou corretamente
-#y = resultado esperado
+#y = resultados esperados
 #alpha = variavel do algoritmo, periodo de valor [0.1, 0.5]
 def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     local_NN = M

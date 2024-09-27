@@ -32,7 +32,7 @@ class nnf():
         return self.params
 
     def copy(self):
-        return nnf(params = copy.deepcopy(self.get_params()))
+        return nnf(params = copy.deepcopy(self.params))
 
     def load_params(self, params):
         self.params = params
