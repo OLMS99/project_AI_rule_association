@@ -122,7 +122,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         for k, c in enumerate(C):
             g[i][k] = createGroup(E[l], c)
             #alpha value [0.1,0.5]
-            Qi = formSet(g[i][k], err[i], alpha)
+            Qi = formSet(g[i][k], err[l], alpha)
             lenQi = lenElem(Qi)
             minMatrix[i][k] = min(lenQi) if len(Qi) > 0 else float('inf')
             maxMatrix[i][k] = max(lenQi) if len(Qi) > 0 else float('-inf')
@@ -134,7 +134,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         for i, l in enumerate(mapL):
             for idx, c in enumerate(C):
                 cnj = None
-                if len(g[i][k]) > alpha * err[i]:
+                if len(g[i][k]) > alpha * err[l]:
                     #create node based on this expression
                     #cnj = (mapL[i] >= minMatrix[i][k]) and (mapL[i] <= maxMatrix[i][k])
                     cnj = makerule_RxREN(minMatrix[i][k], maxMatrix[i][k], l)
