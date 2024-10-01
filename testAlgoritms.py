@@ -282,7 +282,9 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
         tempoCheckpoint4 = time.time()
 
-    results.append([[algo1_result, algo2_result, algo3_result, algo4_result], [tempoCheckpoint1 - tempoInicio, tempoCheckpoint2 - tempoCheckpoint1, tempoCheckpoint3 - tempoCheckpoint2, tempoCheckpoint4 - tempoCheckpoint4]])
+        result = [[algo1_result, algo2_result, algo3_result, algo4_result], [tempoCheckpoint1 - tempoInicio, tempoCheckpoint2 - tempoCheckpoint1, tempoCheckpoint3 - tempoCheckpoint2, tempoCheckpoint4 - tempoCheckpoint3]]
+        results.append(result)
+
     return results
 
 def parseRulesTest(model, ruleSets, X):
@@ -372,7 +374,6 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     rulePred = [parseRulesTest(model[0], ruleSet[0], Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
     ExecuteTime = [ruleSet[1] for ruleSet in ruleSetsResults]
-
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test():
@@ -487,30 +488,46 @@ def print_missing_entries(listaCasos):
         writer.writerows(listaCasos)
 
 def print_Test_results(resultArray, fileName, DataBaseName):
-
+    #To fix later: the result array is nesting weirdly, but I need to finish this projet ASAP
     with open(fileName, 'a+', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([DataBaseName + "_train", DataBaseName + "_valid"])
-        writer.writerow(resultArray[0])
+        writer.writerow(["DataBase", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        trainRow = [DataBaseName + "_train"] + [resultItem[0][0] for resultItem in resultArray]
+        validRow = [DataBaseName + "_valid"] + [resultItem[0][1] for resultItem in resultArray]
+        writer.writerow(trainRow)
+        writer.writerow(validRow)
+
         writer.writerow(["Train"])
-        #writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
-        #writer.writerow(["KT"].extend([accuracyCase[0] for accuracyCase in resultItem[1][0]]))
-        #writer.writerow(["MofN"].extend([accuracyCase[1] for accuracyCase in resultItem[1][0]]))
-        #writer.writerow(["REL"].extend([accuracyCase[2] for accuracyCase in resultItem[1][0]]))
-        #writer.writerow(["RxREN"].extend([accuracyCase[3] for accuracyCase in resultItem[1][0]]))
-        #writer.writerow(["Valid"])
-        #writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
-        #writer.writerow(["KT"].extend([accuracyCase[0] for accuracyCase in resultItem[1][1]]))
-        #writer.writerow(["MofN"].extend([accuracyCase[1] for accuracyCase in resultItem[1][1]]))
-        #writer.writerow(["REL"].extend([accuracyCase[2] for accuracyCase in resultItem[1][1]]))
-        #writer.writerow(["RxREN"].extend([accuracyCase[3] for accuracyCase in resultItem[1][1]]))
-        writer.writerow(resultArray[1])
-        #writer.writerow("time of execution")
-        #writer.writerow(["KT"].extend([accuracyCase[0] for accuracyCase in resultItem[2]]))
-        #writer.writerow(["MofN"].extend([accuracyCase[1] for accuracyCase in resultItem[2]]))
-        #writer.writerow(["REL"].extend([accuracyCase[2] for accuracyCase in resultItem[2]]))
-        #writer.writerow(["RxREN"].extend([accuracyCase[3] for accuracyCase in resultItem[2]]))
-        writer.writerow(resultArray[2])
+        writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        KTRow = ["KT"] + [resultItem[1][0][0][0] for resultItem in resultArray]
+        MofNRow = ["MofN"] + [resultItem[1][0][0][1] for resultItem in resultArray]
+        RELRow = ["REL"] + [resultItem[1][0][0][2] for resultItem in resultArray]
+        RxRENRow = ["RxREN"] + [resultItem[1][0][0][3] for resultItem in resultArray]
+        writer.writerow(KTRow)
+        writer.writerow(MofNRow)
+        writer.writerow(RELRow)
+        writer.writerow(RxRENRow)
+
+        writer.writerow(["Valid"])
+        writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        KTRow = ["KT"] + [resultItem[1][0][1][0] for resultItem in resultArray]
+        MofNRow = ["MofN"] + [resultItem[1][0][1][1] for resultItem in resultArray]
+        RELRow = ["REL"] + [resultItem[1][0][1][2] for resultItem in resultArray]
+        RxRENRow = ["RxREN"] + [resultItem[1][0][1][3] for resultItem in resultArray]
+        writer.writerow(KTRow)
+        writer.writerow(MofNRow)
+        writer.writerow(RELRow)
+        writer.writerow(RxRENRow)
+
+        writer.writerow(["time of execution"])
+        KTRow = ["KT"] + [resultItem[2][0][0] for resultItem in resultArray]
+        MofNRow = ["MofN"] + [resultItem[2][0][1] for resultItem in resultArray]
+        RELRow = ["REL"] + [resultItem[2][0][2] for resultItem in resultArray]
+        RxRENRow = ["RxREN"] + [resultItem[2][0][3] for resultItem in resultArray]
+        writer.writerow(KTRow)
+        writer.writerow(MofNRow)
+        writer.writerow(RELRow)
+        writer.writerow(RxRENRow)
         writer.writerow([])
 
 def simpleTest():
