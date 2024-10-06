@@ -17,6 +17,9 @@ import time
 class Node:
     def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value="no_output_value", negation = False):
 
+        if featureIndex is None and layerIndex is None and value is None:
+            raise Exception("Node must have a reference of what neuron will be validade, it cannot have both featureIndex and layerIndex as None")
+
         self.featureIndex = featureIndex
         self.layerIndex = layerIndex
         self.threshold = threshold
@@ -106,10 +109,12 @@ class Node:
 
     def eval(self, value):
         if isinstance(value, list):
-            if self.layerIndex:
+            if self.layerIndex is not None and self.featureIndex is not None:
                 holder = value[self.layerIndex][self.featureIndex]
-            else:
+            elif self.featureIndex is not None:
                 holder = value[self.featureIndex]
+            elif self.layerIndex is not None:
+                holder = value[self.layerIndex]
         else:
             holder = value
 
@@ -224,9 +229,9 @@ class Node:
         if self.is_leaf_node():
             return self.value
 
-        if self.layerIndex:
+        if self.layerIndex is not None and self.featureIndex is not None:
             initial_pass = self.eval(input_values[self.layerIndex][self.featureIndex])
-        else:
+        elif self.featureIndex is not None:
             initial_pass = self.eval(input_values[self.featureIndex])
 
         if initial_pass:

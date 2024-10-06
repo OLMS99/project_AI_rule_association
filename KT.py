@@ -1,5 +1,6 @@
 from itertools import combinations
 
+import numpy as np
 import Node
 import Utils
 
@@ -143,27 +144,18 @@ def parseRules(ruleSet, model, inputValues):
     if len(ruleSet) is 0:
         return []
     model.predict(inputValues)
-    model_values = model.getAtributes()
+    model_values = [np.squeeze(layer_val, axis=None) for layer_val in model.getAtributes()]
     results = []
-    for layerRule in ruleSet[0]:
-        for rule in layerRule:
-            results.append(rule.step(model_values))
 
-    results = set(results)
-    results = results.remove("no_output_values") if "no_output_values" in results else results
     for idx, layerRules in enumerate(ruleSet):
-        currResults = []
-        for rule in layerRules:
-            inputNeuron = rule.getInputNeuron()
-            uso = inputNeuron in results
-            if not uso:
-                continue
-
-            currResults.append(rule.step(model_values))
+        if idx == 0:
+            currResults = [rule.step(model_values) for rule in ruleSet[0]]
+        else:
+            currResults = [rule.step(model_values) for rule in layerRules if rule.getInputNeuron() in results]
 
         results = set(currResults)
         results = results.remove("no_output_values") if "no_output_values" in results else results
-    results = list(results)
+        results = list(results)
 
     return results if len(results) > 0 else ["no_results"]
 

@@ -344,7 +344,7 @@ def compute_acc_rules_naive(ruleResults, Database, classes):
 
 def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGseed, nomeDatabase, debug = False):
     #Database = [[X_train, X_valid],[y_train, y_valid]]
-    modelCases = load_models_params(Database[0][0], Database[0][1], Database[1][0], Database[1][1], entrada, saida, [HLayerTam], RNGseed, debug = True)
+    modelCases = load_models_params(Database[0][0], Database[0][1], Database[1][0], Database[1][1], entrada, saida, RNGseed, [HLayerTam], nLayers = numHLayers, debug = True)
     modelCasesAcc = [[model[0].accuracy(Database[0][0], Database[1][0]) for model in modelCases],[model[0].accuracy(Database[0][1], Database[1][1]) for model in modelCases]]
 
     if debug:
@@ -376,9 +376,8 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     ExecuteTime = [ruleSet[1] for ruleSet in ruleSetsResults]
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
-def main_test():
+def main_test(RNGseed):
     decisionTreeSeed = 42
-    RNGseed = 1
     np.random.seed(RNGseed)
 
     if not os.path.exists("resultados"):
@@ -530,8 +529,7 @@ def print_Test_results(resultArray, fileName, DataBaseName):
         writer.writerow(RxRENRow)
         writer.writerow([])
 
-def simpleTest():
-    seed = 1
+def simpleTest(seed):
     algoritmo_1_KT(seed)
     algoritmo_2_MofN(seed)
     algoritmo_3_RuleExtractLearning(seed)
@@ -539,5 +537,6 @@ def simpleTest():
     print("bateria de teste simples terminado")
     return
 
-simpleTest()
-main_test()
+seed = 0
+simpleTest(seed)
+main_test(seed)

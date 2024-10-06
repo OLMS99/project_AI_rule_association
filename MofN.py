@@ -4,7 +4,9 @@ import NodeMofN
 import numpy as np
 
 def distance(data1, data2):
-    return abs(sum(data1) - sum(data2))
+    sum1 = sum([x[1] for x in data1])
+    sum2 = sum([x[1] for x in data2])
+    return abs(sum1 - sum2)
 
 def argmin(cases):
     minx,miny = (0,0)
@@ -39,9 +41,14 @@ def cluster_distance(cluster_members):
 
 def cluster_algorithm(networkUnitWeights):
     nSamples = len(networkUnitWeights)
-    cluster_members = {i : [networkUnitWeights[i]] for i in range(nSamples)}
+    cluster_members = dict()
+    backup = dict()
 
+    for i in range(nSamples):
+        cluster_members[i] = [[i, networkUnitWeights[i]]]
+        backup[i] = [[i, networkUnitWeights[i]]]
     Z = np.zeros(shape = (nSamples-1, 5)) #c1, c2, distance, count, sum
+
 
     for i in range(0, nSamples-1):
         nClusters = len(cluster_members)
@@ -57,17 +64,19 @@ def cluster_algorithm(networkUnitWeights):
         Z[i, 1] = y
         Z[i, 2] = d[x, y]
         Z[i, 3] = len(cluster_members[x]) + len(cluster_members[y])
-        Z[i, 4] = sum(cluster_members[x]) + sum(cluster_members[y])
+        Z[i, 4] = sum([item[1] for item in cluster_members[x]]) + sum([item[1] for item in cluster_members[y]])
 
         novaLista = []
         novaLista.extend(cluster_members[x])
         novaLista.extend(cluster_members[y])
         cluster_members[i + nSamples] = novaLista
+        backup[i + nSamples] = novaLista.copy()
+        print(novaLista)
 
-        cluster_members[x] = [float('inf')]
-        cluster_members[y] = [float('inf')]
+        cluster_members[x] = [[x, float('inf')]]
+        cluster_members[y] = [[y, float('inf')]]
 
-    return Z
+    return Z, backup
 
 def influence(cluster, value):
     #clusterNetwork, matrix cada linha tem cluster1, cluster2, distancia, tamanho do super cluster, soma dos valores do super cluster
@@ -109,20 +118,33 @@ def getPossibleClusters(clusteredNetwork, minValue, maxValue):
     result = clusteredNetwork[mascara]
     return result
 
-def search_set_Au(clusternetwork, clusterValue):
-    giSize = clusterValue[3]
-    AuSetsMask = (clusternetwork[:,3] <= giSize)
-    return clusternetwork[AuSetsMask][:,3]
+def search_Ai(clusternetwork, clusterValue):
+    guSizeMaskedClusternetwork = clusternetwork[(clusternetwork[:,3] <= max(clusternetwork[:,3]))]
+    giguSizeMaskedClusternetwork = guSizeMaskedClusternetwork[(guSizeMaskedClusternetwork[:,4] <= clusterValue[3])]
+    return guSizeMaskedClusternetwork[:,3]
 
-def makerule(layer_idx, neuron_idx, val, premisses, leaf_value):
-    #newRule = gen_tree(neuron_idx, val, premisses, leaf_value)
-    #premisses -> gi
-    #val -> ai
+def search_set_Au(clusternetwork):
+    return [search_Ai(clusternetwork, clusterValue) for clusterValue in clusternetwork]
 
-    newRule = NodeMofN.NodeMofN(featureIndex = neuron_idx, layerIndex = layer_idx, lista=[[premisses, val]], comparison="=", negation = False)
-    folha = Node.Node(value = leaf_value)
-    newRule.append_right(folha)
-    return newRule
+def makerule(inputLayer, Au, Gu, weights, nWeights, leaf_value):
+    NewRuleStart = None
+    NewRuleCurr = None
+
+    for idx, (ai, gi) in enumerate(zip(Au, Gu)):
+        if gi[2]==float("inf"):
+            continue
+        weight_array = weights[nWeights + idx]
+        listaPremissas = [[[inputLayer, weight[0]], weight[1]] for weight in weight_array]
+        newRule = NodeMofN.NodeMofN(layerIndex = inputLayer, threshold = ai, listaPremissas = listaPremissas, comparison = "=", negation = False)
+        if NewRuleStart is None:
+            NewRuleStart = newRule
+        else:
+            NewRuleStart.append_right(newRule)
+
+        NewRuleCurr = newRule
+    NewRuleCurr.set_right(Node.Node(leaf_value))
+
+    return NewRuleStart
 
 #caso precise de uma arvore de node convencional, esta função gera regras sem nodes MofN
 def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
@@ -142,7 +164,7 @@ def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
 
 def optimize(U, model, DataX, Datay, debug = False):
 
-    model.train(DataX[0], Datay[0], DataX[1], Datay[1], epochs=100, update_weights = False, debug = debug)
+    model.train(DataX[0], Datay[0], DataX[1], Datay[1], epochs=1000, update_weights = False, debug = debug)
     params = model.get_params()
 
     for layer_idx, layer in enumerate(U):
@@ -155,13 +177,13 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     K = dict()
     G = dict()
     A = dict()
-
+    weight_cluster_members = dict()
     Backup = dict()
 
     for layer_index, layer in enumerate(U):
         for unit_index, u in enumerate(layer):
             neuron_coord = (layer_index, unit_index)
-            G[neuron_coord] = cluster_algorithm(u[0]) #weights
+            G[neuron_coord], weight_cluster_members[neuron_coord] = cluster_algorithm(u[0]) #weights
             Backup[neuron_coord] = G[neuron_coord].copy()
             K[neuron_coord] = []
             A[neuron_coord] = []
@@ -182,38 +204,41 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                         params["W"+str(layer_index+1)][unit_index, int(w)] = 0.0
                     model.load_params(params)
 
-            #limpeza
-            G[neuron_coord] = G[neuron_coord][G[neuron_coord][:,2]!=float('inf')]
-
             for gi in G[neuron_coord]:
                 razao = 1 if gi[3] == 0 else gi[3]
                 ki = gi[4]/razao
                 if debug:
                     print("gi depois de remover: %s" % (gi))
-                Au = search_set_Au(G[neuron_coord], gi)
-                if len(Au) == 0:
-                    Au = [0]*len(K[neuron_coord])
-                if debug:
-                    print("Au: %s" % (Au))
-                    print("Ku: %s" % (K[neuron_coord]))
-                A[neuron_coord].append(Au)
                 K[neuron_coord].append(ki)#or
 
     #Handing the constant G, using back propagation algorithm to optimize the bias of u to Ou
     optimize(U, model, DataX, Datay)
-
+    print("iniciando geração de regras")
     for layer_idx, layer in enumerate(U):
         layerRules = []
         for u_idx, u in enumerate(layer):
             neuron_coord = (layer_idx, u_idx)
-            for gi in G[neuron_coord]:
-                if debug:
-                    print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
-                    print("Ou: %s" % (u[1]))
-                for ai in Au:
-                    if np.asarray(ai).dot(K[neuron_coord])[0] > u[1]:
-                        newRule = makerule(layer_idx, u_idx, np.asarray(ai), gi, (layer_idx + 1, u_idx))
-                        layerRules.append(newRule)#or
+            Wu = weight_cluster_members[neuron_coord]
+            Au = search_set_Au(G[neuron_coord])
+            nSamples = len(u[0])
+
+            if len(Au) == 0:
+                Au = [0]*len(K[neuron_coord])
+            if debug:
+                print("Au: %s" % (Au))
+                print("Ku: %s" % (K[neuron_coord]))
+            A[neuron_coord].extend(Au)
+
+            if debug:
+                print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
+                print("Ou: %s" % (u[1]))
+
+            for au in A[neuron_coord]:
+                if len(au) != len(K[neuron_coord]):
+                    continue
+                if np.asarray(au).dot(K[neuron_coord]) > u[1]:
+                    newRule = makerule(layer_idx, au, G[neuron_coord], Wu, nSamples, (layer_idx + 1, u_idx))
+                    layerRules.append(newRule)#or
 
         R.append(layerRules)
 
