@@ -3,16 +3,16 @@ from itertools import combinations
 import numpy as np
 import Node
 import Utils
+import gc
 
 #atribute->neuronios e seus resultados de saida (An)? ou antecedentes
 #como representar-> coordenadas? (camada, ordem)?
 
 #returns unused subsets of weightrs
 def selectUnusedSubsets(attributes, size, threshold):
-    possible_sets = list(combinations(attributes, size))
     final_selection = []
 
-    for group in possible_sets:
+    for group in combinations(attributes, size):
         if sum_weights(group) > threshold:
             final_selection.append(group)
 
@@ -23,7 +23,7 @@ def selectPositives(weights):
 
     for a, w in enumerate(weights):
         if w >= 0:
-            positiveLink = [a, w]
+            positiveLink = (a, w)
             PositiveLinks.append(positiveLink)
 
     return PositiveLinks
@@ -33,7 +33,7 @@ def selectNegatives(weights):
 
     for a, w in enumerate(weights):
         if w < 0:
-            negativeLink = [a, w]
+            negativeLink = (a, w)
             NegativeLinks.append(negativeLink)
 
     return NegativeLinks
@@ -82,7 +82,7 @@ def KT_1(U, theta = 0, debug = False):
                 for i in range(1, len(Su) + 1):
                     s = selectUnusedSubsets(Su, i, neuron_bias)
                     if debug:
-                        print("num of possible subsets with size %s: %s" % (i,len(s)))
+                        print("num of possible subsets with size %s: %s" % (i, len(s)))
                     for subset in s:
                         if sum_weights(subset) > theta:
                             Sp.append(subset) #or
@@ -99,21 +99,22 @@ def KT_1(U, theta = 0, debug = False):
                     print("Tamanho de N %s" % (len(N)))
                     print("p: ", p)
 
+                #Sum(p) + Sum(N-n) > bias of u >> Sum(p) + Sum(N) - Sum(n) > bias of u >> - Sum(n) > bias of u - (Sum(p) + Sum(N))
+                #Sum(n) < Sum(p) + Sum(N) - bias of u
                 WeightSumP = sum_weights(p)
                 WeightSumN = sum_weights(N)
+                comparison = WeightSumP + WeightSumN - neuron_bias
                 for j in range(1, len(N) + 1):
-                    #Sum(p) + Sum(N-n) > bias of u >> Sum(p) + Sum(N) - Sum(n) > bias of u >> - Sum(n) > bias of u - (Sum(p) + Sum(N))
-                    #Sum(n) < Sum(p) + Sum(N) - bias of u
-                    comparison = WeightSumP + WeightSumN - neuron_bias
-                    n = list(combinations(N, j))
-                    filteredn = [comb for comb in n if sum_weights(comb) < comparison]
+                    filteredn = [comb for comb in combinations(N, j) if sum_weights(comb) < comparison]
                     for negSubset in filteredn:
                         WeightSumNegSub = sum_weights(negSubset)
                         if debug:
                             print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (WeightSumP, WeightSumN, WeightSumNegSub))
                         for element in negSubset:
                             for item in p:
-                                layerRules.append(makeRule_KT(layer_idx, item, element, [layer_idx + 1, order_idx]))
+                                layerRules.append(makeRule_KT(layer_idx, item, element, (layer_idx + 1, order_idx)))
+                    del filteredn
+                    gc.collect()
         R.append(layerRules)
 
     return R
@@ -121,15 +122,14 @@ def KT_1(U, theta = 0, debug = False):
 def combine_rules(R, numLayers):
     newRules = []
 
-    for i in reversed(range(1, numLayers)): 
-        current_layer = R[i]
+    for i in reversed(range(1, numLayers)):
         previousLayerRules = dict()
 
         for neuronRulePrv in R[i-1]:
             previousLayerLeaf = neuronRulePrv.right.right
             previousLayerRules[previousLayerLeaf.value[1]] = neuronRulePrv.right
 
-        for neuronRuleCurr in current_layer:
+        for neuronRuleCurr in R[i]:
             neuronFeature = neuronRuleCurr.getInputNeuron()[1]
             regraAnterior = previousLayerRules[neuronFeature]
             regraAnterior.set_right(neuronRuleCurr.copy())
@@ -142,10 +142,11 @@ def combine_rules(R, numLayers):
 
 def parseRules(ruleSet, model, inputValues):
     if len(ruleSet) is 0:
-        return []
+        return ()
     model.predict(inputValues)
     model_values = [np.squeeze(layer_val, axis=None) for layer_val in model.getAtributes()]
-    results = []
+    results = ()
+    noOutput = set(["no_output_values"])
 
     for idx, layerRules in enumerate(ruleSet):
         if idx == 0:
@@ -154,13 +155,19 @@ def parseRules(ruleSet, model, inputValues):
             currResults = [rule.step(model_values) for rule in layerRules if rule.getInputNeuron() in results]
 
         results = set(currResults)
-        results = results.remove("no_output_values") if "no_output_values" in results else results
+        results = results - noOutput
         results = list(results)
 
-    return results if len(results) > 0 else ["no_results"]
+    return results if len(results) > 0 else ("no_results")
 
 def isComplete(KTruleSet):
     for layerRules in KTruleSet:
         if len(layerRules) <= 0:
             return False
     return True
+
+def delete(KTRuleSet):
+    for layerRules in KTRuleSet:
+        for rule in layerRules:
+            print(rule)
+            rule.destroy()

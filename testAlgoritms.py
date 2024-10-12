@@ -10,6 +10,7 @@ import numpy as np
 import time
 import csv
 import os
+import gc
 
 import ActivationFunctions as ACT
 import ANNTests
@@ -111,6 +112,22 @@ def algoritmo_1_KT(seed):
         print("nenhuma regra feita")
     print(result)
 
+    ANN.destroy()
+    del ANN
+    del C
+    del DataX
+    del DataY
+    params.clear()
+    del params
+    for layer in U:
+        for u in layer:
+            del u
+        del layer
+    del U
+    KT.delete(result)
+    del result
+    gc.collect()
+
 def algoritmo_2_MofN(seed):
     ANN, _, DataX, Datay = load_example(seed)
     params = ANN.get_params()
@@ -123,8 +140,22 @@ def algoritmo_2_MofN(seed):
                 rule.print()
         else:
             print("no rule made")
-
     print(result)
+
+    ANN.destroy()
+    del ANN
+    del DataX
+    del Datay
+    params.clear()
+    del params
+    for layer in U:
+        for u in layer:
+            del u
+        del layer
+    del U
+    MofN.delete(result)
+    del result
+    gc.collect()
 
 def algoritmo_3_RuleExtractLearning(seed):
     ANN, C, DataX, _ = load_example(seed)
@@ -135,8 +166,15 @@ def algoritmo_3_RuleExtractLearning(seed):
             ruleset.print()
         else:
             print("no rule made for %s" % (label))
-
     print(result)
+
+    ANN.destroy()
+    del ANN
+    del C
+    del DataX
+    REL.delete(result)
+    del result
+    gc.collect()
 
 def algoritmo_4_RxRen(seed):
     ANN, C, DataX, Datay = load_example(seed)
@@ -165,8 +203,23 @@ def algoritmo_4_RxRen(seed):
         else:
             for rule in r:
                 print(rule)
-
     print(resultado)
+
+    ANN.destroy()
+    del ANN
+    del C
+    del DataX
+    del Datay
+    params.clear()
+    del params
+    for layer in U:
+        for u in layer:
+            del u
+        del layer
+    del U
+    RxREN.delete(resultado)
+    del resultado
+    gc.collect()
 
 def load_wine_cobaia(random_state, split_train_size=0.7):
     dataset = load_wine()
@@ -307,10 +360,14 @@ def parseRulesTest(model, ruleSets, X):
 def classArrayConvertion(preds, classes):
     preds01 = []
     for predCase in preds:
-        if predCase == "Error" or predCase == float('inf') or predCase[0] == "no_results" or predCase[0] == "no_output_value":
-            preds01.append([0 for classVal in classes])
-        else:
+        print(classes)
+        print(predCase)
+        if isinstance(predCase, tuple):
+            preds01([int(idx == predCase[1]) for idx, classVal in classes])
+        elif isinstance(predCase, list):
             preds01.append([int(classVal in predCase) for classVal in classes])
+        else:
+            preds01.append([int(classVal in {predCase}) for classVal in classes])
 
     return preds01
 
@@ -374,6 +431,25 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     rulePred = [parseRulesTest(model[0], ruleSet[0], Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
     ExecuteTime = [ruleSet[1] for ruleSet in ruleSetsResults]
+
+    for model in modelCases:
+        print("apagando", model[0])
+        model[0].destroy()
+        del model[0]
+        del model
+    del modelCases
+    del missing_entries
+    for results in ruleSetsResults:
+        print(len(results))
+        KT.delete(results[0][0])
+        MofN.delete(results[0][1])
+        REL.delete(results[0][2])
+        RxREN.delete(results[0][3])
+        del results
+    del ruleSetsResults
+    del rulePred
+    gc.collect()
+    print("teste do modelo: database " + nomeDatabase + " com " + str(numHLayer) + " camda ocultas com tamanho " + str(HLayerTam))
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test(RNGseed):
@@ -424,6 +500,14 @@ def main_test(RNGseed):
         writer.writerow(["Wisconsin", "valid", acc_decisionTree_Wisconsin_valid])
         writer.writerow(["Iris", "train", acc_decisionTree_Iris_train])
         writer.writerow(["Iris", "valid", acc_decisionTree_Iris_valid])
+
+    del acc_decisionTree_Wine_train
+    del acc_decisionTree_Wine_valid
+    del acc_decisionTree_Wisconsin_train
+    del acc_decisionTree_Wisconsin_valid
+    del acc_decisionTree_Iris_train
+    del acc_decisionTree_Iris_valid
+    gc.collect()
 
     WineEntrada = 13
     WineSaida = 3

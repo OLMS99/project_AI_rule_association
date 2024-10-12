@@ -2,6 +2,7 @@ import Node
 import NeuralNetwork as ANN
 import numpy as np
 import pandas as pd
+import gc
 
 def Subset(classNN, rules, example):
 #try to classify with the ruleset and compare with class label
@@ -221,7 +222,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
 
             Sum_IO.append(inputToOutput[np.argmax(model_result)])
             output_ONeuron = np.argmax(model_result)
-            O.append([output_ONeuron, C[output_ONeuron]])
+            O.append((output_ONeuron, C[output_ONeuron]))
 
         if debug:
             print("exemplos gerados: %d" % (len(E)))
@@ -269,3 +270,6 @@ def isComplete(RELruleSet):
         if classRules is "no rule yet":
             return False
     return True
+
+def delete(RELruleSet):
+    RELruleSet.clear()

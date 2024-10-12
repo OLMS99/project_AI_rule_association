@@ -1,12 +1,10 @@
 import Node
 import NodeMofN
-
+import gc
 import numpy as np
 
 def distance(data1, data2):
-    sum1 = sum([x[1] for x in data1])
-    sum2 = sum([x[1] for x in data2])
-    return abs(sum1 - sum2)
+    return abs(sum([x[1] for x in data1]) - sum([x[1] for x in data2]))
 
 def argmin(cases):
     minx,miny = (0,0)
@@ -45,8 +43,8 @@ def cluster_algorithm(networkUnitWeights):
     backup = dict()
 
     for i in range(nSamples):
-        cluster_members[i] = [[i, networkUnitWeights[i]]]
-        backup[i] = [[i, networkUnitWeights[i]]]
+        cluster_members[i] = [(i, networkUnitWeights[i])]
+        backup[i] = [(i, networkUnitWeights[i])]
     Z = np.zeros(shape = (nSamples-1, 5)) #c1, c2, distance, count, sum
 
 
@@ -73,8 +71,8 @@ def cluster_algorithm(networkUnitWeights):
         backup[i + nSamples] = novaLista.copy()
         print(novaLista)
 
-        cluster_members[x] = [[x, float('inf')]]
-        cluster_members[y] = [[y, float('inf')]]
+        cluster_members[x] = [(x, float('inf'))]
+        cluster_members[y] = [(y, float('inf'))]
 
     return Z, backup
 
@@ -142,8 +140,9 @@ def makerule(inputLayer, Au, Gu, weights, nWeights, leaf_value):
             NewRuleStart.append_right(newRule)
 
         NewRuleCurr = newRule
+        print("premisse %d made" % (idx))
     NewRuleCurr.set_right(Node.Node(leaf_value))
-
+    print("new rule made")
     return NewRuleStart
 
 #caso precise de uma arvore de node convencional, esta função gera regras sem nodes MofN
@@ -229,13 +228,12 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
                 print("Ku: %s" % (K[neuron_coord]))
             A[neuron_coord].extend(Au)
 
-            if debug:
-                print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
-                print("Ou: %s" % (u[1]))
-
             for au in A[neuron_coord]:
                 if len(au) != len(K[neuron_coord]):
                     continue
+                if debug:
+                    print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
+                    print("Ou: %s" % (u[1]))
                 if np.asarray(au).dot(K[neuron_coord]) > u[1]:
                     newRule = makerule(layer_idx, au, G[neuron_coord], Wu, nSamples, (layer_idx + 1, u_idx))
                     layerRules.append(newRule)#or
@@ -264,3 +262,8 @@ def isComplete(MofNruleSet):
         if len(layerRules) <= 0:
             return False
     return True
+
+def delete(MofNRuleSet):
+    for layerRules in MofNRuleSet:
+        for rule in layerRules:
+            rule.destroy()

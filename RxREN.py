@@ -5,6 +5,7 @@ import Node
 
 import NeuralNetwork as NN
 import ModelMetrics as MM
+import gc
 
 def computeAccuracy(network, dataset, C):
     predictions  = []
@@ -54,9 +55,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     local_NN = M
 
     input_size = len(H[0][0][0])
-    mapL = []
-    for i in range(input_size):
-        mapL.append(i)
+    mapL = [i for i in range(input_size)]
 
     R = dict()
     for c in C:
@@ -105,7 +104,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         if 100 * Pacc < (100 * Nacc - 1):
             local_NN = NN_
             mapL = L_
-            input_size = len(list(mapL))
+            input_size = len(mapL)
             #go to top code block
         else:
             break
@@ -115,8 +114,8 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     m = len(mapL)
     n = len(C)
     g = [[[] for k in range(n)] for j in range(m)]
-    minMatrix = [[float('inf') for k in range(n)] for j in range(m)]
-    maxMatrix = [[float('-inf') for k in range(n)] for j in range(m)]
+    minMatrix = np.full((m,n), float('inf'))
+    maxMatrix = np.full((m,n), float('-inf'))
 
     for i, l in enumerate(mapL):
         for k, c in enumerate(C):
@@ -169,3 +168,6 @@ def isComplete(RxRENruleSet):
         if classRules is []:
             return False
     return True
+
+def delete(RxRENruleSet):
+    RxRENruleSet.clear()

@@ -224,6 +224,17 @@ class Node:
 
         return copy_node
 
+    def destroy(self):
+        if self.left is not None:
+            self.left.destroy()
+
+        if self.right is not None:
+            self.right.destroy()
+
+        del self.value
+        del self.label
+        del self
+
     def step(self, input_values):
 
         if self.is_leaf_node():

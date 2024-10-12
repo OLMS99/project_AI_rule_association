@@ -113,3 +113,8 @@ class NodeMofN(Node):
         if self.left:
             print("left branch:")
             self.right.print()
+
+    def destroy(self):
+        for premissa in self.set_comparisons:
+            del premissa
+        super().destroy()

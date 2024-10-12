@@ -250,3 +250,6 @@ class nnf():
         y_pred = np.array([np.array(yi) for yi in y_pred])
 
         return self.accuracy_metric(y_pred, y)
+
+    def destroy(self):
+        self.params.clear()
