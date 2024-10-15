@@ -189,6 +189,7 @@ class nnf():
         for i in range(len(X_train)):
             indexes_original.append(i)
 
+        finalAcc = 0.0
         for iteration in range(self.epochs):
             indexes = indexes_original 
             np.random.shuffle(indexes)
@@ -216,6 +217,9 @@ class nnf():
             print('Epoch: {0}, Time Spent: {1:.2f}s, Accuracy: {2}'.format(
                 iteration+1, time.time() - start_time, accuracy
             ))
+            finalAcc = accuracy
+
+        return finalAcc
 
     def cost(self, prediction, true_y):
         m = true_y.shape[1]

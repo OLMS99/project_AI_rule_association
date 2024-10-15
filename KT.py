@@ -55,6 +55,10 @@ def makeRule_KT(layer_index, valorAprovado, valorRecusado, classe):
     premise2.set_right(leaf)
     return premise1
 
+#TODO: implement algoritm to ease the complexity at line 111 to 121
+def select_subsets(bigSet, threshold):
+    pass
+
 def KT_1(U, theta = 0, debug = False):
     R=[]
 
@@ -149,10 +153,18 @@ def parseRules(ruleSet, model, inputValues):
     noOutput = set(["no_output_values"])
 
     for idx, layerRules in enumerate(ruleSet):
+        currResults = []
         if idx == 0:
-            currResults = [rule.step(model_values) for rule in ruleSet[0]]
+            for rule in ruleSet[0]:
+                if rule is None:
+                    continue
+                currResults.append(rule.step(model_values))
         else:
-            currResults = [rule.step(model_values) for rule in layerRules if rule.getInputNeuron() in results]
+            for rule in layerRules:
+                if rule is None:
+                    continue
+                if rule.getInputNeuron in results:
+                    currResults.append(rule.step(model_values))
 
         results = set(currResults)
         results = results - noOutput
@@ -169,5 +181,6 @@ def isComplete(KTruleSet):
 def delete(KTRuleSet):
     for layerRules in KTRuleSet:
         for rule in layerRules:
-            print(rule)
+            if rule is None:
+                continue
             rule.destroy()

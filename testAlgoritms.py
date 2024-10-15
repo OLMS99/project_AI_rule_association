@@ -322,17 +322,14 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         model = case[0].copy()
         correct_cases = case[1]
 
-        if debug: 
-            print(Neurons_to_Lists(model.get_params()))
-
         tempoInicio = time.time()
-        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()))
+        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), debug = debug)
         tempoCheckpoint1 = time.time()
-        algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1])
+        algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
         tempoCheckpoint2 = time.time()
-        algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1])
+        algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
         tempoCheckpoint3 = time.time()
-        algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes)
+        algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes, debug = debug)
         tempoCheckpoint4 = time.time()
 
         result = [[algo1_result, algo2_result, algo3_result, algo4_result], [tempoCheckpoint1 - tempoInicio, tempoCheckpoint2 - tempoCheckpoint1, tempoCheckpoint3 - tempoCheckpoint2, tempoCheckpoint4 - tempoCheckpoint3]]
@@ -403,13 +400,13 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     #Database = [[X_train, X_valid],[y_train, y_valid]]
     modelCases = load_models_params(Database[0][0], Database[0][1], Database[1][0], Database[1][1], entrada, saida, RNGseed, [HLayerTam], nLayers = numHLayers, debug = True)
     modelCasesAcc = [[model[0].accuracy(Database[0][0], Database[1][0]) for model in modelCases],[model[0].accuracy(Database[0][1], Database[1][1]) for model in modelCases]]
-
+    print("models made")
     if debug:
         print(modelCases)
         print(modelCasesAcc)
 
     ruleSetsResults = test_algorithms(modelCases, Database, Classes, debug = debug)
-
+    print("predictions made")
     missing_entries = []
     for idx, ruleSetCase in enumerate(ruleSetsResults):
         setEvaluation = ruleSetCase[0]
@@ -427,10 +424,12 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
             missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "RxREN", setEvaluation[3]])
 
     print_missing_entries(missing_entries)
+    print("missing entries checked")
 
     rulePred = [parseRulesTest(model[0], ruleSet[0], Database[0]) for model, ruleSet in zip(modelCases, ruleSetsResults)]
     ruleAcc = [compute_acc_rules_naive(pred, Database, Classes) for pred in rulePred]
     ExecuteTime = [ruleSet[1] for ruleSet in ruleSetsResults]
+    print("evaluation done")
 
     for model in modelCases:
         print("apagando", model[0])
@@ -449,7 +448,7 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     del ruleSetsResults
     del rulePred
     gc.collect()
-    print("teste do modelo: database " + nomeDatabase + " com " + str(numHLayer) + " camda ocultas com tamanho " + str(HLayerTam))
+    print("teste do modelo: database " + nomeDatabase + " com " + str(numHLayers) + " camda ocultas com tamanho " + str(HLayerTam))
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test(RNGseed):
@@ -509,52 +508,72 @@ def main_test(RNGseed):
     del acc_decisionTree_Iris_valid
     gc.collect()
 
+    #"E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"
+    #"E", "S", "(E + S)/2", "(2E + S)/3"
+
     WineEntrada = 13
     WineSaida = 3
     WineHiddenLayerLen = [WineEntrada, WineEntrada + 1, 2*WineEntrada - 1, 2*WineEntrada, WineSaida, WineSaida + 1, 2*WineSaida - 1, 2*WineSaida, math.ceil((WineSaida + WineEntrada)/2), math.ceil((2*WineEntrada + WineSaida)/3)]
+    WineHiddenLayerLenShort = [WineEntrada, WineSaida, math.ceil((WineSaida + WineEntrada)/2), math.ceil((2*WineEntrada + WineSaida)/3)]
 
-    WisconsinEntrada = 13
-    WisconsinSaida = 3
+    WisconsinEntrada = 30
+    WisconsinSaida = 2
     WisconsinHiddenLayerLen = [WisconsinEntrada, WisconsinEntrada + 1, 2*WisconsinEntrada - 1, 2*WisconsinEntrada, WisconsinSaida, WisconsinSaida + 1, 2*WisconsinSaida - 1, 2*WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
+    WisconsinHiddenLayerLenShort = [WisconsinEntrada, WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
 
     IrisEntrada = 13
     IrisSaida = 3
     IrisHiddenLayerLen = [IrisEntrada, IrisEntrada + 1, 2*IrisEntrada - 1, 2*IrisEntrada, IrisSaida, IrisSaida + 1, 2*IrisSaida - 1, 2*IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
+    IrisHiddenLayerLenShort = [IrisEntrada, IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
 
     #1 hidden layer
 
-    Wine_1H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 1, HLayerTam, 13, 3, RNGseed, "Wine", debug = False) for HLayerTam in WineHiddenLayerLen]
+    Wine_1H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 1, HLayerTam, 13, 3, RNGseed, "Wine", debug = True) for HLayerTam in WineHiddenLayerLenShort]
     print_Test_results(Wine_1H_AccModelRule, 'resultados/resultados_tests_1H.csv', "Wine")
 
-    #Wisconsin_1H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 1, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLen]
+    #Wisconsin_1H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 1, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLenShort]
     #print_Test_results(Wisconsin_1H_AccModelRule, 'resultados/resultados_tests_1H.csv', "Wisconsin")
 
-    Iris_1H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 1, HLayerTam, 4, 3, RNGseed, "Iris", debug = False) for HLayerTam in IrisHiddenLayerLen]
+    Iris_1H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 1, HLayerTam, 4, 3, RNGseed, "Iris", debug = True) for HLayerTam in IrisHiddenLayerLenShort]
     print_Test_results(Iris_1H_AccModelRule, 'resultados/resultados_tests_1H.csv', "Iris")
 
     #2 hidden layers
 
-    Wine_2H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 1, HLayerTam, 13, 3, RNGseed, "Wine", debug = False) for HLayerTam in WineHiddenLayerLen]
-    print_Test_results(Wine_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wine")
+    #Wine_2H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 2, HLayerTam, 13, 3, RNGseed, "Wine", debug = True) for HLayerTam in WineHiddenLayerLenShort]
+    #print_Test_results(Wine_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wine")
 
-    #Wisconsin_2H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 1, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLen]
+    #Wisconsin_2H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 2, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLenShort]
     #print_Test_results(Wisconsin_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wisconsin")
 
-    Iris_2H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 1, HLayerTam, 4, 3, RNGseed, "Iris", debug = False) for HLayerTam in IrisHiddenLayerLen]
-    print_Test_results(Iris_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Iris")
+    #Iris_2H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 2, HLayerTam, 4, 3, RNGseed, "Iris", debug = True) for HLayerTam in IrisHiddenLayerLenShort]
+    #print_Test_results(Iris_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Iris")
 
     #3 hidden layers
 
-    Wine_3H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 1, HLayerTam, 13, 3, RNGseed, "Wine", debug = False) for HLayerTam in WineHiddenLayerLen]
+    Wine_3H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 3, HLayerTam, 13, 3, RNGseed, "Wine", debug = True) for HLayerTam in WineHiddenLayerLenShort]
     print_Test_results(Wine_3H_AccModelRule, 'resultados/resultados_tests_3H.csv', "Wine")
 
-    #Wisconsin_3H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 1, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLen]
+    #Wisconsin_3H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 3, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLenShort]
     #print_Test_results(Wisconsin_3H_AccModelRule, 'resultados/resultados_tests_3H.csv', "Wisconsin")
 
-    Iris_3H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 3, HLayerTam, 4, 3, RNGseed, "Iris", debug = False) for HLayerTam in IrisHiddenLayerLen]
+    Iris_3H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 3, HLayerTam, 4, 3, RNGseed, "Iris", debug = True) for HLayerTam in IrisHiddenLayerLenShort]
     print_Test_results(Iris_3H_AccModelRule, 'resultados/resultados_tests_3H.csv', "Iris")
 
     print("bateria de teste principal terminado")
+    del WineEntrada
+    del WineSaida
+    del WineHiddenLayerLen
+
+    del WisconsinEntrada
+    del WisconsinSaida
+    del WisconsinHiddenLayerLen
+
+    del IrisEntrada
+    del IrisSaida
+    del IrisHiddenLayerLen
+
+    gc.collect()
+
     return
 
 def print_missing_entries(listaCasos):

@@ -140,8 +140,11 @@ def makerule(inputLayer, Au, Gu, weights, nWeights, leaf_value):
             NewRuleStart.append_right(newRule)
 
         NewRuleCurr = newRule
+        print(NewRuleCurr)
         print("premisse %d made" % (idx))
-    NewRuleCurr.set_right(Node.Node(leaf_value))
+    print(NewRuleCurr)
+    if NewRuleCurr is not None:
+        NewRuleCurr.set_right(Node.Node(value = leaf_value))
     print("new rule made")
     return NewRuleStart
 
@@ -218,21 +221,21 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
         for u_idx, u in enumerate(layer):
             neuron_coord = (layer_idx, u_idx)
             Wu = weight_cluster_members[neuron_coord]
-            Au = search_set_Au(G[neuron_coord])
+            AuSets = search_set_Au(G[neuron_coord])
             nSamples = len(u[0])
 
-            if len(Au) == 0:
-                Au = [0]*len(K[neuron_coord])
+            if len(AuSets) == 0:
+                AuSets = [0]*len(K[neuron_coord])
             if debug:
-                print("Au: %s" % (Au))
+                print("Au: %s" % (AuSets))
                 print("Ku: %s" % (K[neuron_coord]))
-            A[neuron_coord].extend(Au)
+            A[neuron_coord].extend(AuSets)
 
-            for au in A[neuron_coord]:
+            for au in AuSets:
                 if len(au) != len(K[neuron_coord]):
                     continue
                 if debug:
-                    print("Au dot Ku: %s . %s" % (Au, K[neuron_coord]))
+                    print("Au dot Ku: %s . %s" % (au, K[neuron_coord]))
                     print("Ou: %s" % (u[1]))
                 if np.asarray(au).dot(K[neuron_coord]) > u[1]:
                     newRule = makerule(layer_idx, au, G[neuron_coord], Wu, nSamples, (layer_idx + 1, u_idx))
@@ -249,6 +252,8 @@ def parseRules(ruleSet, model, inputValues):
     for layerRules in ruleSet:
         currResults = []
         for rule in layerRules:
+            if rule is None:
+                continue
             currResults.append(rule.step(model_values))
 
         currResults = set(currResults)
@@ -266,4 +271,6 @@ def isComplete(MofNruleSet):
 def delete(MofNRuleSet):
     for layerRules in MofNRuleSet:
         for rule in layerRules:
+            if rule is None:
+                continue
             rule.destroy()

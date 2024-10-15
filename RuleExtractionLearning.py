@@ -119,13 +119,13 @@ def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
             if judge:
                 presence_array[current_node.featureIndex] = True
                 current_node = current_node.right
+                continue
 
-            else:
-                if current_node.left is not None:
-                    current_node = current_node.left
-                else:
-                    hook = current_node
-                    break
+            if current_node.left is None:
+                hook = current_node
+                break
+
+            current_node = current_node.left
 
     resultRule = None
     previousPremisse = None
@@ -185,6 +185,10 @@ def label_code_block(R, E, true_result, debug = False):
 
     return r
 
+#TODO: extract later portion of Rule_extraction_learning_3 to reduce nesting and facilitate reading
+def fix_example(mode, example, possibilities, outputIndex, outputs):
+    pass
+
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     R = dict() 
     for c in C:
@@ -234,22 +238,22 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                 #    print("{0} > {1}".format(neuron, theta))
                 if neuron > theta:
                     R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput, debug=debug)
+                    continue
 
-                else:
-                    for i in range(len(E[idx])):
-                        for v in Possibilities[i]:
-                            temp = E[idx]
-                            temp[i] = v
-                            #changing the value of ei to vij increase s?
-                            modelResult = M.predict(np.array(temp))
-                            newSum = M.get_params()["Z"+str(outputLayerIndex)][O[idx][0]]
+                for i in range(len(E[idx])):
+                    for v in Possibilities[i]:
+                        temp = E[idx]
+                        temp[i] = v
+                        #changing the value of ei to vij increase s?
+                        modelResult = M.predict(np.array(temp))
+                        newSum = M.get_params()["Z"+str(outputLayerIndex)][O[idx][0]]
 
-                            if  newSum > s:
-                                E[idx][i] = v
-                                Sum_IO[idx] = newSum
+                        if  newSum > s:
+                            E[idx][i] = v
+                            Sum_IO[idx] = newSum
 
-                            if s > theta:
-                                R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1], debug=debug)
+                        if s > theta:
+                            R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1], debug=debug)
 
     return R
 
@@ -257,6 +261,8 @@ def parseRules(ruleSet, inputValues):
     resultBatch = []
     for ruleSet in classRuleSets:
         for rule in ruleSet:
+            if rule is None:
+                continue
             resultBatch.append(rule.step(inputValues))
 
         resultBatch = set(resultBatch)

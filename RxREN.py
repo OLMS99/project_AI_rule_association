@@ -77,9 +77,11 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             #test the classification
             for number, case in enumerate(T):
                 prediction = temp_network.predict(case)
-                if not check_prediction(prediction, y[number]):
-                    item = (l, y[number], prediction, case)
-                    E[l].append(item)
+                if check_prediction(prediction, y[number]):
+                    continue
+
+                item = (l, y[number], prediction, case)
+                E[l].append(item)
 
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
 
@@ -131,7 +133,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     for k, c in enumerate(C):
         cn = None
         for i, l in enumerate(mapL):
-            for idx, c in enumerate(C):
+            for idx, cm in enumerate(C):
                 cnj = None
                 if len(g[i][k]) > alpha * err[l]:
                     #create node based on this expression
@@ -155,6 +157,8 @@ def parseRules(classRuleSets, inputValues):
     resultBatch = []
     for ruleSet in classRuleSets.values():
         for rule in ruleSet:
+            if rule is None:
+                continue
             resultBatch.append(rule.step(inputValues))
 
         resultBatch = set(resultBatch)
