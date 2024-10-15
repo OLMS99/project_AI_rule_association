@@ -593,14 +593,14 @@ def print_Test_results(resultArray, fileName, DataBaseName):
     #To fix later: the result array is nesting weirdly, but I need to finish this projet ASAP
     with open(fileName, 'a+', newline= '', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["DataBase", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        writer.writerow(["DataBase", "E", "S", "(E + S)/2", "(2E + S)/3"])
         trainRow = [DataBaseName + "_train"] + [resultItem[0][0] for resultItem in resultArray]
         validRow = [DataBaseName + "_valid"] + [resultItem[0][1] for resultItem in resultArray]
         writer.writerow(trainRow)
         writer.writerow(validRow)
 
         writer.writerow(["Train"])
-        writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        writer.writerow(["Algoritmo", "E", "S", "(E + S)/2", "(2E + S)/3"])
         KTRow = ["KT"] + [resultItem[1][0][0][0] for resultItem in resultArray]
         MofNRow = ["MofN"] + [resultItem[1][0][0][1] for resultItem in resultArray]
         RELRow = ["REL"] + [resultItem[1][0][0][2] for resultItem in resultArray]
@@ -611,7 +611,7 @@ def print_Test_results(resultArray, fileName, DataBaseName):
         writer.writerow(RxRENRow)
 
         writer.writerow(["Valid"])
-        writer.writerow(["Algoritmo", "E", "E + 1", "2E - 1", "2E", "S", "S + 1", "2S - 1", "2S", "(E + S)/2", "(2E + S)/3"])
+        writer.writerow(["Algoritmo", "E", "S", "(E + S)/2", "(2E + S)/3"])
         KTRow = ["KT"] + [resultItem[1][0][1][0] for resultItem in resultArray]
         MofNRow = ["MofN"] + [resultItem[1][0][1][1] for resultItem in resultArray]
         RELRow = ["REL"] + [resultItem[1][0][1][2] for resultItem in resultArray]
@@ -621,7 +621,7 @@ def print_Test_results(resultArray, fileName, DataBaseName):
         writer.writerow(RELRow)
         writer.writerow(RxRENRow)
 
-        writer.writerow(["time of execution"])
+        writer.writerow(["time of execution (seconds)"])
         KTRow = ["KT"] + [resultItem[2][0][0] for resultItem in resultArray]
         MofNRow = ["MofN"] + [resultItem[2][0][1] for resultItem in resultArray]
         RELRow = ["REL"] + [resultItem[2][0][2] for resultItem in resultArray]
@@ -640,6 +640,6 @@ def simpleTest(seed):
     print("bateria de teste simples terminado")
     return
 
-seed = 0
+seed = 2
 simpleTest(seed)
 main_test(seed)
