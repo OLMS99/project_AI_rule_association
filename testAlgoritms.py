@@ -452,7 +452,6 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test(RNGseed):
-    decisionTreeSeed = 42
     np.random.seed(RNGseed)
 
     if not os.path.exists("resultados"):
@@ -474,17 +473,17 @@ def main_test(RNGseed):
     lista_Sem_Regras_Wiscosin = []
 
     #montar arvores de decisão
-    decisionTree_Wine = DecisionTreeClassifier(max_depth = 3, random_state = decisionTreeSeed)
+    decisionTree_Wine = DecisionTreeClassifier(max_depth = 3, random_state = RNGseed)
     decisionTree_Wine.fit(X_Wine_train, y_Wine_train)
     acc_decisionTree_Wine_train = metrics.Compute_Acc_naive(decisionTree_Wine.predict(X_Wine_train), y_Wine_train)
     acc_decisionTree_Wine_valid = metrics.Compute_Acc_naive(decisionTree_Wine.predict(X_Wine_valid), y_Wine_valid)
 
-    decisionTree_Wisconsin = DecisionTreeClassifier(max_depth = 3, random_state = decisionTreeSeed)
+    decisionTree_Wisconsin = DecisionTreeClassifier(max_depth = 3, random_state = RNGseed)
     decisionTree_Wisconsin.fit(X_Wisconsin_train, y_Wisconsin_train)
     acc_decisionTree_Wisconsin_train = metrics.Compute_Acc_naive(decisionTree_Wisconsin.predict(X_Wisconsin_train), y_Wisconsin_train)
     acc_decisionTree_Wisconsin_valid = metrics.Compute_Acc_naive(decisionTree_Wisconsin.predict(X_Wisconsin_valid), y_Wisconsin_valid)
 
-    decisionTree_Iris = DecisionTreeClassifier(max_depth = 3, random_state = decisionTreeSeed)
+    decisionTree_Iris = DecisionTreeClassifier(max_depth = 3, random_state = RNGseed)
     decisionTree_Iris.fit(X_Iris_train, y_Iris_train)
     acc_decisionTree_Iris_train = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_train), y_Iris_train)
     acc_decisionTree_Iris_valid = metrics.Compute_Acc_naive(decisionTree_Iris.predict(X_Iris_valid), y_Iris_valid)
