@@ -76,12 +76,16 @@ def load_example(RNGseed):
     train_X, valid_X, train_y, valid_y = train_test_split(data, label_target, test_size = split_test_size, random_state = RNGseed)
 
     ANN = NN.nnf([4, 5, 3],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = RNGseed)
-    ANN.train(train_X, train_y, valid_X, valid_y, epochs=1000, learning_rate=0.01)
+    ANN.train(train_X, train_y, valid_X, valid_y, epochs=1000, learning_rate=0.003)
 
     params = ANN.get_params()
     C = classes
 
     return ANN, C, [train_X,valid_X], [train_y, valid_y]
+
+#TODO: fazer versão para parametros de modelo do SKLearn
+def Neurons_to_Lists():
+    pass
 
 def Neurons_to_Lists(params):
     U=[]

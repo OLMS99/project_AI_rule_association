@@ -114,22 +114,41 @@ class nnf():
 
         return self.params["A"+str(self.layer_num-1)]
 
-    def backward_pass(self, y_train, output, weightUpdate = True, biasUpdate = True, debug = False):
+    def backward_pass(self, y_correct, output, weightUpdate = True, biasUpdate = True, debug = False):
 
         params = self.params
         change = {}
 
-        diff = self.loss_prime(y_train, output)
+        diff = self.loss_prime(y_correct, output)
+        #diff = y_correct - output
 
         if debug:
             print("diff %s: %s" % (diff.shape, diff))
 
         inter_layer_error = diff
-        for X in reversed(range(1, self.layer_num)):
+        delta = diff * params["f"+str(self.layer_num - 1)](params["Z"+str(self.layer_num - 1)], prime=True)
 
-            act_grad = np.multiply(inter_layer_error, params["f"+str(X)](params["Z"+str(X)], prime=True))
+        if weightUpdate:
+            change["W"+str(self.layer_num - 1)] = delta * params["A"+str(self.layer_num - 2)].T
 
             if debug:
+                print("delta de W%d %s: deltaW = %s dot %s" % (self.layer_num - 1, change["W"+str(self.layer_num - 1)].shape, delta.shape, params["Z"+str(self.layer_num - 1)].T.shape))
+                print("delta de W%d %s: %s = %s dot %s " % (self.layer_num - 1, change["W"+str(self.layer_num - 1)].shape, change["W"+str(self.layer_num - 1)], delta, params["Z"+str(self.layer_num - 1)].T))
+
+        if biasUpdate:
+            change["b"+str(self.layer_num - 1)] = np.sum(delta, axis=0, keepdims=True).reshape(-1,1)
+
+            if debug:
+                print("delta de b%d %s: deltab = sum(%s) " % (self.layer_num - 1, change["b"+str(self.layer_num - 1)].shape, delta.shape))
+                print("delta de b%d %s: %s = sum(%s) " % (self.layer_num - 1, change["b"+str(self.layer_num - 1)].shape, change["b"+str(self.layer_num - 1)], delta))
+        inter_layer_error = delta
+
+        for X in reversed(range(1, self.layer_num-1)):
+
+            act_grad = np.dot(params["W"+str(X+1)].T, inter_layer_error) * params["f"+str(X)](params["Z"+str(X)], prime=True)
+
+            if debug:
+                print("delta da camada %d: %s: delta = %s %s_prime(Z-1) X %s" % (X, act_grad.shape, params["Z"+str(X)].shape, params["f"+str(X)].__name__, np.dot(params["W"+str(X+1)].T, inter_layer_error).shape))
                 print("gradient de ativação da camada %d: %s: %s = %s X %s_prime(%s) " % (X,act_grad.shape, act_grad, inter_layer_error, params["f"+str(X)].__name__, params["Z"+str(X)]))
 
             inter_layer_error =  np.dot(params["W"+str(X)].T,act_grad)
@@ -141,12 +160,14 @@ class nnf():
                 change["W"+str(X)] = np.dot(act_grad, params["A"+str(X-1)].T)
 
                 if debug:
+                    print("delta de W%d %s: deltaW = %s dot %s" % (X, change["W"+str(X)].shape, act_grad.shape, params["Z"+str(X)].T.shape))
                     print("delta de W%d %s: %s = %s dot %s " % (X, change["W"+str(X)].shape, change["W"+str(X)], act_grad, params["A"+str(X-1)].T))
 
             if biasUpdate:
                 change["b"+str(X)] = np.sum(act_grad, axis=0, keepdims=True).reshape(-1,1)
 
                 if debug:
+                    print("delta de b%d %s: deltab = sum(%s) " % (X, change["b"+str(X)].shape, act_grad.shape))
                     print("delta de b%d %s: %s = sum(%s) " % (X, change["b"+str(X)].shape, change["b"+str(X)], act_grad))
 
         return change
