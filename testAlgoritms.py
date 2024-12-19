@@ -119,6 +119,9 @@ def algoritmo_1_KT(seed):
         print("nenhuma regra feita")
     print(result)
 
+    print(metrics.Compute_Acc_naive([KT.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    print(metrics.Compute_Acc_naive([KT.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
+
     ANN.destroy()
     del ANN
     del C
@@ -149,6 +152,9 @@ def algoritmo_2_MofN(seed):
             print("no rule made")
     print(result)
 
+    print(metrics.Compute_Acc_naive([MofN.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    print(metrics.Compute_Acc_naive([MofN.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
+
     ANN.destroy()
     del ANN
     del DataX
@@ -165,7 +171,7 @@ def algoritmo_2_MofN(seed):
     gc.collect()
 
 def algoritmo_3_RuleExtractLearning(seed):
-    ANN, C, DataX, _ = load_example(seed)
+    ANN, C, DataX, DataY = load_example(seed)
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
     for label,ruleset in result.items():
         if ruleset is not None:
@@ -177,6 +183,9 @@ def algoritmo_3_RuleExtractLearning(seed):
         else:
             print("no rule made for %s" % (label))
     print(result)
+
+    print(metrics.Compute_Acc_naive([REL.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    print(metrics.Compute_Acc_naive([REL.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
 
     ANN.destroy()
     del ANN
@@ -206,14 +215,10 @@ def algoritmo_4_RxRen(seed):
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
     resultado = RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
+    RxREN.printRules(resultado)
 
-    for r in resultado.values():
-        if len(r) <= 0:
-            print("nenhuma regra feita")
-        else:
-            for rule in r:
-                print(rule)
-    print(resultado)
+    #print(metrics.Compute_Acc_naive([RxREN.parseRules(resultado, tX) for tX in DataX[0]], Datay[0]))
+    #print(metrics.Compute_Acc_naive([RxREN.parseRules(resultado, vX) for vX in DataX[1]], Datay[1]))
 
     ANN.destroy()
     del ANN
@@ -416,7 +421,7 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
         print(modelCasesAcc)
 
     ruleSetsResults = test_algorithms(modelCases, Database, Classes, debug = debug)
-    print("predictions made")
+    print("rules made")
     missing_entries = []
     for idx, ruleSetCase in enumerate(ruleSetsResults):
         setEvaluation = ruleSetCase[0]
@@ -449,7 +454,6 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     del modelCases
     del missing_entries
     for results in ruleSetsResults:
-        print(len(results))
         KT.delete(results[0][0])
         MofN.delete(results[0][1])
         REL.delete(results[0][2])
@@ -642,14 +646,14 @@ def print_Test_results(resultArray, fileName, DataBaseName):
         writer.writerow([])
 
 def simpleTest(seed):
-    algoritmo_1_KT(seed)
-    algoritmo_2_MofN(seed)
-    algoritmo_3_RuleExtractLearning(seed)
+    #algoritmo_1_KT(seed)
+    #algoritmo_2_MofN(seed)
+    #algoritmo_3_RuleExtractLearning(seed)
     algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
     return
 
 seed = 2
-#simpleTest(seed)
-main_test(seed)
+simpleTest(seed)
+#main_test(seed)

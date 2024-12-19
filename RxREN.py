@@ -14,20 +14,42 @@ def computeAccuracy(network, dataset, C):
     return MM.Compute_Acc_naive(predictions, C)
 
 def createGroup(wrongInstances, targetClass):
+    print("#########################################")
+    print("targetClass: %s" % (targetClass))
+    print("-----------------------------------------")
+
     group = []
     expectedAnswer = np.argmax(targetClass)
     for e in wrongInstances:
-        predictionAnswer = np.argmax(e[1])
-        if predictionAnswer == expectedAnswer:
+
+        predictionAnswer = int(np.argmax(np.round(e[2])))
+        predictionCase = int(np.argmax(e[1]))
+        print("prediction: %s   case: %s" % (predictionAnswer, predictionCase))
+
+        if predictionAnswer != expectedAnswer:
+            continue
+        if predictionCase == expectedAnswer:
             group.append(e)
+
+    print("group: %s" % (group))
+    print("#########################################")
     return group
 
 def makerule_RxREN(minVal, maxVal, neuron_idx):
+    if maxVal == float('-inf') and minVal != float('inf'):
+        return
+#    if maxVal == float('-inf'):
+#        node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
+#        return node2
+#    if minVal != float('inf'):
+#        node1 = Node.Node(featureIndex = neuron_idx, threshold = maxVal, comparison = "<=")
+#        return node1
+
     node1 = Node.Node(featureIndex = neuron_idx, threshold = maxVal, comparison = "<=")
     node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
     node1.set_right(node2)
 
-    return node1
+    return node1 
 
 def check_prediction(pred, y):
     return np.argmax(np.round(pred)) == np.argmax(y)
@@ -66,6 +88,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     err = dict()
 
     #Top block of code
+    print("iniciando fase de poda")
     while True:
         B = []
         E = dict()
@@ -80,7 +103,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                 if check_prediction(prediction, y[number]):
                     continue
 
-                item = (l, y[number], prediction, case)
+                item = (case, y[number], prediction)
                 E[l].append(item)
 
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
@@ -101,6 +124,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         Nacc = computeAccuracy(local_NN, T, y)
 
         if debug:
+            print("Pacc < Nacc - alpha")
             print("%s < %s - %s" % (Pacc, Nacc, alpha/10))
 
         if 100 * Pacc < (100 * Nacc - 1):
@@ -112,10 +136,13 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             break
 
     #montando matrizes
-
+    print("iniciando fase de montagem")
+    print("organizando valores")
     m = len(mapL)
     n = len(C)
     g = [[[] for k in range(n)] for j in range(m)]
+    q = [[[] for k in range(n)] for j in range(m)]
+    lenq = [[ 0 for k in range(n)] for j in range(m)]
     minMatrix = np.full((m,n), float('inf'))
     maxMatrix = np.full((m,n), float('-inf'))
 
@@ -123,13 +150,27 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         for k, c in enumerate(C):
             g[i][k] = createGroup(E[l], c)
             #alpha value [0.1,0.5]
-            Qi = formSet(g[i][k], err[l], alpha)
-            lenQi = lenElem(Qi)
-            minMatrix[i][k] = min(lenQi) if len(Qi) > 0 else float('inf')
-            maxMatrix[i][k] = max(lenQi) if len(Qi) > 0 else float('-inf')
-
+            q[i][k] = formSet(g[i][k], err[l], alpha)
+            lenq[i][k] = len(q[i][k])
+            print("group input: %s class: %s" % (l,c))
+            #print("group: %s" % (g[i][k]))
+            #print("set: %s" % (Qi))
+            #print("set size: %s" % (lenQi))
+            if lenq[i][k] > 0:
+                minMatrix[i][k] = min(min(Qi), minMatrix[i][k])
+                maxMatrix[i][k] = max(max(Qi), maxMatrix[i][k])
+    print("grupos")
+    print(g)
+    print("conjuntos Q")
+    print(q)
+    print("tamanhosdos conjuntos Q")
+    print(lenq)
+    print("valores mínimos")
+    print(minMatrix)
+    print("valores máximos")
+    print(maxMatrix)
     #extraindo regras
-
+    print("extraindo regras")
     for k, c in enumerate(C):
         cn = None
         for i, l in enumerate(mapL):
@@ -166,6 +207,16 @@ def parseRules(classRuleSets, inputValues):
         resultBatch = list(resultBatch)
 
     return resultBatch if len(resultBatch) > 0 else ["no_results"]
+
+def printRules(classRuleSets):
+    for c, r in classRuleSets.items():
+        print("============== %s ================" % (c))
+        if len(r) <= 0:
+            print("nenhuma regra feita")
+        else:
+            for rule in r:
+                rule.print()
+    print(classRuleSets)
 
 def isComplete(RxRENruleSet):
     for classLabel, classRules in RxRENruleSet.items():
