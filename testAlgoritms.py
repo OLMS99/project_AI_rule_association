@@ -76,7 +76,10 @@ def load_example(RNGseed):
     train_X, valid_X, train_y, valid_y = train_test_split(data, label_target, test_size = split_test_size, random_state = RNGseed)
 
     ANN = NN.nnf([4, 5, 3],[ACT.sigmoid, ACT.sigmoid, ACT.sigmoid], Loss.binary_cross_entropy, Loss.binary_cross_entropy_prime, seed = RNGseed)
-    ANN.train(train_X, train_y, valid_X, valid_y, epochs=1000, learning_rate=0.003)
+    ANN.train(train_X, train_y, valid_X, valid_y, epochs=5000, learning_rate=0.003)
+
+    print(metrics.Compute_Acc_naive([ANN.predict(tX) for tX in train_X], train_y))
+    print(metrics.Compute_Acc_naive([ANN.predict(vX) for vX in valid_X], valid_y))
 
     params = ANN.get_params()
     C = classes
@@ -166,6 +169,9 @@ def algoritmo_3_RuleExtractLearning(seed):
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
     for label,ruleset in result.items():
         if ruleset is not None:
+            if ruleset == "no rule yet":
+                print("no rule made for %s" % (label))
+                continue
             print("rule made for %s" % (label))
             ruleset.print()
         else:
@@ -524,7 +530,7 @@ def main_test(RNGseed):
     WisconsinHiddenLayerLen = [WisconsinEntrada, WisconsinEntrada + 1, 2*WisconsinEntrada - 1, 2*WisconsinEntrada, WisconsinSaida, WisconsinSaida + 1, 2*WisconsinSaida - 1, 2*WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
     WisconsinHiddenLayerLenShort = [WisconsinEntrada, WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
 
-    IrisEntrada = 13
+    IrisEntrada = 4
     IrisSaida = 3
     IrisHiddenLayerLen = [IrisEntrada, IrisEntrada + 1, 2*IrisEntrada - 1, 2*IrisEntrada, IrisSaida, IrisSaida + 1, 2*IrisSaida - 1, 2*IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
     IrisHiddenLayerLenShort = [IrisEntrada, IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
@@ -640,9 +646,10 @@ def simpleTest(seed):
     algoritmo_2_MofN(seed)
     algoritmo_3_RuleExtractLearning(seed)
     algoritmo_4_RxRen(seed)
-    print("bateria de teste simples terminado")
+    print("sem erros executando")
+
     return
 
 seed = 2
-simpleTest(seed)
+#simpleTest(seed)
 main_test(seed)

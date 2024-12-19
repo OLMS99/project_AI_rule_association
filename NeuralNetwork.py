@@ -80,8 +80,10 @@ class nnf():
         params["output size"] = self.output_size
 
         for x in range(self.layer_num-1):
-            params["W"+str(x+1)] = np.nan_to_num(np.random.randn(self.layer_sizes[x+1], self.layer_sizes[x]), nan = 1.0, copy=False)
-            params["b"+str(x+1)] = np.nan_to_num(np.random.randn(self.layer_sizes[x+1], 1), nan = 1.0, copy=False)
+            #params["W"+str(x+1)] = np.nan_to_num(np.random.randn(self.layer_sizes[x+1], self.layer_sizes[x]), nan = 1.0, copy=False)
+            #params["b"+str(x+1)] = np.nan_to_num(np.random.randn(self.layer_sizes[x+1], 1), nan = 1.0, copy=False)
+            params["W"+str(x+1)] = np.nan_to_num(np.random.rand(self.layer_sizes[x+1], self.layer_sizes[x]), nan = 1.0, copy=False)
+            params["b"+str(x+1)] = np.nan_to_num(np.random.rand(self.layer_sizes[x+1], 1), nan = 1.0, copy=False)
             params["f"+str(x+1)] = self.act_func[x]
 
         if debug:
