@@ -19,24 +19,23 @@ def createGroup(wrongInstances, targetClass):
     print("-----------------------------------------")
 
     group = []
-    expectedAnswer = np.argmax(targetClass)
+    expectedAnswer = int(np.argmax(targetClass))
     for e in wrongInstances:
 
         predictionAnswer = int(np.argmax(np.round(e[2])))
         predictionCase = int(np.argmax(e[1]))
-        print("prediction: %s   case: %s" % (predictionAnswer, predictionCase))
-
-        if predictionAnswer != expectedAnswer:
+        #print(e)
+        #print("(case) %s == (class) %s" % (predictionCase, expectedAnswer))
+        if predictionCase != expectedAnswer:
             continue
-        if predictionCase == expectedAnswer:
-            group.append(e)
+        group.append(e)
 
     print("group: %s" % (group))
     print("#########################################")
     return group
 
 def makerule_RxREN(minVal, maxVal, neuron_idx):
-    if maxVal == float('-inf') and minVal != float('inf'):
+    if maxVal == float('-inf') and minVal == float('inf'):
         return
 #    if maxVal == float('-inf'):
 #        node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
@@ -60,7 +59,20 @@ def formSet(groups, erri, alpha):
         size = len(g)
         if size * size > alpha * erri:
             Q.append(g)
+        else:
+            Q.append([])
     return Q
+
+def getInputValueArrayQ(Q, inputIdx, classIdx):
+    result = []
+    print(Q)
+    for g in Q:
+        if len(g) == 0:
+            continue
+        if np.argmax(g[1]) != classIdx:
+            continue
+        result.append(g[0][inputIdx])
+    return result
 
 def lenElem(setQi):
     result = []
@@ -124,8 +136,8 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         Nacc = computeAccuracy(local_NN, T, y)
 
         if debug:
-            print("Pacc < Nacc - alpha")
-            print("%s < %s - %s" % (Pacc, Nacc, alpha/10))
+            print("Pacc < Nacc - 1")
+            print("%s < %s - 1" % (Pacc, Nacc))
 
         if 100 * Pacc < (100 * Nacc - 1):
             local_NN = NN_
@@ -141,29 +153,32 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     m = len(mapL)
     n = len(C)
     g = [[[] for k in range(n)] for j in range(m)]
-    q = [[[] for k in range(n)] for j in range(m)]
-    lenq = [[ 0 for k in range(n)] for j in range(m)]
+    q = [[] for j in range(m)]
+    lenq = [0 for j in range(m)]
     minMatrix = np.full((m,n), float('inf'))
     maxMatrix = np.full((m,n), float('-inf'))
 
     for i, l in enumerate(mapL):
         for k, c in enumerate(C):
             g[i][k] = createGroup(E[l], c)
+            print("group size: %s" % (len(g[i][k])))
             #alpha value [0.1,0.5]
-            q[i][k] = formSet(g[i][k], err[l], alpha)
-            lenq[i][k] = len(q[i][k])
-            print("group input: %s class: %s" % (l,c))
-            #print("group: %s" % (g[i][k]))
-            #print("set: %s" % (Qi))
-            #print("set size: %s" % (lenQi))
-            if lenq[i][k] > 0:
-                minMatrix[i][k] = min(min(Qi), minMatrix[i][k])
-                maxMatrix[i][k] = max(max(Qi), maxMatrix[i][k])
+            q[i].extend(formSet(g[i][k], err[l], alpha))
+        lenq[i] = len(q[i])
+        for k, c in enumerate(C):
+            print("group input: %s class: %s" % (l, c))
+            print("set size: %s" % (lenq[i]))
+            if lenq[i] <= 0:
+                continue
+
+            possibleValues = getInputValueArrayQ(q[i], i, k)
+            minMatrix[i][k] = min(min(possibleValues), minMatrix[i][k])
+            maxMatrix[i][k] = max(max(possibleValues), maxMatrix[i][k])
     print("grupos")
     print(g)
     print("conjuntos Q")
     print(q)
-    print("tamanhosdos conjuntos Q")
+    print("tamanhos dos conjuntos Q")
     print(lenq)
     print("valores mínimos")
     print(minMatrix)
