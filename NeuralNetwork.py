@@ -193,11 +193,19 @@ class nnf():
 
         target = self.get_params()
 
-        if "W1" in self.params:
-            weight_holder = target["W1"]
+        if "W1" not in self.params:
+            return
+
+        weight_holder = target["W1"]
+        for idx in Neurons:
+            weight_holder[:, idx] = np.zeros(weight_holder.shape[0])
+        target["W1"] = weight_holder
+
+        if "b1" in self.params:
+            bias_holder = target["b1"]
             for idx in Neurons:
-                weight_holder[:, idx] = np.zeros(weight_holder.shape[0])
-            target["W1"] = weight_holder
+                bias_holder[idx] = 0
+            target["b1"] = bias_holder
 
         return nnf(params = target)
 

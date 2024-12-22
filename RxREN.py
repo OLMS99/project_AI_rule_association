@@ -13,24 +13,35 @@ def computeAccuracy(network, dataset, C):
         predictions.append(network.predict(t))
     return MM.Compute_Acc_naive(predictions, C)
 
+def getSetSize(qSet):
+    total = 0
+    for g in qSet:
+        if len(g) <= 0:
+            continue
+        total+=1
+
+    return total
+
 def createGroup(wrongInstances, targetClass):
     print("#########################################")
     print("targetClass: %s" % (targetClass))
     print("-----------------------------------------")
-
+    print("instances: %s" % (len(wrongInstances)))
     group = []
-    expectedAnswer = int(np.argmax(targetClass))
+    expectedClass = targetClass
+    classesInInstances = set()
     for e in wrongInstances:
 
-        predictionAnswer = int(np.argmax(np.round(e[2])))
-        predictionCase = int(np.argmax(e[1]))
-        #print(e)
-        #print("(case) %s == (class) %s" % (predictionCase, expectedAnswer))
-        if predictionCase != expectedAnswer:
+        predictionCase = e[1]
+        classesInInstances.add(predictionCase)
+        if predictionCase != expectedClass:
             continue
         group.append(e)
 
-    print("group: %s" % (group))
+    print("instances in group: %s" % (len(group)))
+    print("*****************************************")
+    print("classes in the instances before grouping: %s" % (classesInInstances))
+    print("searched class: %s" % (expectedClass))
     print("#########################################")
     return group
 
@@ -48,7 +59,7 @@ def makerule_RxREN(minVal, maxVal, neuron_idx):
     node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
     node1.set_right(node2)
 
-    return node1 
+    return node1
 
 def check_prediction(pred, y):
     return np.argmax(np.round(pred)) == np.argmax(y)
@@ -65,13 +76,13 @@ def formSet(groups, erri, alpha):
 
 def getInputValueArrayQ(Q, inputIdx, classIdx):
     result = []
-    print(Q)
-    for g in Q:
-        if len(g) == 0:
-            continue
-        if np.argmax(g[1]) != classIdx:
-            continue
-        result.append(g[0][inputIdx])
+    for G in Q:
+        for g in G:
+            if len(g) == 0:
+                continue
+            if np.argmax(g[1]) != classIdx:
+                continue
+            result.append(g[0][inputIdx])
     return result
 
 def lenElem(setQi):
@@ -115,7 +126,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                 if check_prediction(prediction, y[number]):
                     continue
 
-                item = (case, y[number], prediction)
+                item = (case, np.argmax(y[number]), np.argmax(prediction))
                 E[l].append(item)
 
             #set of incorrectly classified instances of ANN without li on set of correctly classified instances
@@ -136,13 +147,13 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         Nacc = computeAccuracy(local_NN, T, y)
 
         if debug:
-            print("Pacc < Nacc - 1")
-            print("%s < %s - 1" % (Pacc, Nacc))
+            print("Pacc < Nacc - 0.01")
+            print("%s < %s - 0.01" % (Pacc, Nacc))
 
-        if 100 * Pacc < (100 * Nacc - 1):
+        if Pacc < (Nacc - 0.01):
             local_NN = NN_
             mapL = L_
-            input_size = len(mapL)
+            input_size = len(L_)
             #go to top code block
         else:
             break
@@ -153,6 +164,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     m = len(mapL)
     n = len(C)
     g = [[[] for k in range(n)] for j in range(m)]
+    leng = [[0 for k in range(n)] for j in range(m)]
     q = [[] for j in range(m)]
     lenq = [0 for j in range(m)]
     minMatrix = np.full((m,n), float('inf'))
@@ -160,11 +172,13 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
 
     for i, l in enumerate(mapL):
         for k, c in enumerate(C):
+            print("group for input: %s class: %s" % (l, c))
             g[i][k] = createGroup(E[l], c)
-            print("group size: %s" % (len(g[i][k])))
-            #alpha value [0.1,0.5]
-            q[i].extend(formSet(g[i][k], err[l], alpha))
-        lenq[i] = len(q[i])
+            leng[i][k] = len(g[i][k])
+
+        #alpha value [0.1,0.5]
+        q[i].extend(formSet([g[i][k] for k in range(len(C))], err[l], alpha))
+        lenq[i] = getSetSize(q[i])
         for k, c in enumerate(C):
             print("group input: %s class: %s" % (l, c))
             print("set size: %s" % (lenq[i]))
@@ -172,12 +186,14 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
                 continue
 
             possibleValues = getInputValueArrayQ(q[i], i, k)
+            if len(possibleValues) <= 0:
+                continue
+
             minMatrix[i][k] = min(min(possibleValues), minMatrix[i][k])
             maxMatrix[i][k] = max(max(possibleValues), maxMatrix[i][k])
+
     print("grupos")
-    print(g)
-    print("conjuntos Q")
-    print(q)
+    print(leng)
     print("tamanhos dos conjuntos Q")
     print(lenq)
     print("valores mínimos")
@@ -186,6 +202,8 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     print(maxMatrix)
     #extraindo regras
     print("extraindo regras")
+    print("numero de neurônios de entrada conectados")
+    print(len(mapL))
     for k, c in enumerate(C):
         cn = None
         for i, l in enumerate(mapL):
