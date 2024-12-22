@@ -201,12 +201,6 @@ class nnf():
             weight_holder[:, idx] = np.zeros(weight_holder.shape[0])
         target["W1"] = weight_holder
 
-        if "b1" in self.params:
-            bias_holder = target["b1"]
-            for idx in Neurons:
-                bias_holder[idx] = 0
-            target["b1"] = bias_holder
-
         return nnf(params = target)
 
     def train(self, X_train, y_train, X_val, y_val, epochs=25, learning_rate=0.01, update_weights = True, update_bias = True, debug=False):

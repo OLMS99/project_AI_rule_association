@@ -22,11 +22,12 @@ def getSetSize(qSet):
 
     return total
 
-def createGroup(wrongInstances, targetClass):
-    print("#########################################")
-    print("targetClass: %s" % (targetClass))
-    print("-----------------------------------------")
-    print("instances: %s" % (len(wrongInstances)))
+def createGroup(wrongInstances, targetClass, debug = False):
+    if debug:
+        print("#########################################")
+        print("targetClass: %s" % (targetClass))
+        print("-----------------------------------------")
+        print("instances: %s" % (len(wrongInstances)))
     group = []
     expectedClass = targetClass
     classesInInstances = set()
@@ -37,24 +38,20 @@ def createGroup(wrongInstances, targetClass):
         if predictionCase != expectedClass:
             continue
         group.append(e)
-
-    print("instances in group: %s" % (len(group)))
-    print("*****************************************")
-    print("classes in the instances before grouping: %s" % (classesInInstances))
-    print("searched class: %s" % (expectedClass))
-    print("#########################################")
+    if debug:
+        print("instances in group: %s" % (len(group)))
+        print("*****************************************")
+        print("classes in the instances before grouping: %s" % (classesInInstances))
+        print("searched class: %s" % (expectedClass))
+        print("#########################################")
     return group
 
 def makerule_RxREN(minVal, maxVal, neuron_idx):
     if maxVal == float('-inf') and minVal == float('inf'):
         return
-#    if maxVal == float('-inf'):
-#        node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
-#        return node2
-#    if minVal != float('inf'):
-#        node1 = Node.Node(featureIndex = neuron_idx, threshold = maxVal, comparison = "<=")
-#        return node1
 
+    print("valor máximo: %s valor mínimo: %s" % (maxVal, minVal))
+    print("neurônio de entrada: %s" % (neuron_idx))
     node1 = Node.Node(featureIndex = neuron_idx, threshold = maxVal, comparison = "<=")
     node2 = Node.Node(featureIndex = neuron_idx, threshold = minVal, comparison = ">=")
     node1.set_right(node2)
@@ -64,14 +61,26 @@ def makerule_RxREN(minVal, maxVal, neuron_idx):
 def check_prediction(pred, y):
     return np.argmax(np.round(pred)) == np.argmax(y)
 
-def formSet(groups, erri, alpha):
+def formSet(groups, erri, alpha, debug = False):
+    if debug:
+        print("#########################################")
+        print("erri: %s" % (erri))
+        print("-----------------------------------------")
+        print("tamanho grupos: %s" % ([len(g) for g in groups]))
+
     Q=[]
     for i, g in enumerate(groups):
         size = len(g)
+        if debug:
+            print("%s * %s > %s * %s" %(size, size, alpha, erri))
         if size * size > alpha * erri:
             Q.append(g)
         else:
             Q.append([])
+
+    if debug:
+        print("tamanho sets de Q: %s" % ([len(q) for q in Q]))
+
     return Q
 
 def getInputValueArrayQ(Q, inputIdx, classIdx):
@@ -80,7 +89,7 @@ def getInputValueArrayQ(Q, inputIdx, classIdx):
         for g in G:
             if len(g) == 0:
                 continue
-            if np.argmax(g[1]) != classIdx:
+            if g[1] != classIdx:
                 continue
             result.append(g[0][inputIdx])
     return result
@@ -177,7 +186,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
             leng[i][k] = len(g[i][k])
 
         #alpha value [0.1,0.5]
-        q[i].extend(formSet([g[i][k] for k in range(len(C))], err[l], alpha))
+        q[i] = formSet([g[i][k] for k in range(len(C))], err[l], alpha)
         lenq[i] = getSetSize(q[i])
         for k, c in enumerate(C):
             print("group input: %s class: %s" % (l, c))
@@ -207,18 +216,20 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     for k, c in enumerate(C):
         cn = None
         for i, l in enumerate(mapL):
-            for idx, cm in enumerate(C):
-                cnj = None
-                if len(g[i][k]) > alpha * err[l]:
-                    #create node based on this expression
-                    #cnj = (mapL[i] >= minMatrix[i][k]) and (mapL[i] <= maxMatrix[i][k])
-                    cnj = makerule_RxREN(minMatrix[i][k], maxMatrix[i][k], l)
+            cnj = None
+            if len(g[i][k]) > alpha * err[l]:
+                #create node based on this expression
+                #cnj = (mapL[i] >= minMatrix[i][k]) and (mapL[i] <= maxMatrix[i][k])
+                if debug:
+                    print("montando regra do neurônio: %s, classe %s" % (l, c))
+                    print("valor Máximo: %s Valor Mínimo: %s" % (maxMatrix[i][k],minMatrix[i][k]))
+                cnj = makerule_RxREN(minMatrix[i][k], maxMatrix[i][k], l)
 
-                if cn is None:
-                    cn = cnj
-                else:
-                    #and -> set_right()
-                    cn.append_right(cnj)
+            if cn is None:
+                cn = cnj
+            else:
+                #and -> set_right()
+                cn.append_right(cnj)
 
         if cn is not None:
             ck = Node.Node(value = c)
@@ -249,6 +260,7 @@ def printRules(classRuleSets):
         else:
             for rule in r:
                 rule.print()
+        print("==================================")
     print(classRuleSets)
 
 def isComplete(RxRENruleSet):
