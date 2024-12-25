@@ -173,19 +173,11 @@ def algoritmo_2_MofN(seed):
 def algoritmo_3_RuleExtractLearning(seed):
     ANN, C, DataX, DataY = load_example(seed)
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
-    for label,ruleset in result.items():
-        if ruleset is not None:
-            if ruleset == "no rule yet":
-                print("no rule made for %s" % (label))
-                continue
-            print("rule made for %s" % (label))
-            ruleset.print()
-        else:
-            print("no rule made for %s" % (label))
-    print(result)
 
-    print(metrics.Compute_Acc_naive([REL.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
-    print(metrics.Compute_Acc_naive([REL.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
+    REL.printRules(result)
+
+    #print(metrics.Compute_Acc_naive([REL.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    #print(metrics.Compute_Acc_naive([REL.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
 
     ANN.destroy()
     del ANN
@@ -648,8 +640,8 @@ def print_Test_results(resultArray, fileName, DataBaseName):
 def simpleTest(seed):
     #algoritmo_1_KT(seed)
     #algoritmo_2_MofN(seed)
-    #algoritmo_3_RuleExtractLearning(seed)
-    algoritmo_4_RxRen(seed)
+    algoritmo_3_RuleExtractLearning(seed)
+    #algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
     return

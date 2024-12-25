@@ -36,7 +36,7 @@ class NodeMofN(Node):
         return result
 
     def step(self, input_values):
-        if self.featureIndex is None and self.layerIndex is None:
+        if self.featureIndex is DontUse and self.layerIndex is DontUse:
             return
         if self.is_leaf_node():
             return self.value

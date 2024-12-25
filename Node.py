@@ -14,8 +14,9 @@ import time
 #AND-> right
 #OR-> left
 
+class DontUse: pass
 class Node:
-    def __init__(self, featureIndex=None, layerIndex=None, threshold=None, comparison="=", left=None, right=None, value="no_output_value", negation = False):
+    def __init__(self, featureIndex = DontUse, layerIndex= DontUse, threshold=None, comparison="=", left=None, right=None, value="no_output_value", negation = False):
 
         if featureIndex is None and layerIndex is None and value is "no_output_value":
             raise Exception("Node must have a reference of what neuron will be validade, it cannot have both featureIndex and layerIndex as None")
@@ -69,9 +70,9 @@ class Node:
 
     def getInputNeuron(self):
 
-        if self.layerIndex is None:
+        if self.layerIndex is DontUse:
             return [self.featureIndex]
-        if self.featureIndex is None:
+        if self.featureIndex is DontUse:
             return [self.layerIndex]
 
         return [self.layerIndex, self.featureIndex]
@@ -109,11 +110,11 @@ class Node:
 
     def eval(self, value):
         if isinstance(value, list):
-            if self.layerIndex is not None and self.featureIndex is not None:
+            if self.layerIndex is not DontUse and self.featureIndex is not DontUse:
                 holder = value[self.layerIndex][self.featureIndex]
-            elif self.featureIndex is not None:
+            elif self.featureIndex is not DontUse:
                 holder = value[self.featureIndex]
-            elif self.layerIndex is not None:
+            elif self.layerIndex is not DontUse:
                 holder = value[self.layerIndex]
         else:
             holder = value
@@ -240,9 +241,9 @@ class Node:
         if self.is_leaf_node():
             return self.value
 
-        if self.layerIndex is not None and self.featureIndex is not None:
+        if self.layerIndex is not DontUse and self.featureIndex is not DontUse:
             initial_pass = self.eval(input_values[self.layerIndex][self.featureIndex])
-        elif self.featureIndex is not None:
+        elif self.featureIndex is not DontUse:
             initial_pass = self.eval(input_values[self.featureIndex])
 
         if initial_pass:
@@ -350,10 +351,10 @@ class Node:
         if self.negation:
             message += "NOT "
 
-        if self.layerIndex:
+        if self.layerIndex is not DontUse:
             message += str("camada: {}").format(self.layerIndex)
 
-        if self.featureIndex:
+        if self.featureIndex is not DontUse:
             message += str(" neuronio: {}").format(self.featureIndex)
             message += str("\nvalor do neuronio {0} {1}").format(self.comparison, str(self.threshold))
 

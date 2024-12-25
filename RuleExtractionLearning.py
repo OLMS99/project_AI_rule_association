@@ -5,14 +5,6 @@ import pandas as pd
 import gc
 from copy import deepcopy
 
-def Subset(classNN, rules, examples):
-#try to classify with the ruleset and compare with class label
-    result = True
-    for example in examples:
-        ruleLabel = classify(rules, example)
-        result = result and (ruleLabel == classNN)
-    return result
-
 def classify(R, E):
 #classify the example with the rules and to a class
     if R is "no rule yet":
@@ -44,9 +36,12 @@ def covered(rule, instances, c, debug=False):
 
     return result
 
-def possible_values(examplesData, debug = False):
+def possible_values(examplesData, database = None, debug = False):
 #valores possiveis para os exemplos
-    result = dict()
+    if database is not None:
+        result = deepcopy(database)
+    else:
+        result = dict()
     #print("dimensões: %s" % (examplesData.shape))
 
     feature_length = examplesData.shape[1]
@@ -86,7 +81,7 @@ def make_examples(possibilities, Model, theta, n = 1):
         model_result = Model.predict(np.array(oneSample))
         IO_valor = Model.get_params()["Z"+str(outputLayerIndex)]
 
-        if max(IO_valor) > theta:
+        if max(IO_valor) >= theta:
             result.append(deepcopy(np.array(oneSample)))
             continue
 
@@ -102,7 +97,7 @@ def make_examples(possibilities, Model, theta, n = 1):
                     oneSample[i] = v
                     IO_valor = newSum
 
-                if IO_valor > theta:
+                if max(IO_valor) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
 
     return result
@@ -142,7 +137,16 @@ def filter(antecendents, ant_to_null, debug=False):
 
     #connectar origem da variavel target com o ramo resultante da rotação 45
 
-def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
+#TODO: refatorar
+def Subset(classNN, rules, examples):
+#try to classify with the ruleset and compare with class label
+    result = True
+    for example in examples:
+        ruleLabel = classify(rules, example)
+        result = result and (ruleLabel == classNN)
+    return result
+#TODO: refatorar
+def conjuntive_rule(members, Exemplo, previousRule, leaf, debug = False):
     presence_array = [False] * len(Exemplo)
     current_node = previousRule
     hook = None
@@ -150,7 +154,9 @@ def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
 
     if previousRule is not "no rule yet":
         while not current_node.is_leaf_node():
+            print(Exemplo)
             judge = current_node.eval(Exemplo)
+            print(judge)
             if judge:
                 presence_array[current_node.featureIndex] = True
                 current_node = current_node.right
@@ -187,7 +193,7 @@ def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
 
 def label_code_block(R, members, E, true_result, debug = False):
 
-    is_covered = covered(R, members, true_result, debug=debug)
+    is_covered = covered(R, [E], true_result, debug=debug)
     if debug:
         if is_covered:
             print("regra atual cobre exemplo")
@@ -197,7 +203,7 @@ def label_code_block(R, members, E, true_result, debug = False):
     if is_covered:
         return R
 
-    r = conjuntive_rule(E, R, true_result, debug=debug)
+    r = conjuntive_rule(members, E, R, true_result, debug=debug)
 
     if debug:
         if r is not None:
@@ -248,6 +254,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         voltas += 1
         qtd_exemplos = numClasses * numClasses * voltas * voltas
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
+        exemplosBackup.extend(E)
 
         O = []
         Sum_IO = []
@@ -256,7 +263,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
 
             output_ONeuron = np.argmax(model_result)
-            Sum_IO.append(inputToOutput[output_ONeuron])
+            Sum_IO.append(inputToOutput[output_ONeuron][0])
             O.append((output_ONeuron, C[output_ONeuron]))
 
         if debug:
