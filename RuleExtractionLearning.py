@@ -3,11 +3,14 @@ import NeuralNetwork as ANN
 import numpy as np
 import pandas as pd
 import gc
+from copy import deepcopy
 
-def Subset(classNN, rules, example):
+def Subset(classNN, rules, examples):
 #try to classify with the ruleset and compare with class label
-    ruleLabel = classify(rules, example)
-    result = (ruleLabel == classNN)
+    result = True
+    for example in examples:
+        ruleLabel = classify(rules, example)
+        result = result and (ruleLabel == classNN)
     return result
 
 def classify(R, E):
@@ -26,40 +29,52 @@ def classify(R, E):
 
     return prediction
 
-def covered(rule, example, c, debug=False):
+def covered(rule, instances, c, debug=False):
 #check if the example is covered by the rule
 #try to classify with the rule?
-    result = classify(rule, example)
-
-    if debug:
-        print("checking cover [expected result == given result]: {0} == {1}".format(c, result))
+    result = True
+    for example in instances:
+        instanceClass = classify(rule, example)
+        if debug:
+            print("checking cover [expected result == given result]: {0} == {1}".format(c, instanceClass))
+        result = result and (instanceClass == c)
 
     if result == "no_rule_here":
         return False
 
-    return c == result
+    return result
 
-def possible_values(examplesData):
+def possible_values(examplesData, debug = False):
 #valores possiveis para os exemplos
     result = dict()
     #print("dimensões: %s" % (examplesData.shape))
 
     feature_length = examplesData.shape[1]
+    if debug:
+        print("numero de exemplos: %s" % (examplesData.shape[0]))
+
     for i in range(feature_length):
         result[i] = []
 
     for e in examplesData:
         for i in range(feature_length):
             result[i].append(e[i])
+    if debug:
+        for idx, data in result.items():
+            print("tamanho dos dados do neurônio %s: %s" % (idx, len(data)))
 
     for idx, r in result.items():
         result[idx] = list(set(r))
 
+    if debug:
+        for idx, data in result.items():
+            print("valores possíveis do neurônio %s: %s" % (idx, len(data)))
+
     return result
 
-def make_examples(possibilities, n = 1):
+def make_examples(possibilities, Model, theta, n = 1):
     result = []
-
+    outputLayerIndex = Model.get_params()["num layers"] - 1
     for i in range(n):
         oneSample = []
 
@@ -68,7 +83,27 @@ def make_examples(possibilities, n = 1):
             choice = np.random.randint(indexRange)
             oneSample.append(e[choice])
 
-        result.append(oneSample)
+        model_result = Model.predict(np.array(oneSample))
+        IO_valor = Model.get_params()["Z"+str(outputLayerIndex)]
+
+        if max(IO_valor) > theta:
+            result.append(deepcopy(np.array(oneSample)))
+            continue
+
+        for i, othervalues in enumerate(possibilities.values()):
+            for v in othervalues:
+                temp = oneSample
+                temp[i] = v
+                #changing the value of ei to vij increase s?
+                modelResult = M.predict(temp)
+                newSum = M.get_params()["Z"+str(outputLayerIndex)]
+
+                if  max(newSum) > max(IO_valor):
+                    oneSample[i] = v
+                    IO_valor = newSum
+
+                if IO_valor > theta:
+                    result.append(deepcopy(np.array(oneSample)))
 
     return result
 
@@ -150,9 +185,9 @@ def conjuntive_rule(Exemplo, previousRule, leaf, debug = False):
 
     return resultRule
 
-def label_code_block(R, E, true_result, debug = False):
+def label_code_block(R, members, E, true_result, debug = False):
 
-    is_covered = covered(R, E, true_result, debug=debug)
+    is_covered = covered(R, members, true_result, debug=debug)
     if debug:
         if is_covered:
             print("regra atual cobre exemplo")
@@ -185,12 +220,8 @@ def label_code_block(R, E, true_result, debug = False):
 
     return r
 
-#TODO: extract later portion of Rule_extraction_learning_3 to reduce nesting and facilitate reading
-def fix_example(mode, example, possibilities, outputIndex, outputs):
-    pass
-
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
-    R = dict() 
+    R = dict()
     for c in C:
         R[c] = "no rule yet"
 
@@ -201,7 +232,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     outputLayerIndex = modelParams["num layers"] - 1
 
     voltas = 0
-
+    exemplosBackup = []
     if debug:
         print("Iniciou regras e possibilidades")
         print("numero de labels: %d" % (numClasses))
@@ -215,8 +246,8 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         if debug:
             print("numero de voltas: %d" % (voltas))
         voltas += 1
-        qtd_exemplos = numClasses * numClasses * voltas
-        E = make_examples(Possibilities, n = qtd_exemplos)
+        qtd_exemplos = numClasses * numClasses * voltas * voltas
+        E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
 
         O = []
         Sum_IO = []
@@ -224,46 +255,30 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             model_result = M.predict(np.squeeze(example))
             inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
 
-            Sum_IO.append(inputToOutput[np.argmax(model_result)])
             output_ONeuron = np.argmax(model_result)
+            Sum_IO.append(inputToOutput[output_ONeuron])
             O.append((output_ONeuron, C[output_ONeuron]))
 
         if debug:
             print("exemplos gerados: %d" % (len(E)))
+            for idx in range(len(E)):
+                print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
 
         for idx, s in enumerate(Sum_IO):
-            for neuron in s:
-                ModelOutput =  O[idx][1]
-                #if debug:
-                #    print("{0} > {1}".format(neuron, theta))
-                if neuron > theta:
-                    R[ModelOutput] = label_code_block(R[ModelOutput], E[idx], ModelOutput, debug=debug)
-                    continue
-
-                for i in range(len(E[idx])):
-                    for v in Possibilities[i]:
-                        temp = E[idx]
-                        temp[i] = v
-                        #changing the value of ei to vij increase s?
-                        modelResult = M.predict(np.array(temp))
-                        newSum = M.get_params()["Z"+str(outputLayerIndex)][O[idx][0]]
-
-                        if  newSum > s:
-                            E[idx][i] = v
-                            Sum_IO[idx] = newSum
-
-                        if s > theta:
-                            R[O[idx][1]] = label_code_block(R[O[idx][1]], E[idx], O[idx][1], debug=debug)
+            members = E[:idx]
+            ModelOutput = O[idx][1]
+            print("number os members: %s" % (len(members)))
+            print("current example results %s %s" % (s, ModelOutput))
+            R[ModelOutput] = label_code_block(R[ModelOutput], members, E[idx], ModelOutput, debug=debug)
 
     return R
 
-def parseRules(ruleSet, inputValues):
+def parseRules(classRuleSet, inputValues):
     resultBatch = []
-    for ruleSet in classRuleSets:
-        for rule in ruleSet:
-            if rule is None:
-                continue
-            resultBatch.append(rule.step(inputValues))
+    for classification, rule in classRuleSet.items():
+        if rule is None:
+            continue
+        resultBatch.append(rule.step(inputValues))
 
         resultBatch = set(resultBatch)
         resultBatch = resultBatch.remove("no_output_values") if "no_output_values" in resultBatch else resultBatch
@@ -279,3 +294,15 @@ def isComplete(RELruleSet):
 
 def delete(RELruleSet):
     RELruleSet.clear()
+
+def printRules(classRuleSets):
+    for label,ruleset in classRuleSets.items():
+        if ruleset is not None:
+            if ruleset == "no rule yet":
+                print("no rule made for %s" % (label))
+                continue
+            print("rule made for %s" % (label))
+            ruleset.print()
+        else:
+            print("no rule made for %s" % (label))
+    print(classRuleSets)
