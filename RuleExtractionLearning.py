@@ -21,21 +21,6 @@ def classify(R, E):
 
     return prediction
 
-def covered(rule, instances, c, debug=False):
-#check if the example is covered by the rule
-#try to classify with the rule?
-    result = True
-    for example in instances:
-        instanceClass = classify(rule, example)
-        if debug:
-            print("checking cover [expected result == given result]: {0} == {1}".format(c, instanceClass))
-        result = result and (instanceClass == c)
-
-    if result == "no_rule_here":
-        return False
-
-    return result
-
 def possible_values(examplesData, database = None, debug = False):
 #valores possiveis para os exemplos
     if database is not None:
@@ -137,63 +122,46 @@ def filter(antecendents, ant_to_null, debug=False):
 
     #connectar origem da variavel target com o ramo resultante da rotação 45
 
-#TODO: refatorar
-def Subset(classNN, rules, examples):
-#try to classify with the ruleset and compare with class label
-    result = True
+def Subset(classNN, rules, examples, debug=False):
+#try to classify with the ruleset and compare with class labe
+#check if the example is covered by the rulel
+    if not isinstance(rules, list):
+        return False
+    if rules.length() <= 0:
+        return False
+
+    result = (rules[0] is not "no rule yet")
     for example in examples:
         ruleLabel = classify(rules, example)
+        if debug:
+            print("checking cover [expected result == given result]: {0} == {1}".format(c, instanceClass))
         result = result and (ruleLabel == classNN)
     return result
-#TODO: refatorar
-def conjuntive_rule(members, Exemplo, previousRule, leaf, debug = False):
-    presence_array = [False] * len(Exemplo)
-    current_node = previousRule
-    hook = None
-    leafNode = Node.Node(value=leaf)
 
-    if previousRule is not "no rule yet":
-        while not current_node.is_leaf_node():
-            print(Exemplo)
-            judge = current_node.eval(Exemplo)
-            print(judge)
-            if judge:
-                presence_array[current_node.featureIndex] = True
-                current_node = current_node.right
-                continue
+def conjuntive_rule(members, Exemplo, previousRule, leafValue, debug = False):
+    raiz = None
+    noAnterior = None
+    if debug:
+        print("criando regra conjuntiva para %s:" % (Exemplo))
+    for idx, feature in enumerate(Exemplo):
 
-            if current_node.left is None:
-                hook = current_node
-                break
-
-            current_node = current_node.left
-
-    resultRule = None
-    previousPremisse = None
-
-    for idx, feature_check in enumerate(presence_array):
-        if feature_check:
-            continue
-
-        partial_premisse = Node.Node(featureIndex = idx, threshold = Exemplo[idx])
-
-        if resultRule is None:
-            resultRule = partial_premisse
+        if previousRule is not "no rule yet":
+            novoNo = Node.Node(featureIndex=idx, threshold=feature, left=previousRule)
         else:
-            previousPremisse.set_right(partial_premisse)
-        previousPremisse = partial_premisse
+            novoNo = Node.Node(featureIndex=idx, threshold=feature)
 
-    if previousPremisse is not None:
-        previousPremisse.set_right(leafNode)
+        if raiz is None:
+            raiz = novoNo
+        else:
+            noAnterior.set_right(novoNo)
+        noAnterior = novoNo
 
-    if hook is not None:
-        hook.set_left(resultRule)
-
-    return resultRule
+    noAnterior.set_right(Node.Node(value = leafValue))
+    return raiz
 
 def label_code_block(R, members, E, true_result, debug = False):
 
-    is_covered = covered(R, [E], true_result, debug=debug)
+    is_covered = Subset(true_result, R, [E], debug=debug)
     if debug:
         if is_covered:
             print("regra atual cobre exemplo")
@@ -224,6 +192,14 @@ def label_code_block(R, members, E, true_result, debug = False):
     if debug:
        print("number of antecendents: %d" % (len(ant_r)))
 
+    for ant in ant_r:
+        r_ = filter(ant_r, ant)
+        if Subset(true_result, r_, members, debug=debug):
+            print("antecedente retirado")
+            r = r_
+            ant_r = r.getAntecedent()
+    if debug:
+       print("number of antecendents after pruning: %d" % (len(r.getAntecedent())))
     return r
 
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
@@ -252,9 +228,8 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         if debug:
             print("numero de voltas: %d" % (voltas))
         voltas += 1
-        qtd_exemplos = numClasses * numClasses * voltas * voltas
+        qtd_exemplos = numClasses * numClasses * voltas
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
-        exemplosBackup.extend(E)
 
         O = []
         Sum_IO = []
@@ -272,11 +247,11 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
                 print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
 
         for idx, s in enumerate(Sum_IO):
-            members = E[:idx]
             ModelOutput = O[idx][1]
-            print("number os members: %s" % (len(members)))
-            print("current example results %s %s" % (s, ModelOutput))
-            R[ModelOutput] = label_code_block(R[ModelOutput], members, E[idx], ModelOutput, debug=debug)
+            #print("number os members: %s" % (len(members)))
+            #print("current example results %s %s" % (s, ModelOutput))
+            R[ModelOutput] = label_code_block(R[ModelOutput], exemplosBackup, E[idx], ModelOutput, debug=debug)
+            exemplosBackup.extend(E[idx])
 
     return R
 
