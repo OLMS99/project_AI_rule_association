@@ -28,12 +28,12 @@ class Node:
         self.negation = negation
 
         if not isinstance(left, Node) and left is not None:
-            raise Exception("Node only accept Nodes or derivates as sons, left is not a node")
+            raise Exception("Node only accept Nodes or derivates as sons, left is a %s" % (type(node)))
 
         self.left = left if isinstance(left, Node) else None
 
         if not isinstance(right, Node) and right is not None:
-            raise Exception("Node only accept Nodes or derivates as sons, right is not a node")
+            raise Exception("Node only accept Nodes or derivates as sons, right is a %s" % (type(node)))
 
         self.right = right if isinstance(right, Node) else None
 
@@ -153,7 +153,7 @@ class Node:
 
     def set_left(self, node):
         if not isinstance(node, Node) and node is not None:
-            raise Exception("Node only accept Nodes or derivates as sons, tried set left with a non node")
+            raise Exception("Node only accept Nodes or derivates as sons, tried set left with a %s" % (type(node)))
         if self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
@@ -163,7 +163,7 @@ class Node:
 
     def set_right(self, node):
         if not isinstance(node, Node) and node is not None:
-            raise Exception("Node only accept Nodes or derivates as sons, tried set right with a non node")
+            raise Exception("Node only accept Nodes or derivates as sons, tried set right with a %s" % (type(node)))
         if self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
@@ -186,17 +186,72 @@ class Node:
     def probabilityPremise(self, P, B, y, j):
         pass
 
-    def equal_antecedent(self, premisse):
-        if premisse[2] == self.featureIndex \
-            and premisse[1] == self.layerIndex \
-            and premisse[3] == self.threshold \
-            and premisse[0] == self.negation \
-            and premisse[4] == self.comparison:
-            return True
-        return False
+    @staticmethod
+    def equal_antecedent(premisse1, premisse2):
+        #(self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
+        if premisse1[0] != premisse2[0]:
+            return False
+        if not (premisse1[1] is DontUse and premisse2[1] is DontUse) and not (premisse1[1] == premisse2[1]):
+            return False
+        if not (premisse1[2] is DontUse and premisse2[2] is DontUse) and not (premisse1[2] == premisse2[2]):
+            return False
+        if premisse1[3] != premisse2[3]:
+            return False
+        if premisse1[4] != premisse2[4]:
+            return False
+        if premisse1[5] != premisse2[5]:
+            return False
+        return True
 
-    def equal_consequent(self, premisse):
-        if premisse[5] == self.value:
+    @staticmethod
+    def filter(antecendents, ant_to_null, debug=False):
+        #from a list of antecendents, filter the desired antecendent
+        #return the modified copy of the tree
+        hold_idx = -1
+        copyTree = antecendents[-2][1].copy_tree()
+        copy_ant = copyTree.getAntecedent()
+
+        #search for the first matched antecendent to remove
+        for idx, ant in enumerate(antecendents):
+            premisse = ant[2]
+            searchedPremisse = ant_to_null[2]
+            if Node.equal_antecedent(premisse, searchedPremisse):
+                hold_idx = idx
+                side = ant[0]
+                break
+
+        if debug:
+            print("antecedentes analizados")
+        if hold_idx == -1:
+            if debug:
+                print("antecendente não encontrado")
+            return copyTree
+
+        if debug:
+            print("pegando endereço de origem do antecedente a ser podado")
+        origin = copy_ant[hold_idx][1]
+        if debug:
+            print("iniciando poda do antecedente")
+        if side == 0:
+            new_branch = copy_ant[-2][1].rotation45()
+
+        elif side == -1:
+            new_branch = origin.left.rotation45()
+
+        elif side == 1:
+            new_branch = origin.right.rotation45()
+
+        if side !=0:
+            if debug:
+                print("numero de antecedentes da nova arvore: %s" % (len(origin.getAntecedent())))
+
+        return copyTree
+
+        #connectar origem da variavel target com o ramo resultante da rotação 45
+
+    @staticmethod
+    def equal_consequent(premisse1, premisse2):
+        if premisse1[5] == premisse2[5]:
             return True
         return False
 
@@ -388,11 +443,11 @@ class Node:
             return None
 
         elif leftLeaf:
-            self.right.set_left(leftLeaf)
+            self.right.set_left(self.left)
             return self.right
 
         elif rightLeaf:
-            self.left.set_right(rightLeaf)
+            self.left.set_right(self.right)
             return self.left
 
         leftSons = (self.left.num_sons(), self.left.left, self.left.right)

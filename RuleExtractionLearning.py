@@ -9,7 +9,7 @@ def classify(R, E):
 #classify the example with the rules and to a class
     if R is "no rule yet":
         return "no_rule_here"
-    if isinstance(R, list):
+    if isinstance(R, list): 
         if len(R) <= 0:
             return "no_rule_here"
 
@@ -87,41 +87,6 @@ def make_examples(possibilities, Model, theta, n = 1):
 
     return result
 
-def filter(antecendents, ant_to_null, debug=False):
-    #from a list of antecendents, filter the desired antecendent
-    #return the modified copy of the tree
-    hold_idx = -1
-    copyTree = antecendents[-2][1].copy_tree()
-    copy_ant = copyTree.getAntecedent()
-
-    #search for the first matched antecendent to remove
-    for idx, ant in enumerate(antecendents):
-        premisse = ant[2]
-        if premisse == ant_to_null:
-            hold_idx = idx
-            side = ant[0]
-            break
-
-    if hold_idx == -1:
-        if debug:
-            print("antecendente não encontrado")
-        return copyTree
-
-    origin = copy_ant[hold_idx][1]
-
-    if side == 0:
-        new_branch = copy_ant[-2][1].rotation45()
-
-    elif side == -1:
-        new_branch = origin.left.rotation45()
-
-    elif side == 1:
-        new_branch = origin.right.rotation45()
-
-    return copyTree
-
-    #connectar origem da variavel target com o ramo resultante da rotação 45
-
 def Subset(classNN, rules, examples, debug=False):
 #try to classify with the ruleset and compare with class labe
 #check if the example is covered by the rulel
@@ -192,14 +157,27 @@ def label_code_block(R, members, E, true_result, debug = False):
     if debug:
        print("number of antecendents: %d" % (len(ant_r)))
 
-    for ant in ant_r:
-        r_ = filter(ant_r, ant)
-        if Subset(true_result, r_, members, debug=debug):
-            print("antecedente retirado")
-            r = r_
-            ant_r = r.getAntecedent()
+    if len(members) <= 4:
+        return r
+
+    while True:
+        detect_idx = -1
+        for idx, ant in enumerate(ant_r):
+            r_ = Node.Node.filter(ant_r, ant)
+            if Subset(true_result, r_, members, debug=debug):
+                print("antecedente retirado")
+                r = r_
+                ant_r = r.getAntecedent()
+                detect_idx = idx
+                if debug:
+                    print("number of antecendents after pruning a antecedent: %d" % (len(ant_r)))
+                break
+
+        print("checking the index of unecessary antecedents: %s" % (idx))
+        if detect_idx == -1:
+            break
     if debug:
-       print("number of antecendents after pruning: %d" % (len(r.getAntecedent())))
+       print("number of antecendents after the pruning session: %d" % (len(r.getAntecedent())))
     return r
 
 def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
@@ -214,7 +192,8 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
     outputLayerIndex = modelParams["num layers"] - 1
 
     voltas = 0
-    exemplosBackup = []
+    numMaxvoltas = numClasses * numClasses
+    exemplosBackup = [[] for _ in C]
     if debug:
         print("Iniciou regras e possibilidades")
         print("numero de labels: %d" % (numClasses))
@@ -224,11 +203,11 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             print(c)
 
     #critério de parada escolhido: repete com o numero de labels e gere [n-ésima volta * quantidade total de labels]
-    while voltas < numClasses:
+    while voltas < numMaxvoltas:
         if debug:
             print("numero de voltas: %d" % (voltas))
         voltas += 1
-        qtd_exemplos = numClasses * numClasses * voltas
+        qtd_exemplos = 10 * numClasses * numClasses * voltas * voltas
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
 
         O = []
@@ -248,10 +227,10 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
 
         for idx, s in enumerate(Sum_IO):
             ModelOutput = O[idx][1]
+            exemplosBackup[O[idx][0]].extend(E[idx])
             #print("number os members: %s" % (len(members)))
             #print("current example results %s %s" % (s, ModelOutput))
-            R[ModelOutput] = label_code_block(R[ModelOutput], exemplosBackup, E[idx], ModelOutput, debug=debug)
-            exemplosBackup.extend(E[idx])
+            R[ModelOutput] = label_code_block(R[ModelOutput], exemplosBackup[O[idx][0]], E[idx], ModelOutput, debug=debug)
 
     return R
 
