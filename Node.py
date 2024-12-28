@@ -203,21 +203,20 @@ class Node:
             return False
         return True
 
-    @staticmethod
-    def filter(antecendents, ant_to_null, debug=False):
+    def filter(self, ant_to_null, debug=False):
         #from a list of antecendents, filter the desired antecendent
         #return the modified copy of the tree
         hold_idx = -1
-        copyTree = antecendents[-2][1].copy_tree()
-        copy_ant = copyTree.getAntecedent()
+        antList = self.getAntecedent()
 
         #search for the first matched antecendent to remove
-        for idx, ant in enumerate(antecendents):
+        for idx, ant in enumerate(antList):
             premisse = ant[2]
             searchedPremisse = ant_to_null[2]
             if Node.equal_antecedent(premisse, searchedPremisse):
                 hold_idx = idx
                 side = ant[0]
+                origin = ant[1]
                 break
 
         if debug:
@@ -228,24 +227,22 @@ class Node:
             return copyTree
 
         if debug:
-            print("pegando endereço de origem do antecedente a ser podado")
-        origin = copy_ant[hold_idx][1]
-        if debug:
             print("iniciando poda do antecedente")
         if side == 0:
-            new_branch = copy_ant[-2][1].rotation45()
-
+            new_branch = self.rotation45()
+            origin = new_branch
         elif side == -1:
             new_branch = origin.left.rotation45()
-
+            origin.set_left(new_branch)
         elif side == 1:
             new_branch = origin.right.rotation45()
+            origin.set_right(new_branch)
 
         if side !=0:
             if debug:
                 print("numero de antecedentes da nova arvore: %s" % (len(origin.getAntecedent())))
 
-        return copyTree
+        return self
 
         #connectar origem da variavel target com o ramo resultante da rotação 45
 

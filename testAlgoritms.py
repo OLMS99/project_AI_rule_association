@@ -111,13 +111,7 @@ def algoritmo_1_KT(seed):
     U = Neurons_to_Lists(params)
     result = KT.KT_1(U, debug=True)
 
-    if len(result) > 0:
-        for r in result:
-            for rule in r:
-                rule.print()
-    else:
-        print("nenhuma regra feita")
-    print(result)
+    KT.printRules(result)
 
     print(metrics.Compute_Acc_naive([KT.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
     print(metrics.Compute_Acc_naive([KT.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
@@ -144,13 +138,7 @@ def algoritmo_2_MofN(seed):
     U = Neurons_to_Lists(params)
     result = MofN.MofN_2(U, ANN, DataX, Datay, debug=True)
 
-    for r in result:
-        if len(r) > 0:
-            for rule in r:
-                rule.print()
-        else:
-            print("no rule made")
-    print(result)
+    MofN.printRules(result)
 
     print(metrics.Compute_Acc_naive([MofN.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
     print(metrics.Compute_Acc_naive([MofN.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
@@ -648,4 +636,4 @@ def simpleTest(seed):
 
 seed = 2
 simpleTest(seed)
-#main_test(seed)
+main_test(seed)
