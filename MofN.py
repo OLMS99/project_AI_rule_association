@@ -274,3 +274,12 @@ def delete(MofNRuleSet):
             if rule is None:
                 continue
             rule.destroy()
+
+def printRules(MofNRuleSet):
+    for r in MofNRuleSet:
+        if len(r) > 0:
+            for rule in r:
+                rule.print()
+        else:
+            print("no rule made")
+    print(MofNRuleSet)

@@ -110,16 +110,16 @@ def conjuntive_rule(members, Exemplo, previousRule, leafValue, debug = False):
         print("criando regra conjuntiva para %s:" % (Exemplo))
     for idx, feature in enumerate(Exemplo):
 
-        if previousRule is not "no rule yet":
-            novoNo = Node.Node(featureIndex=idx, threshold=feature, left=previousRule)
-        else:
-            novoNo = Node.Node(featureIndex=idx, threshold=feature)
+        novoNo = Node.Node(featureIndex=idx, threshold=feature)
 
         if raiz is None:
             raiz = novoNo
         else:
             noAnterior.set_right(novoNo)
         noAnterior = novoNo
+
+    if previousRule is not "no rule yet":
+        raiz.set_left(previousRule)
 
     noAnterior.set_right(Node.Node(value = leafValue))
     return raiz
@@ -163,7 +163,7 @@ def label_code_block(R, members, E, true_result, debug = False):
     while True:
         detect_idx = -1
         for idx, ant in enumerate(ant_r):
-            r_ = Node.Node.filter(ant_r, ant)
+            r_ = r.copy().filter(ant, debug=False)
             if Subset(true_result, r_, members, debug=debug):
                 print("antecedente retirado")
                 r = r_
@@ -173,7 +173,7 @@ def label_code_block(R, members, E, true_result, debug = False):
                     print("number of antecendents after pruning a antecedent: %d" % (len(ant_r)))
                 break
 
-        print("checking the index of unecessary antecedents: %s" % (idx))
+        print("checking the index of unnecessary antecedents: %s" % (idx))
         if detect_idx == -1:
             break
     if debug:
@@ -222,8 +222,8 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
 
         if debug:
             print("exemplos gerados: %d" % (len(E)))
-            for idx in range(len(E)):
-                print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
+            #for idx in range(len(E)):
+            #    print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
 
         for idx, s in enumerate(Sum_IO):
             ModelOutput = O[idx][1]

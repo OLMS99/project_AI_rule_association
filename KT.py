@@ -184,3 +184,12 @@ def delete(KTRuleSet):
             if rule is None:
                 continue
             rule.destroy()
+
+def printRules(KTRuleSet):
+    if len(KTRuleSet) > 0:
+        for r in result:
+            for rule in r:
+                rule.print()
+    else:
+        print("nenhuma regra feita")
+    print(KTRuleSet)
