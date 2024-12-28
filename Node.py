@@ -143,13 +143,16 @@ class Node:
         return initial_pass
 
     def is_leaf_node(self, debug=False):
-        statement_1 = self.num_sons() == 0
-        statement_2 = self.value != "no_output_value"
-        if debug:
-            print("é um nó folha?")
-            print("tem nenhum sub-nó: %s"%(statement_1))
-            print("tem um valor diferente de 'no_output_value': %s"%(statement_2))
-        return statement_1 and statement_2
+        if self.isLeaf is None:
+            statement_1 = self.numSons == 0
+            statement_2 = self.value != "no_output_value"
+            self.isLeaf = statement_1 and statement_2
+            if debug:
+                print("é um nó folha?")
+                print("tem nenhum sub-nó: %s"%(statement_1))
+                print("tem um valor diferente de 'no_output_value': %s"%(statement_2))
+
+        return self.isLeaf
 
     def set_left(self, node):
         if not isinstance(node, Node) and node is not None:

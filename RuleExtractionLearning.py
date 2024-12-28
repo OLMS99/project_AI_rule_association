@@ -108,6 +108,7 @@ def conjuntive_rule(members, Exemplo, previousRule, leafValue, debug = False):
     noAnterior = None
     if debug:
         print("criando regra conjuntiva para %s:" % (Exemplo))
+
     for idx, feature in enumerate(Exemplo):
 
         novoNo = Node.Node(featureIndex=idx, threshold=feature)
@@ -119,7 +120,16 @@ def conjuntive_rule(members, Exemplo, previousRule, leafValue, debug = False):
         noAnterior = novoNo
 
     if previousRule is not "no rule yet":
-        raiz.set_left(previousRule)
+        currentNode = raiz
+        for i in range(len(Exemplo)):
+            try:
+                currentNode.append_left(previousRule)
+            except:
+                previousNode = currentNode
+                currentNode = currentNode.right
+                previousNode.set_right(None)
+                del previousNode
+                continue
 
     noAnterior.set_right(Node.Node(value = leafValue))
     return raiz
