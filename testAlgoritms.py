@@ -626,10 +626,10 @@ def print_Test_results(resultArray, fileName, DataBaseName):
         writer.writerow([])
 
 def simpleTest(seed):
-    #algoritmo_1_KT(seed)
-    #algoritmo_2_MofN(seed)
+    algoritmo_1_KT(seed)
+    algoritmo_2_MofN(seed)
     algoritmo_3_RuleExtractLearning(seed)
-    #algoritmo_4_RxRen(seed)
+    algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
     return

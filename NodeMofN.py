@@ -4,13 +4,13 @@ import numpy as np
 import time
 from Node import Node
 class NodeMofN(Node):
-    def __init__(self, featureIndex=None, layerIndex=None, listaPremissas=None, threshold=0, comparison="=", left=None, right=None, value="no_input_value", negation = False):
+    def __init__(self, featureIndex = super().DontUse, layerIndex = super().DontUse, listaPremissas = None, threshold = 0, comparison = "=", left = None, right = None, value = "no_input_value", negation = False):
         self.set_comparisons = []
 
         for item in listaPremissas:
             self.set_comparisons.append(item)
 
-        super().__init__(featureIndex=featureIndex, layerIndex=layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
+        super().__init__(featureIndex = featureIndex, layerIndex = layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
 
     def eval(self, value):
         result = False
@@ -20,23 +20,26 @@ class NodeMofN(Node):
             N = item[1]
             count = count + 1 if value[coord[0]][coord[1]] == N else count
 
-        if self.comparison is "=" or self.comparison is "==":
+        if self.comparison not in ("=","==","!=",">","<",">=","<="):
+            raise Exception("Not valid comparison, has been set %s" % (self.comparison))
+
+        if self.comparison == "=" or self.comparison == "==":
             result  = result or count == self.threshold
-        if self.comparison is "!=":
+        if self.comparison == "!=":
             result  = result or count != self.threshold
-        if self.comparison is ">":
+        if self.comparison == ">":
             result  = result or count > self.threshold
-        if self.comparison is "<":
+        if self.comparison == "<":
             result  = result or count < self.threshold
-        if self.comparison is ">=":
+        if self.comparison == ">=":
             result  = result or count >= self.threshold
-        if self.comparison is "<=":
+        if self.comparison == "<=":
             result  = result or count <= self.threshold
 
         return result
 
     def step(self, input_values):
-        if self.featureIndex is DontUse and self.layerIndex is DontUse:
+        if self.featureIndex is super().DontUse and self.layerIndex is super().DontUse:
             return
         if self.is_leaf_node():
             return self.value
@@ -78,7 +81,14 @@ class NodeMofN(Node):
         if isinstance(node, NodeMofN) and self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
+        removal = self.left
         self.left = node
+
+        self.antecedents.pop(removal.__hash__())
+        if node is not None:
+            #self.antecedents.update(self.left)
+            self.antecedents[self.left.__hash__()] = (self, -1, self.left.get_node_info())
+
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
@@ -88,7 +98,11 @@ class NodeMofN(Node):
         if isinstance(node, NodeMofN) and self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
+        removal = self.right
+        if removal is not None:
+            self.antecedents.pop(removal.__hash__())
         self.right = node
+
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 

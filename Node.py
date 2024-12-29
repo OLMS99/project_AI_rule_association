@@ -42,6 +42,18 @@ class Node:
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
+        self.antecedents = dict()
+        self.antecedents[self.__hash__()] = (None, 0, self.get_node_info())
+        if self.left is not None:
+            self.antecedents.update(left.antecedents)
+        if self.right is not None:
+            self.antecedents.update(right.antecedents)
+
+        #TODO: redo consequent structure like the antecedent
+
+    def __hash__(self):
+        return hash((self.featureIndex, self.layerIndex, self.threshold, self.comparison, self.negation, self.value))
+
     def getValue(self):
         return self.value
 
@@ -69,7 +81,8 @@ class Node:
         return newNode
 
     def getInputNeuron(self):
-
+        if self.layerIndex is DontUse and self.featureIndex is DontUse:
+            return []
         if self.layerIndex is DontUse:
             return [self.featureIndex]
         if self.featureIndex is DontUse:
@@ -85,13 +98,13 @@ class Node:
             if left.is_leaf_node():
                 outputs.append(left.value)
             else:
-                outputs.extend(left.getOutputs)
+                outputs.extend(left.getOutputs())
 
         if right is not None:
             if right.is_leaf_node():
                 outputs.append(right.value)
             else:
-                outputs.extend(right.getOutputs)
+                outputs.extend(right.getOutputs())
 
         outputs = list(set(outputs)).remove("no_output_value")
 
@@ -160,9 +173,16 @@ class Node:
         if self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
+        removal = self.left
         self.left = node
+
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
+
+        self.antecedents.pop(removal.__hash__())
+        if node is not None:
+            #self.antecedents.update(self.left)
+            self.antecedents[self.left.__hash__()] = (self, -1, self.left.get_node_info())
 
     def set_right(self, node):
         if not isinstance(node, Node) and node is not None:
@@ -170,22 +190,33 @@ class Node:
         if self.equal(node):
             raise Exception("Node doesn't connect to itself")
 
+        removal = self.right
+        if removal is not None:
+            self.antecedents.pop(removal.__hash__())
         self.right = node
+
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
+
+        if node is not None:
+            #self.antecedents.update(self.right)
+            self.antecedents[self.right.__hash__()] = (self, 1, self.right.get_node_info())
 
     def append_left(self, node):
         if self.left:
             self.left.append_left(node)
         else:
             self.set_left(node)
+        #self.antecedents.update(node)
 
     def append_right(self, node):
         if self.right:
             self.right.append_right(node)
         else:
             self.set_right(node)
+        #self.antecedents.update(node)
 
+    #TODO: implement function to calculate probability of the premisse
     def probabilityPremise(self, P, B, y, j):
         pass
 
@@ -194,9 +225,13 @@ class Node:
         #(self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
         if premisse1[0] != premisse2[0]:
             return False
-        if not (premisse1[1] is DontUse and premisse2[1] is DontUse) and not (premisse1[1] == premisse2[1]):
+        if premisse1[1] != premisse2[1]:
             return False
-        if not (premisse1[2] is DontUse and premisse2[2] is DontUse) and not (premisse1[2] == premisse2[2]):
+        if not (premisse1[1] is DontUse and premisse2[1] is DontUse):
+            return False
+        if premisse1[2] != premisse2[2]:
+            return False
+        if not (premisse1[2] is DontUse and premisse2[2] is DontUse):
             return False
         if premisse1[3] != premisse2[3]:
             return False
@@ -209,25 +244,21 @@ class Node:
     def filter(self, ant_to_null, debug=False):
         #from a list of antecendents, filter the desired antecendent
         #return the modified copy of the tree
-        hold_idx = -1
-        antList = self.getAntecedent()
+        hold_hash = -1
+        antList = self.antecedents
 
         #search for the first matched antecendent to remove
-        for idx, ant in enumerate(antList):
-            premisse = ant[2]
-            searchedPremisse = ant_to_null[2]
-            if Node.equal_antecedent(premisse, searchedPremisse):
-                hold_idx = idx
-                side = ant[0]
-                origin = ant[1]
-                break
+        if ant_to_null[0] in antList and antList[ant_to_null[0]] == ant_to_null[1]:
+            hold_hash = ant_to_null[0]
+            origin = antList[ant_to_null[0]][0]
+            side = antList[ant_to_null[0]][1]
 
         if debug:
             print("antecedentes analizados")
-        if hold_idx == -1:
+        if hold_hash == -1:
             if debug:
                 print("antecendente não encontrado")
-            return copyTree
+            return self
 
         if debug:
             print("iniciando poda do antecedente")
@@ -315,40 +346,8 @@ class Node:
 
         return "no_output_value"
 
-    def getAntecedent(self, side = 0, origin = None, debug = False):
-
-        archive = []
-
-        if self.is_leaf_node():
-            if debug:
-                print("nó folha")
-            return archive
-
-        parcial_premisse = self.get_node_info()
-        OR_branch = None
-        AND_branch = None
-
-        if debug:
-            print("vendo ramos")
-
-        if self.left is not None:
-            if debug:
-                print("ramo esquerdo")
-            OR_branch = self.left
-            archive.extend(self.left.getAntecedent(side = -1, origin = self, debug=debug))
-
-        if self.right is not None:
-            if debug:
-                print("ramo direito")
-            AND_branch = self.right
-            archive.extend(self.right.getAntecedent(side = 1, origin = self, debug=debug))
-
-        premisse = [side, origin, parcial_premisse, OR_branch, AND_branch]
-        archive.append(premisse)
-        if debug:
-            print("novo tamanho da lista: %d; entrada da lista: %s" % (len(archive), premisse))
-
-        return archive
+    def getAntecedent(self):
+        return self.antecedents
 
     def getHeight(self):
         if self.right is None and self.left is None:
@@ -421,7 +420,7 @@ class Node:
 
         if self.left:
             print("left branch:")
-            self.right.print()
+            self.left.print()
 
     def rotation45(self):
     #verifica os nós esquerda e direita, quantos subnós cada um tem, de que lado está conectado
@@ -470,7 +469,7 @@ class Node:
 
         elif rightSons[0] == 1:
             if rightSons[1]:
-                self.right.set_rightt(self.left)
+                self.right.set_right(self.left)
             elif rightSons[2]:
                 self.right.set_left(self.left)
             return self.right

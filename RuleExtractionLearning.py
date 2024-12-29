@@ -75,8 +75,8 @@ def make_examples(possibilities, Model, theta, n = 1):
                 temp = oneSample
                 temp[i] = v
                 #changing the value of ei to vij increase s?
-                modelResult = M.predict(temp)
-                newSum = M.get_params()["Z"+str(outputLayerIndex)]
+                modelResult = Model.predict(np.array(temp))
+                newSum = Model.get_params()["Z"+str(outputLayerIndex)]
 
                 if  max(newSum) > max(IO_valor):
                     oneSample[i] = v
@@ -171,20 +171,20 @@ def label_code_block(R, members, E, true_result, debug = False):
         return r
 
     while True:
-        detect_idx = -1
-        for idx, ant in enumerate(ant_r):
-            r_ = r.copy().filter(ant, debug=False)
+        detect_key = -1
+        for key,ant in ant_r.items():
+            r_ = r.copy().filter((key,ant), debug=False)
             if Subset(true_result, r_, members, debug=debug):
                 print("antecedente retirado")
                 r = r_
                 ant_r = r.getAntecedent()
-                detect_idx = idx
+                detect_key = key
                 if debug:
                     print("number of antecendents after pruning a antecedent: %d" % (len(ant_r)))
                 break
 
-        print("checking the index of unnecessary antecedents: %s" % (idx))
-        if detect_idx == -1:
+        print("checking the index of unnecessary antecedents: %s" % (key))
+        if detect_key == -1:
             break
     if debug:
        print("number of antecendents after the pruning session: %d" % (len(r.getAntecedent())))
@@ -220,6 +220,11 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         qtd_exemplos = 10 * numClasses * numClasses * voltas * voltas
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
 
+        if debug:
+            print("exemplos gerados: %d" % (len(E)))
+            #for idx in range(len(E)):
+            #    print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
+
         O = []
         Sum_IO = []
         for example in E:
@@ -229,11 +234,6 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             output_ONeuron = np.argmax(model_result)
             Sum_IO.append(inputToOutput[output_ONeuron][0])
             O.append((output_ONeuron, C[output_ONeuron]))
-
-        if debug:
-            print("exemplos gerados: %d" % (len(E)))
-            #for idx in range(len(E)):
-            #    print("LABEL: %s SUM_IO: %s" % (O[idx],Sum_IO[idx]))
 
         for idx, s in enumerate(Sum_IO):
             ModelOutput = O[idx][1]
