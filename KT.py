@@ -187,7 +187,7 @@ def delete(KTRuleSet):
 
 def printRules(KTRuleSet):
     if len(KTRuleSet) > 0:
-        for r in result:
+        for r in KTRuleSet:
             for rule in r:
                 rule.print()
     else:

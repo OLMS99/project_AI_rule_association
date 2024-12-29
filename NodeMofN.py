@@ -2,15 +2,15 @@ import random
 import math
 import numpy as np
 import time
-from Node import Node
+from Node import Node, DontUse
 class NodeMofN(Node):
-    def __init__(self, featureIndex = super().DontUse, layerIndex = super().DontUse, listaPremissas = None, threshold = 0, comparison = "=", left = None, right = None, value = "no_input_value", negation = False):
+    def __init__(self, featureIndex = DontUse, layerIndex = DontUse, listaPremissas = None, threshold = 0, comparison = "=", left = None, right = None, value = "no_input_value", negation = False):
         self.set_comparisons = []
 
         for item in listaPremissas:
             self.set_comparisons.append(item)
 
-        super().__init__(featureIndex = featureIndex, layerIndex = layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
+        super(NodeMofN, self).__init__(featureIndex = featureIndex, layerIndex = layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
 
     def eval(self, value):
         result = False
@@ -39,7 +39,7 @@ class NodeMofN(Node):
         return result
 
     def step(self, input_values):
-        if self.featureIndex is super().DontUse and self.layerIndex is super().DontUse:
+        if self.featureIndex is DontUse and self.layerIndex is DontUse:
             return
         if self.is_leaf_node():
             return self.value

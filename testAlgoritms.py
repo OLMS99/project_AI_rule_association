@@ -113,8 +113,8 @@ def algoritmo_1_KT(seed):
 
     KT.printRules(result)
 
-    print(metrics.Compute_Acc_naive([KT.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
-    print(metrics.Compute_Acc_naive([KT.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
+    #print(metrics.Compute_Acc_naive([KT.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    #print(metrics.Compute_Acc_naive([KT.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
 
     ANN.destroy()
     del ANN
@@ -140,8 +140,8 @@ def algoritmo_2_MofN(seed):
 
     MofN.printRules(result)
 
-    print(metrics.Compute_Acc_naive([MofN.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
-    print(metrics.Compute_Acc_naive([MofN.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
+    #print(metrics.Compute_Acc_naive([MofN.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
+    #print(metrics.Compute_Acc_naive([MofN.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
 
     ANN.destroy()
     del ANN
