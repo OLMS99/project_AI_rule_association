@@ -248,6 +248,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
 def parseRules(ruleSet, model, inputValues):
     model.predict(inputValues)
     model_values = model.getAtributes()
+    noOutput = set(["no_output_values"])
     results = []
     for layerRules in ruleSet:
         currResults = []
@@ -257,7 +258,7 @@ def parseRules(ruleSet, model, inputValues):
             currResults.append(rule.step(model_values))
 
         currResults = set(currResults)
-        currResults = currResults.remove("no_output_values") if "no_output_values" in currResults else currResults
+        currResults = currResults - noOutput
         results = list(currResults)
 
     return results if len(results) > 0 else ["no_results"]

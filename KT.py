@@ -8,7 +8,7 @@ import gc
 #atribute->neuronios e seus resultados de saida (An)? ou antecedentes
 #como representar-> coordenadas? (camada, ordem)?
 
-#returns unused subsets of weightrs
+#returns unused subsets of weights
 def selectUnusedSubsets(attributes, size, threshold):
     final_selection = []
 
@@ -59,9 +59,9 @@ def makeRule_KT(layer_index, valorAprovado, valorRecusado, classe):
 def select_subsets(bigSet, threshold):
     pass
 
-def KT_1(U, theta = 0, debug = False):
+def KT_1(U, classes, theta = 0, debug = False):
     R=[]
-
+    output_layer = len(U) - 1
     for layer_idx, u in enumerate(U):
         layerRules = []
         for order_idx, neuron in enumerate(u):
@@ -101,22 +101,28 @@ def KT_1(U, theta = 0, debug = False):
                 N = selectNegatives(neuron_weights)
                 if debug:
                     print("Tamanho de N %s" % (len(N)))
+                    print("N: ", N)
                     print("p: ", p)
 
-                #Sum(p) + Sum(N-n) > bias of u >> Sum(p) + Sum(N) - Sum(n) > bias of u >> - Sum(n) > bias of u - (Sum(p) + Sum(N))
-                #Sum(n) < Sum(p) + Sum(N) - bias of u
+                # Sum(p) + Sum(N-n) > bias_u
+                # Sum(p) + Sum(N) - Sum(n) > bias_u
+                # - Sum(n) > bias_u - (Sum(p) + Sum(N))
+                # Sum(n) < Sum(p) + Sum(N) - bias_u
                 WeightSumP = sum_weights(p)
                 WeightSumN = sum_weights(N)
                 comparison = WeightSumP + WeightSumN - neuron_bias
                 for j in range(1, len(N) + 1):
-                    filteredn = [comb for comb in combinations(N, j) if sum_weights(comb) < comparison]
+                    filteredn = [n for n in combinations(N, j) if sum_weights(n) < comparison]
                     for negSubset in filteredn:
                         WeightSumNegSub = sum_weights(negSubset)
                         if debug:
-                            print("Sum p: %s\nSum N: %s\nSum of negSubset:%s" % (WeightSumP, WeightSumN, WeightSumNegSub))
+                            print("Sum p: %s\nSum N: %s\nSum of negSubset:%s\nbias: %s" % (WeightSumP, WeightSumN, WeightSumNegSub, neuron_bias))
                         for element in negSubset:
                             for item in p:
-                                layerRules.append(makeRule_KT(layer_idx, item, element, (layer_idx + 1, order_idx)))
+                                if layer_idx == output_layer:
+                                    layerRules.append(makeRule_KT(layer_idx, item, element, classes[order_idx]))
+                                else:
+                                    layerRules.append(makeRule_KT(layer_idx, item, element, (layer_idx + 1, order_idx)))
                     del filteredn
                     gc.collect()
         R.append(layerRules)
@@ -170,7 +176,7 @@ def parseRules(ruleSet, model, inputValues):
         results = results - noOutput
         results = list(results)
 
-    return results if len(results) > 0 else ("no_results")
+    return results if len(results) > 0 else ["no_results"]
 
 def isComplete(KTruleSet):
     for layerRules in KTruleSet:
