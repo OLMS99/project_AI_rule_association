@@ -54,8 +54,9 @@ def possible_values(examplesData, database = None, debug = False):
 
 def make_examples(possibilities, Model, theta, n = 1):
     result = []
+    tamResult = 0
     outputLayerIndex = Model.get_params()["num layers"] - 1
-    for i in range(n):
+    while tamResult < tamResult:
         oneSample = []
 
         for e in possibilities.values():
@@ -68,22 +69,25 @@ def make_examples(possibilities, Model, theta, n = 1):
 
         if max(IO_valor) >= theta:
             result.append(deepcopy(np.array(oneSample)))
+            tamresult = len(result)
             continue
 
-        for i, othervalues in enumerate(possibilities.values()):
+        for j, othervalues in enumerate(possibilities.values()):
             for v in othervalues:
                 temp = oneSample
-                temp[i] = v
+                temp[j] = v
                 #changing the value of ei to vij increase s?
                 modelResult = Model.predict(np.array(temp))
                 newSum = Model.get_params()["Z"+str(outputLayerIndex)]
 
                 if  max(newSum) > max(IO_valor):
-                    oneSample[i] = v
+                    oneSample[j] = v
                     IO_valor = newSum
 
                 if max(IO_valor) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
+                    tamResult = len(result)
+                    continue
 
     return result
 
@@ -218,6 +222,8 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             print("numero de voltas: %d" % (voltas))
         voltas += 1
         qtd_exemplos = 10 * numClasses * numClasses * voltas * voltas
+        if debug:
+            print("numero de exemplos a serem gerados: %d" % (qtd_exemplos))
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)
 
         if debug:
@@ -241,18 +247,20 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
             #print("number os members: %s" % (len(members)))
             #print("current example results %s %s" % (s, ModelOutput))
             R[ModelOutput] = label_code_block(R[ModelOutput], exemplosBackup[O[idx][0]], E[idx], ModelOutput, debug=debug)
+            #exemplosBackup[O[idx][0]] = list(set(exemplosBackup[O[idx][0]]))
 
     return R
 
 def parseRules(classRuleSet, inputValues):
     resultBatch = []
+    noOutput = set(["no_output_values"])
     for classification, rule in classRuleSet.items():
-        if rule is None:
+        if rule is "no rule yet":
             continue
-        resultBatch.append(rule.step(inputValues))
+        resultBatch.extend(rule.step(inputValues))
 
         resultBatch = set(resultBatch)
-        resultBatch = resultBatch.remove("no_output_values") if "no_output_values" in resultBatch else resultBatch
+        resultBatch = resultBatch - noOutput
         resultBatch = list(resultBatch)
 
     return resultBatch if len(resultBatch) > 0 else ["no_results"]

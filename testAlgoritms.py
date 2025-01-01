@@ -109,9 +109,9 @@ def algoritmo_1_KT(seed):
     ANN, C, DataX, DataY = load_example(seed)
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
-    result = KT.KT_1(U, debug=True)
+    result = KT.KT_1(U, C, theta = 0.5, debug=True)
 
-    KT.printRules(result)
+    #KT.printRules(result)
 
     #print(metrics.Compute_Acc_naive([KT.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
     #print(metrics.Compute_Acc_naive([KT.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
@@ -138,7 +138,7 @@ def algoritmo_2_MofN(seed):
     U = Neurons_to_Lists(params)
     result = MofN.MofN_2(U, ANN, DataX, Datay, debug=True)
 
-    MofN.printRules(result)
+    #MofN.printRules(result)
 
     #print(metrics.Compute_Acc_naive([MofN.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
     #print(metrics.Compute_Acc_naive([MofN.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
@@ -162,7 +162,7 @@ def algoritmo_3_RuleExtractLearning(seed):
     ANN, C, DataX, DataY = load_example(seed)
     result = REL.Rule_extraction_learning_3(ANN, C, DataX[0], debug = True)
 
-    REL.printRules(result)
+    #REL.printRules(result)
 
     #print(metrics.Compute_Acc_naive([REL.parseRules(result, tX) for tX in DataX[0]], DataY[0]))
     #print(metrics.Compute_Acc_naive([REL.parseRules(result, vX) for vX in DataX[1]], DataY[1]))
@@ -195,7 +195,7 @@ def algoritmo_4_RxRen(seed):
     T, y = filter_correct_answers(DataX, Datay, predictions)
 
     resultado = RxREN.RxREN_4(ANN, U, T, y, C, debug = True)
-    RxREN.printRules(resultado)
+    #RxREN.printRules(resultado)
 
     #print(metrics.Compute_Acc_naive([RxREN.parseRules(resultado, tX) for tX in DataX[0]], Datay[0]))
     #print(metrics.Compute_Acc_naive([RxREN.parseRules(resultado, vX) for vX in DataX[1]], Datay[1]))
@@ -310,7 +310,7 @@ def load_models_params(x_train, x_valid, y_train, y_valid, nEntrada, nSaida, see
 
     return results
 
-def test_algorithms(modelParamsList, dataBase, classes, debug = False):
+def test_algorithms(modelParamsList, dataBase, classes, debug = False): 
 
     results = []
     for case in modelParamsList:
@@ -318,7 +318,7 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         correct_cases = case[1]
 
         tempoInicio = time.time()
-        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), debug = debug)
+        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), classes, theta=0.5, debug = debug)
         tempoCheckpoint1 = time.time()
         algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
         tempoCheckpoint2 = time.time()
@@ -338,10 +338,10 @@ def parseRulesTest(model, ruleSets, X):
     for x_set in X:
         set_results = []
         for x_case in x_set:
-            KT_result = KT.parseRules(ruleSets[0], model, x_case) if KT.isComplete(ruleSets[0]) else "Error"
-            MofN_result = MofN.parseRules(ruleSets[1], model, x_case) if MofN.isComplete(ruleSets[1]) else "Error"
-            REL_result = REL.parseRules(ruleSets[2], x_case) if REL.isComplete(ruleSets[2]) else "Error"
-            RxREN_result = RxREN.parseRules(ruleSets[3], x_case) if RxREN.isComplete(ruleSets[3]) else "Error"
+            KT_result = KT.parseRules(ruleSets[0], model, x_case) #if KT.isComplete(ruleSets[0]) else "Error"
+            MofN_result = MofN.parseRules(ruleSets[1], model, x_case) #if MofN.isComplete(ruleSets[1]) else "Error"
+            REL_result = REL.parseRules(ruleSets[2], x_case) #if REL.isComplete(ruleSets[2]) else "Error"
+            RxREN_result = RxREN.parseRules(ruleSets[3], x_case) #if RxREN.isComplete(ruleSets[3]) else "Error"
 
             set_results.append([KT_result, MofN_result, REL_result, RxREN_result])
 
