@@ -41,6 +41,7 @@ class Node:
         self.value = value
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
+        self.fabricationTime = time.time()
 
         self.antecedents = dict()
         self.antecedents[self.__hash__()] = (None, 0, self.get_node_info())
@@ -52,7 +53,7 @@ class Node:
         #TODO: redo consequent structure like the antecedent
 
     def __hash__(self):
-        return hash((self.featureIndex, self.layerIndex, self.threshold, self.comparison, self.negation, self.value))
+        return hash((self.featureIndex, self.layerIndex, self.threshold, self.comparison, self.negation, self.value, self.fabricationTime))
 
     def getValue(self):
         return self.value
