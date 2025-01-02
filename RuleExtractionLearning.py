@@ -68,8 +68,9 @@ def make_examples(possibilities, Model, theta, n = 1):
         model_result = Model.predict(np.array(oneSample))
         IO_valor = Model.get_params()["A"+str(outputLayerIndex)]
 
-        print("valor de saida: ", IO_valor)
-        if max(IO_valor) >= theta:
+        print("valor de saida: ", np.squeeze(IO_valor))
+        print("theta: ", theta)
+        if max(np.squeeze(IO_valor)) >= theta:
             result.append(deepcopy(np.array(oneSample)))
             tamresult = len(result)
             print("input: ", oneSample)
@@ -83,12 +84,13 @@ def make_examples(possibilities, Model, theta, n = 1):
                 #changing the value of ei to vij increase s?
                 modelResult = Model.predict(np.array(temp))
                 newSum = Model.get_params()["A"+str(outputLayerIndex)]
-                if  max(newSum) > max(IO_valor):
+                if  max(newSum) > max(np.squeeze(IO_valor)):
                     oneSample[j] = v
                     IO_valor = newSum
 
-                print("valor de saida: ", IO_valor)
-                if max(IO_valor) >= theta:
+                print("valor de saida: ", np.squeeze(IO_valor))
+                print("theta: ", theta)
+                if max(np.squeeze(IO_valor)) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
                     tamResult = len(result)
                     print("input: ", oneSample)
