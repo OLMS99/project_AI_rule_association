@@ -68,9 +68,12 @@ def make_examples(possibilities, Model, theta, n = 1):
         model_result = Model.predict(np.array(oneSample))
         IO_valor = Model.get_params()["A"+str(outputLayerIndex)]
 
+        print("valor de saida: ", IO_valor)
         if max(IO_valor) >= theta:
             result.append(deepcopy(np.array(oneSample)))
             tamresult = len(result)
+            print("input: ", oneSample)
+            print("current number of examples generated: ", tamResult)
             continue
 
         for j, othervalues in enumerate(possibilities.values()):
@@ -84,14 +87,13 @@ def make_examples(possibilities, Model, theta, n = 1):
                     oneSample[j] = v
                     IO_valor = newSum
 
+                print("valor de saida: ", IO_valor)
                 if max(IO_valor) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
                     tamResult = len(result)
+                    print("input: ", oneSample)
+                    print("current number of examples generated: ", tamResult)
                     continue
-
-                print("input: ", oneSample)
-                print("valor de saida antes da função de ativação: ", IO_valor)
-        print("current number of examples generated: ", tamResult)
 
     return result
 
