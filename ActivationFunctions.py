@@ -8,14 +8,14 @@ def naive(X, prime=False):
 
 def ReLU(X, prime=False):
     if prime:
-        return X > 0
+        return 1 if X > 0 else 0
     return np.maximum(0, X)
 
 def sigmoid(X, slope = 1, prime = False):
     term = np.exp(- X * slope)
     sigma = 1./(term+1)
     if prime:
-        return slope * sigma * (1 - sigma)
+        return sigma * (1 - sigma)
     return sigma
 
 def tanh(X, prime=False):
