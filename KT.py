@@ -142,7 +142,7 @@ def combine_rules(R, numLayers):
         for neuronRuleCurr in R[i]:
             neuronFeature = neuronRuleCurr.getInputNeuron()[1]
             regraAnterior = previousLayerRules[neuronFeature]
-            regraAnterior.set_right(neuronRuleCurr.copy())
+            regraAnterior.set_right(neuronRuleCurr.copy_tree())
 
     for r in R[0]:
         newRules.append(r)

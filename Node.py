@@ -74,13 +74,6 @@ class Node:
         comp7 = self.value == node.value
         return comp1 and comp2 and comp3 and comp4 and comp5 and comp6 and comp7
 
-    def copy(self):
-        esquerda = self.left.copy() if self.left is not None else None
-        direita = self.right.copy() if self.right is not None else None
-        newNode = Node(featureIndex=self.featureIndex, layerIndex=self.layerIndex, threshold=self.threshold, comparison = self.comparison, left = esquerda, right = direita, value = self.value, negation = self.negation)
-        newNode.label = self.label
-        return newNode
-
     def getInputNeuron(self):
         if self.layerIndex is DontUse and self.featureIndex is DontUse:
             return []

@@ -1,6 +1,7 @@
 import Node
 import NeuralNetwork as ANN
 import numpy as np
+import random
 import pandas as pd
 import gc
 from copy import deepcopy
@@ -56,16 +57,16 @@ def make_examples(possibilities, Model, theta, n = 1):
     result = []
     tamResult = 0
     outputLayerIndex = Model.get_params()["num layers"] - 1
-    while tamResult < tamResult:
+    while tamResult < n:
         oneSample = []
 
         for e in possibilities.values():
             indexRange = len(e)
-            choice = np.random.randint(indexRange)
+            choice = random.randrange(indexRange)
             oneSample.append(e[choice])
 
         model_result = Model.predict(np.array(oneSample))
-        IO_valor = Model.get_params()["Z"+str(outputLayerIndex)]
+        IO_valor = Model.get_params()["A"+str(outputLayerIndex)]
 
         if max(IO_valor) >= theta:
             result.append(deepcopy(np.array(oneSample)))
@@ -78,8 +79,7 @@ def make_examples(possibilities, Model, theta, n = 1):
                 temp[j] = v
                 #changing the value of ei to vij increase s?
                 modelResult = Model.predict(np.array(temp))
-                newSum = Model.get_params()["Z"+str(outputLayerIndex)]
-
+                newSum = Model.get_params()["A"+str(outputLayerIndex)]
                 if  max(newSum) > max(IO_valor):
                     oneSample[j] = v
                     IO_valor = newSum
@@ -88,6 +88,10 @@ def make_examples(possibilities, Model, theta, n = 1):
                     result.append(deepcopy(np.array(oneSample)))
                     tamResult = len(result)
                     continue
+
+                print("input: ", oneSample)
+                print("valor de saida antes da função de ativação: ", IO_valor)
+        print("current number of examples generated: ", tamResult)
 
     return result
 
@@ -177,7 +181,7 @@ def label_code_block(R, members, E, true_result, debug = False):
     while True:
         detect_key = -1
         for key,ant in ant_r.items():
-            r_ = r.copy().filter((key,ant), debug=False)
+            r_ = r.copy_tree().filter((key,ant), debug=False)
             if Subset(true_result, r_, members, debug=debug):
                 print("antecedente retirado")
                 r = r_
@@ -221,7 +225,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
         if debug:
             print("numero de voltas: %d" % (voltas))
         voltas += 1
-        qtd_exemplos = 10 * numClasses * numClasses * voltas * voltas
+        qtd_exemplos = numClasses * numClasses * voltas * voltas
         if debug:
             print("numero de exemplos a serem gerados: %d" % (qtd_exemplos))
         E = make_examples(Possibilities, M, theta, n = qtd_exemplos)

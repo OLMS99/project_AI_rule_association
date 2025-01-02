@@ -127,7 +127,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         err = dict()
 
         for idx, l in enumerate(mapL):
-            temp_network = local_NN.copy().prune_input([l])
+            temp_network = local_NN.copy_tree().prune_input([l])
             E[l] = []
             #test the classification
             for number, case in enumerate(T):
@@ -150,7 +150,7 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
         for li in insig:
             B.append(mapL[li])
 
-        NN_ = local_NN.copy().prune_input(B)
+        NN_ = local_NN.copy_tree().prune_input(B)
         L_ = list(filter(lambda i: i not in B, mapL))
         Pacc = computeAccuracy(NN_, T, y)
         Nacc = computeAccuracy(local_NN, T, y)

@@ -68,7 +68,7 @@ def cluster_algorithm(networkUnitWeights):
         novaLista.extend(cluster_members[x])
         novaLista.extend(cluster_members[y])
         cluster_members[i + nSamples] = novaLista
-        backup[i + nSamples] = novaLista.copy()
+        backup[i + nSamples] = novaLista.copy_tree()
         print(novaLista)
 
         cluster_members[x] = [(x, float('inf'))]
@@ -186,7 +186,7 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
         for unit_index, u in enumerate(layer):
             neuron_coord = (layer_index, unit_index)
             G[neuron_coord], weight_cluster_members[neuron_coord] = cluster_algorithm(u[0]) #weights
-            Backup[neuron_coord] = G[neuron_coord].copy()
+            Backup[neuron_coord] = G[neuron_coord].copy_tree()
             K[neuron_coord] = []
             A[neuron_coord] = []
             threshold = u[1] #bias
