@@ -70,6 +70,7 @@ def make_examples(possibilities, Model, theta, n = 1):
 
         print("valor de saida: ", np.squeeze(IO_valor))
         print("theta: ", theta)
+        print("%s >= %s" % (max(np.squeeze(IO_valor)), theta))
         if max(np.squeeze(IO_valor)) >= theta:
             result.append(deepcopy(np.array(oneSample)))
             tamresult = len(result)
@@ -90,6 +91,7 @@ def make_examples(possibilities, Model, theta, n = 1):
 
                 print("valor de saida: ", np.squeeze(IO_valor))
                 print("theta: ", theta)
+                print("%s >= %s" % (max(np.squeeze(IO_valor)), theta))
                 if max(np.squeeze(IO_valor)) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
                     tamResult = len(result)
@@ -202,7 +204,7 @@ def label_code_block(R, members, E, true_result, debug = False):
        print("number of antecendents after the pruning session: %d" % (len(r.getAntecedent())))
     return r
 
-def Rule_extraction_learning_3(M, C, Ex, theta = 0, debug = False):
+def Rule_extraction_learning_3(M, C, Ex, theta = 0.0, debug = False):
     R = dict()
     for c in C:
         R[c] = "no rule yet"
