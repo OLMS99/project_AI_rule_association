@@ -2,7 +2,7 @@ import random
 import math
 import numpy as np
 import time
-
+from collections import deque
 #Node represents a partial premisse or consequent in a rule
 #for now it can represent IFthen structure, still need to see how to build efficiently a MofN structure
 #layerIndex and feature index -> point to what will be compared
@@ -168,12 +168,13 @@ class Node:
             raise Exception("Node doesn't connect to itself")
 
         removal = self.left
+        if removal is not None:
+            self.antecedents.pop(removal.__hash__())
         self.left = node
 
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
 
-        self.antecedents.pop(removal.__hash__())
         if node is not None:
             #self.antecedents.update(self.left)
             self.antecedents[self.left.__hash__()] = (self, -1, self.left.get_node_info())
@@ -295,15 +296,45 @@ class Node:
             negation = self.negation)
 
     def copy_tree(self):
-        copy_node = self.copy_node()
+        copySelf = self.copy_node()
+        queue = deque([(self,copySelf)])
 
-        if self.left:
-            copy_node.set_left(self.left.copy_tree())
+        while queue:
+            original, copiedNode = queue.popleft()
 
-        if self.right:
-            copy_node.set_right(self.right.copy_tree())
+            if original.left:
+                copiedNode.set_left(original.left.copy_node())
+                queue.append((original.left, copiedNode.left))
 
-        return copy_node
+            if original.right:
+                copiedNode.set_right(original.right.copy_node())
+                queue.append((original.right, copiedNode.right))
+
+        return copySelf
+
+    def copy_tree(self,keyTuple):
+        copiedTuple=(None,None)
+        copySelf = self.copy_node()
+        if self.__hash__() == keyTuple[0] and self.antecedents[self.__hash__()] == keyTuple[1]:
+            copiedTuple = (copySelf.__hash__(), copySelf.antecedents[copySelf.__hash__()])
+        queue = deque([(self,copySelf)])
+
+        while queue:
+            original, copiedNode = queue.popleft()
+
+            if original.left:
+                copiedNode.set_left(original.left.copy_node())
+                if original.left.__hash__() == keyTuple[0] and original.left.antecedents[original.left.__hash__()] == keyTuple[1]:
+                    copiedTuple = (copiedNode.__hash__(), copiedNode.antecedents[__hash__()])
+                queue.append((original.left, copiedNode.left))
+
+            if original.right:
+                copiedNode.set_right(original.right.copy_node())
+                if original.right.__hash__() == keyTuple[0] and original.right.antecedents[original.right.__hash__()] == keyTuple[1]:
+                    copiedTuple = (copiedNode.__hash__(), copiedNode.antecedents[__hash__()])
+                queue.append((original.right, copiedNode.right))
+
+        return copySelf, copiedTuple
 
     def destroy(self):
         if self.left is not None:

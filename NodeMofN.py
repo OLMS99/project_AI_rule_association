@@ -2,8 +2,10 @@ import random
 import math
 import numpy as np
 import time
+from collections import deque
 from Node import Node, DontUse
 class NodeMofN(Node):
+    #TODO rever como set comparisons está implementado se deveria ser de outra forma
     def __init__(self, featureIndex = DontUse, layerIndex = DontUse, listaPremissas = None, threshold = 0, comparison = "=", left = None, right = None, value = "no_input_value", negation = False):
         self.set_comparisons = []
 
@@ -11,6 +13,19 @@ class NodeMofN(Node):
             self.set_comparisons.append(item)
 
         super(NodeMofN, self).__init__(featureIndex = featureIndex, layerIndex = layerIndex, threshold = threshold, comparison = comparison, left = left, right = right, value = value, negation = negation)
+
+    def __hash__(self):
+        values_comparisons_sets = set()
+        indexes_comparisons_set = set()
+        for item in self.set_comparisons:
+            values_comparisons_sets.add(item[1])
+            if len(item[0]) == 2:
+                indexes_comparisons_set.add(item[0][0])
+                indexes_comparisons_set.add(item[0][1])
+            if len(item[0]) == 1:
+                indexes_comparisons_set.add(item[0])
+
+        return hash((self.featureIndex, self.layerIndex, self.threshold, tuple(indexes_comparisons_set), tuple(values_comparisons_sets), self.negation, self.value, self.fabricationTime))
 
     def eval(self, value):
         result = False
@@ -105,6 +120,15 @@ class NodeMofN(Node):
 
         self.numSons = int(self.left is not None) + int(self.right is not None)
         self.isLeaf = (self.value != "no_output_value") and (self.numSons == 0)
+
+    def copy_node(self):
+        return NodeMofN(featureIndex = self.featureIndex,
+        layerIndex = self.layerIndex,
+        listaPremissas = self.set_comparisons,
+        threshold = self.threshold,
+        comparison = self.comparison,
+        value = self.value,
+        negation = self.negation)
 
     def print(self):
 

@@ -53,11 +53,12 @@ def possible_values(examplesData, database = None, debug = False):
 
     return result
 
+#TODO Corrigir bug em que sum(np.squeeze(IO_valor)) >= theta está dando resultados errados
 def make_examples(possibilities, Model, theta, n = 1):
     result = []
     tamResult = 0
     outputLayerIndex = Model.get_params()["num layers"] - 1
-    while tamResult < n:
+    for i in range(n):
         oneSample = []
 
         for e in possibilities.values():
@@ -70,8 +71,8 @@ def make_examples(possibilities, Model, theta, n = 1):
 
         print("valor de saida: ", np.squeeze(IO_valor))
         print("theta: ", theta)
-        print("%s >= %s" % (max(np.squeeze(IO_valor)), theta))
-        if max(np.squeeze(IO_valor)) >= theta:
+        print("%s >= %s" % (sum(np.squeeze(IO_valor)), theta))
+        if sum(np.squeeze(IO_valor)) >= theta:
             result.append(deepcopy(np.array(oneSample)))
             tamresult = len(result)
             print("input: ", oneSample)
@@ -85,14 +86,14 @@ def make_examples(possibilities, Model, theta, n = 1):
                 #changing the value of ei to vij increase s?
                 modelResult = Model.predict(np.array(temp))
                 newSum = Model.get_params()["A"+str(outputLayerIndex)]
-                if  max(newSum) > max(np.squeeze(IO_valor)):
+                if  sum(np.squeeze(newSum)) > sum(np.squeeze(IO_valor)):
                     oneSample[j] = v
                     IO_valor = newSum
 
                 print("valor de saida: ", np.squeeze(IO_valor))
                 print("theta: ", theta)
-                print("%s >= %s" % (max(np.squeeze(IO_valor)), theta))
-                if max(np.squeeze(IO_valor)) >= theta:
+                print("%s >= %s" % (sum(np.squeeze(IO_valor)), theta))
+                if sum(np.squeeze(IO_valor)) >= theta:
                     result.append(deepcopy(np.array(oneSample)))
                     tamResult = len(result)
                     print("input: ", oneSample)
@@ -184,24 +185,20 @@ def label_code_block(R, members, E, true_result, debug = False):
     if len(members) <= 4:
         return r
 
-    while True:
-        detect_key = -1
-        for key,ant in ant_r.items():
-            r_ = r.copy_tree().filter((key,ant), debug=False)
-            if Subset(true_result, r_, members, debug=debug):
-                print("antecedente retirado")
-                r = r_
-                ant_r = r.getAntecedent()
-                detect_key = key
-                if debug:
-                    print("number of antecendents after pruning a antecedent: %d" % (len(ant_r)))
-                break
+    for key,ant in ant_r.items():
+        print(key)
+        r_, ant_= r.copy_tree((key,ant))
+        r_ = r_.filter(ant_, debug=debug)
+        print("copia modificada da regra feita")
+        if Subset(true_result, r_, members, debug=debug):
+            print("antecedente retirado")
+            r = r_
+            ant_r = r.getAntecedent()
+            if debug:
+                print("number of antecendents after pruning a antecedent: %d" % (len(ant_r)))
 
-        print("checking the index of unnecessary antecedents: %s" % (key))
-        if detect_key == -1:
-            break
     if debug:
-       print("number of antecendents after the pruning session: %d" % (len(r.getAntecedent())))
+       print("number of antecendents after the pruning session: %d" % (len(ant_r)))
     return r
 
 def Rule_extraction_learning_3(M, C, Ex, theta = 0.0, debug = False):
@@ -245,7 +242,7 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0.0, debug = False):
         Sum_IO = []
         for example in E:
             model_result = M.predict(np.squeeze(example))
-            inputToOutput = M.get_params()["Z"+str(outputLayerIndex)]
+            inputToOutput = M.get_params()["A"+str(outputLayerIndex)]
 
             output_ONeuron = np.argmax(model_result)
             Sum_IO.append(inputToOutput[output_ONeuron][0])
@@ -276,12 +273,16 @@ def parseRules(classRuleSet, inputValues):
     return resultBatch if len(resultBatch) > 0 else ["no_results"]
 
 def isComplete(RELruleSet):
+    if RELruleSet is None:
+        return False
     for classLabel, classRules in RELruleSet.items():
         if classRules is "no rule yet":
             return False
     return True
 
 def delete(RELruleSet):
+    if RELruleSet is None:
+        return
     RELruleSet.clear()
 
 def printRules(classRuleSets):
