@@ -264,12 +264,16 @@ def parseRules(ruleSet, model, inputValues):
     return results if len(results) > 0 else ["no_results"]
 
 def isComplete(MofNruleSet):
+    if MofNruleSet is None:
+        return False
     for layerRules in MofNruleSet:
         if len(layerRules) <= 0:
             return False
     return True
 
 def delete(MofNRuleSet):
+    if MofNRuleSet is None:
+        return
     for layerRules in MofNRuleSet:
         for rule in layerRules:
             if rule is None:

@@ -179,12 +179,16 @@ def parseRules(ruleSet, model, inputValues):
     return results if len(results) > 0 else ["no_results"]
 
 def isComplete(KTruleSet):
+    if KTruleSet is None:
+        return False
     for layerRules in KTruleSet:
         if len(layerRules) <= 0:
             return False
     return True
 
 def delete(KTRuleSet):
+    if KTRuleSet is None:
+        return
     for layerRules in KTRuleSet:
         for rule in layerRules:
             if rule is None:
