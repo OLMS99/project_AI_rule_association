@@ -109,7 +109,7 @@ def algoritmo_1_KT(seed):
     ANN, C, DataX, DataY = load_example(seed)
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
-    result = KT.KT_1(U, C, theta = 0.5, debug=True)
+    result = KT.KT_1(U, C, theta = 0.0, debug=True)
 
     #KT.printRules(result)
 
@@ -318,11 +318,11 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         correct_cases = case[1]
 
         tempoInicio = time.time()
-        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), classes, theta=0.5, debug = debug)
+        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), classes, theta=0.0, debug = debug)
         tempoCheckpoint1 = time.time()
         algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
         tempoCheckpoint2 = time.time()
-        algo3_result = REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
+        algo3_result = None#REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
         tempoCheckpoint3 = time.time()
         algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes, debug = debug)
         tempoCheckpoint4 = time.time()
@@ -332,6 +332,13 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
 
     return results
 
+def completeness_check(ruleSets):
+    KT_check = KT.isComplete(ruleSets[0])
+    MofN_check = MofN.isComplete(ruleSets[1])
+    REL_check = REL.isComplete(ruleSets[2])
+    RxREN_check = RxREN.isComplete(ruleSets[3])
+    return [KT_check, MofN_check, REL_check, RxREN_check]
+
 def parseRulesTest(model, ruleSets, X):
     pred_results = []
 
@@ -340,7 +347,7 @@ def parseRulesTest(model, ruleSets, X):
         for x_case in x_set:
             KT_result = KT.parseRules(ruleSets[0], model, x_case) #if KT.isComplete(ruleSets[0]) else "Error"
             MofN_result = MofN.parseRules(ruleSets[1], model, x_case) #if MofN.isComplete(ruleSets[1]) else "Error"
-            REL_result = REL.parseRules(ruleSets[2], x_case) #if REL.isComplete(ruleSets[2]) else "Error"
+            REL_result = REL.parseRules(ruleSets[2], x_case) if REL.isComplete(ruleSets[2]) else "Error"
             RxREN_result = RxREN.parseRules(ruleSets[3], x_case) #if RxREN.isComplete(ruleSets[3]) else "Error"
 
             set_results.append([KT_result, MofN_result, REL_result, RxREN_result])
@@ -628,7 +635,7 @@ def print_Test_results(resultArray, fileName, DataBaseName):
 def simpleTest(seed):
     algoritmo_1_KT(seed)
     algoritmo_2_MofN(seed)
-    algoritmo_3_RuleExtractLearning(seed)
+    #algoritmo_3_RuleExtractLearning(seed)
     algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
