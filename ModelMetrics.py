@@ -208,8 +208,8 @@ def Compute_AccR(y_pred, y_val):
 
 def Compute_Acc_naive(y_pred, y_val):
     acertos = 0
-    num_cases = y_val.shape[0]
-    output_length = y_val.shape[1]
+    num_cases = max(y_val.shape[0], 1)
+    output_length = max(y_val.shape[1], 1)
 
     for indice, y in enumerate(y_val):
         pred = np.round(y_pred[indice])
