@@ -8,7 +8,7 @@ import ActivationFunctions as ACT
 import LossFunctions as Loss
 import ModelMetrics as metrics
 import Utils
-
+from collections import Counter
 class nnf():
     def __init__(self, layer_sizes = None, act_funcs = None, loss = None, loss_prime = None, seed = 1, params = None, update_weights = True, update_bias = True, debug = False):
         if params is not None:
@@ -33,6 +33,33 @@ class nnf():
 
     def copy(self):
         return nnf(params = copy.deepcopy(self.params))
+
+    def print(self):
+        print(vars(self))
+        print("dicionario de parametros")
+        print(self.params)
+
+    def equal(self, model):
+        if not isinstance(model, nnf):
+            return False
+
+        if not self.equalParams(model.get_params()):
+            return False
+
+        return True
+
+    def equalParams(self, params):
+        result = True
+        for k,v in self.params.items():
+            if k not in params:
+                return False
+            if isinstance(v, list):
+                result = result and Counter(v) == Counter(params[k])
+
+        return result
+
+    def copyParams(self):
+        return copy.deepcopy(self.params)
 
     def load_params(self, params):
         self.params = params

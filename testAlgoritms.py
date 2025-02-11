@@ -9,6 +9,7 @@ import math
 import numpy as np
 import time
 import csv
+from copy import deepcopy
 import os
 import gc
 
@@ -109,7 +110,7 @@ def algoritmo_1_KT(seed):
     ANN, C, DataX, DataY = load_example(seed)
     params = ANN.get_params()
     U = Neurons_to_Lists(params)
-    result = KT.KT_1(U, C, theta = 0.0, debug=True)
+    result = KT.KT_1(U, C, debug=True)
 
     #KT.printRules(result)
 
@@ -314,17 +315,17 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
 
     results = []
     for case in modelParamsList:
-        model = case[0].copy()
+        model = case[0]
         correct_cases = case[1]
 
         tempoInicio = time.time()
-        algo1_result = KT.KT_1(Neurons_to_Lists(model.get_params()), classes, theta=0.0, debug = debug)
+        algo1_result = KT.KT_1(Neurons_to_Lists(deepcopy(model.get_params())), classes, debug = debug)
         tempoCheckpoint1 = time.time()
-        algo2_result = MofN.MofN_2(Neurons_to_Lists(model.get_params()), model, dataBase[0], dataBase[1], debug = debug)
+        algo2_result = MofN.MofN_2(Neurons_to_Lists(deepcopy(model.get_params())), deepcopy(model), dataBase[0], dataBase[1], debug = debug)
         tempoCheckpoint2 = time.time()
-        algo3_result = None#REL.Rule_extraction_learning_3(model, classes, dataBase[0][1], debug = debug)
+        algo3_result = None#REL.Rule_extraction_learning_3(deepcopy(model), classes, dataBase[0][1], debug = debug)
         tempoCheckpoint3 = time.time()
-        algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(model.get_params()), correct_cases[0], correct_cases[1], classes, debug = debug)
+        algo4_result = RxREN.RxREN_4(model, Neurons_to_Lists(deepcopy(model.get_params())), correct_cases[0], correct_cases[1], classes, debug = debug)
         tempoCheckpoint4 = time.time()
 
         result = [[algo1_result, algo2_result, algo3_result, algo4_result], [tempoCheckpoint1 - tempoInicio, tempoCheckpoint2 - tempoCheckpoint1, tempoCheckpoint3 - tempoCheckpoint2, tempoCheckpoint4 - tempoCheckpoint3]]
@@ -414,16 +415,30 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
         setEvaluation = ruleSetCase[0]
         HiddenLayerRule = HLayerTam[idx] if isinstance(HLayerTam, list) else HLayerTam
         if not KT.isComplete(setEvaluation[0]):
-            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "KT", setEvaluation[0]])
+            numberRulesLayeredKT = []
+            for layer_r in setEvaluation[0]:
+                numberRulesLayeredKT.append(len(layer_r))
+
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "KT", numberRulesLayeredKT])
 
         if not MofN.isComplete(setEvaluation[1]):
-            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "MofN", setEvaluation[1]])
+            numberRulesLayeredMofN = []
+            for layer_r in setEvaluation[1]:
+                numberRulesLayeredMofN.append(len(layer_r))
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "MofN", numberRulesLayeredMofN])
 
         if not REL.isComplete(setEvaluation[2]):
-            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "REL", setEvaluation[2]])
+            numberRulesLayeredREL = dict()
+            if setEvaluation[2] is not None:
+                for classResult, rules in setEvaluation[2].items():
+                    numberRulesLayeredREL[classResult] = len(rules)
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "REL", numberRulesLayeredREL])
 
         if not RxREN.isComplete(setEvaluation[3]):
-            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "RxREN", setEvaluation[3]])
+            numberRulesLayeredRxREN = dict()
+            for classResult, rules in setEvaluation[3].items():
+                numberRulesLayeredRxREN[classResult] = len(rules)
+            missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "RxREN", numberRulesLayeredRxREN])
 
     print_missing_entries(missing_entries)
     print("missing entries checked")
@@ -449,7 +464,7 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
     del ruleSetsResults
     del rulePred
     gc.collect()
-    print("teste do modelo: database " + nomeDatabase + " com " + str(numHLayers) + " camda ocultas com tamanho " + str(HLayerTam))
+    print("teste do modelo: database " + nomeDatabase + " com " + str(numHLayers) + " camadas ocultas com tamanho " + str(HLayerTam))
     return [modelCasesAcc, ruleAcc, ExecuteTime]
 
 def main_test(RNGseed):
@@ -515,16 +530,19 @@ def main_test(RNGseed):
     WineSaida = 3
     WineHiddenLayerLen = [WineEntrada, WineEntrada + 1, 2*WineEntrada - 1, 2*WineEntrada, WineSaida, WineSaida + 1, 2*WineSaida - 1, 2*WineSaida, math.ceil((WineSaida + WineEntrada)/2), math.ceil((2*WineEntrada + WineSaida)/3)]
     WineHiddenLayerLenShort = [WineEntrada, WineSaida, math.ceil((WineSaida + WineEntrada)/2), math.ceil((2*WineEntrada + WineSaida)/3)]
+    WineHiddenLayerLenShort1 = [WineEntrada + 1, 2*WineEntrada - 1, 2*WineEntrada, WineSaida + 1, 2*WineSaida - 1, 2*WineSaida]
 
     WisconsinEntrada = 30
     WisconsinSaida = 2
     WisconsinHiddenLayerLen = [WisconsinEntrada, WisconsinEntrada + 1, 2*WisconsinEntrada - 1, 2*WisconsinEntrada, WisconsinSaida, WisconsinSaida + 1, 2*WisconsinSaida - 1, 2*WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
     WisconsinHiddenLayerLenShort = [WisconsinEntrada, WisconsinSaida, math.ceil((WisconsinSaida + WisconsinEntrada)/2), math.ceil((2*WisconsinEntrada + WisconsinSaida)/3)]
+    WisconsinHiddenLayerLenShort1 = [WisconsinEntrada + 1, 2*WisconsinEntrada - 1, 2*WisconsinEntrada, WisconsinSaida + 1, 2*WisconsinSaida - 1, 2*WisconsinSaida]
 
     IrisEntrada = 4
     IrisSaida = 3
     IrisHiddenLayerLen = [IrisEntrada, IrisEntrada + 1, 2*IrisEntrada - 1, 2*IrisEntrada, IrisSaida, IrisSaida + 1, 2*IrisSaida - 1, 2*IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
     IrisHiddenLayerLenShort = [IrisEntrada, IrisSaida, math.ceil((IrisSaida + IrisEntrada)/2), math.ceil((2*IrisEntrada + IrisSaida)/3)]
+    IrisHiddenLayerLenShort1 = [IrisEntrada + 1, 2*IrisEntrada - 1, 2*IrisEntrada, IrisSaida + 1, 2*IrisSaida - 1, 2*IrisSaida]
 
     #1 hidden layer
 
@@ -539,14 +557,14 @@ def main_test(RNGseed):
 
     #2 hidden layers
 
-    #Wine_2H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 2, HLayerTam, 13, 3, RNGseed, "Wine", debug = True) for HLayerTam in WineHiddenLayerLenShort]
-    #print_Test_results(Wine_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wine")
+    Wine_2H_AccModelRule = [testesBateria(Wine_Database, Wine_classes, 2, HLayerTam, 13, 3, RNGseed, "Wine", debug = True) for HLayerTam in WineHiddenLayerLenShort]
+    print_Test_results(Wine_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wine")
 
     #Wisconsin_2H_AccModelRule = [testesBateria(Wisconsin_Database, Wisconsin_classes, 2, HLayerTam, 30, 2, RNGseed, "Wisconsin", debug = True) for HLayerTam in WisconsinHiddenLayerLenShort]
     #print_Test_results(Wisconsin_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Wisconsin")
 
-    #Iris_2H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 2, HLayerTam, 4, 3, RNGseed, "Iris", debug = True) for HLayerTam in IrisHiddenLayerLenShort]
-    #print_Test_results(Iris_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Iris")
+    Iris_2H_AccModelRule = [testesBateria(Iris_Database, Iris_classes, 2, HLayerTam, 4, 3, RNGseed, "Iris", debug = True) for HLayerTam in IrisHiddenLayerLenShort]
+    print_Test_results(Iris_2H_AccModelRule, 'resultados/resultados_tests_2H.csv', "Iris")
 
     #3 hidden layers
 
@@ -634,13 +652,15 @@ def print_Test_results(resultArray, fileName, DataBaseName):
 
 def simpleTest(seed):
     algoritmo_1_KT(seed)
-    algoritmo_2_MofN(seed)
+    #algoritmo_2_MofN(seed)
     #algoritmo_3_RuleExtractLearning(seed)
-    algoritmo_4_RxRen(seed)
+    #algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
     return
 
-seed = 2
-simpleTest(seed)
+#seed = random.randrange(4294967296)
+seed = 0
+#simpleTest(seed)
 main_test(seed)
+print(seed)
