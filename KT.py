@@ -1,5 +1,5 @@
 from itertools import combinations
-
+from copy import deepcopy
 import numpy as np
 import Node
 import Utils
@@ -123,8 +123,10 @@ def KT_1(U, classes, debug = False):
                                     layerRules.append(makeRule_KT(layer_idx, item, element, (layer_idx + 1, order_idx)))
                     del cases_n
                     gc.collect()
-        R.append(layerRules)
+        R.append(deepcopy(layerRules))
 
+    for idx, layer_r in enumerate(R):
+        print("numero de regras na camada %s: %s" % (idx, len(layer_r)))
     return R
 
 def combine_rules(R, numLayers):

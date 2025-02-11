@@ -166,7 +166,7 @@ def gen_tree(neuron_idx, val, premisses, leaf_value, counter=0, idx=0):
 
 def optimize(U, model, DataX, Datay, debug = False):
 
-    model.train(DataX[0], Datay[0], DataX[1], Datay[1], epochs=1000, update_weights = False, debug = debug)
+    model.train(DataX[0], Datay[0], DataX[1], Datay[1], epochs=5000, update_weights = False, debug = debug)
     params = model.get_params()
 
     for layer_idx, layer in enumerate(U):

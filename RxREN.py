@@ -11,6 +11,8 @@ def computeAccuracy(network, dataset, C):
     predictions  = []
     for t in dataset:
         predictions.append(network.predict(t))
+    print(predictions)
+    print(C)
     return MM.Compute_Acc_naive(predictions, C)
 
 def getSetSize(qSet):
