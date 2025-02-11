@@ -3,6 +3,7 @@ import math
 import numpy as np
 import time
 from collections import deque
+from copy import deepcopy
 #Node represents a partial premisse or consequent in a rule
 #for now it can represent IFthen structure, still need to see how to build efficiently a MofN structure
 #layerIndex and feature index -> point to what will be compared
@@ -161,6 +162,23 @@ class Node:
 
         return self.isLeaf
 
+    def removeNode(self, node):
+        if node is None:
+            return
+        if not isinstance(node, Node):
+            raise Exception("Node only accept Nodes or derivates as sons, tried set left with a %s" % (type(node)))
+        if self.antecedents.get(node.__hash__()) is None:
+            raise Exception("Node not present in the tree")
+
+        self.antecedents.pop(node.__hash__())
+
+        if node.numSons == 0:
+            return
+        if node.left is not None and not node.left.isLeaf:
+            self.removeNode(node.left)
+        if node.right is not None and not node.right.isLeaf:
+            self.removeNode(node.right)
+
     def set_left(self, node):
         if not isinstance(node, Node) and node is not None:
             raise Exception("Node only accept Nodes or derivates as sons, tried set left with a %s" % (type(node)))
@@ -169,7 +187,10 @@ class Node:
 
         removal = self.left
         if removal is not None:
+            print(removal)
+            #self.removeNode(removal)
             self.antecedents.pop(removal.__hash__())
+
         self.left = node
 
         self.numSons = int(self.left is not None) + int(self.right is not None)
@@ -177,7 +198,10 @@ class Node:
 
         if node is not None:
             #self.antecedents.update(self.left)
+            self.antecedents.update(node.antecedents)
             self.antecedents[self.left.__hash__()] = (self, -1, self.left.get_node_info())
+
+        return self
 
     def set_right(self, node):
         if not isinstance(node, Node) and node is not None:
@@ -187,6 +211,7 @@ class Node:
 
         removal = self.right
         if removal is not None:
+            #self.removeNode(removal)
             self.antecedents.pop(removal.__hash__())
         self.right = node
 
@@ -197,18 +222,20 @@ class Node:
             #self.antecedents.update(self.right)
             self.antecedents[self.right.__hash__()] = (self, 1, self.right.get_node_info())
 
+        return self
+
     def append_left(self, node):
         if self.left:
-            self.left.append_left(node)
+            return self.left.append_left(node)
         else:
-            self.set_left(node)
+            return self.set_left(node)
         #self.antecedents.update(node)
 
     def append_right(self, node):
         if self.right:
-            self.right.append_right(node)
+            return self.right.append_right(node)
         else:
-            self.set_right(node)
+            return self.set_right(node)
         #self.antecedents.update(node)
 
     #TODO: implement function to calculate probability of the premisse
@@ -288,12 +315,12 @@ class Node:
         return (self.negation, self.layerIndex, self.featureIndex, self.threshold, self.comparison, self.value, self.label)
 
     def copy_node(self):
-        return Node(featureIndex = self.featureIndex,
-            layerIndex = self.layerIndex,
-            threshold = self.threshold,
-            comparison = self.comparison,
-            value = self.value,
-            negation = self.negation)
+        return Node(featureIndex = deepcopy(self.featureIndex),
+            layerIndex = deepcopy(self.layerIndex),
+            threshold = deepcopy(self.threshold),
+            comparison = deepcopy(self.comparison),
+            value = deepcopy(self.value),
+            negation = deepcopy(self.negation))
 
     def copy_tree(self):
         copySelf = self.copy_node()
@@ -312,7 +339,10 @@ class Node:
 
         return copySelf
 
-    def copy_tree(self,keyTuple):
+    def copy_tree_n_node(self, keyTuple):
+        if keyTuple is None or keyTuple[0] not in self.antecedents:
+            return self.copy_tree()
+
         copiedTuple=(None,None)
         copySelf = self.copy_node()
         if self.__hash__() == keyTuple[0] and self.antecedents[self.__hash__()] == keyTuple[1]:
