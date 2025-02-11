@@ -187,7 +187,7 @@ def label_code_block(R, members, E, true_result, debug = False):
 
     for key,ant in ant_r.items():
         print(key)
-        r_, ant_= r.copy_tree((key,ant))
+        r_, ant_= r.copy_tree_n_node((key,ant))
         r_ = r_.filter(ant_, debug=debug)
         print("copia modificada da regra feita")
         if Subset(true_result, r_, members, debug=debug):
