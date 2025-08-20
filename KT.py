@@ -151,8 +151,10 @@ def combine_rules(R, numLayers):
     return newRules
 
 def parseRules(ruleSet, model, inputValues):
+    if ruleSet is None:
+        return ["no_results"]
     if len(ruleSet) is 0:
-        return ()
+        return ["no_results"]
     model.predict(inputValues)
     model_values = [np.squeeze(layer_val, axis=None) for layer_val in model.getAtributes()]
     results = ()

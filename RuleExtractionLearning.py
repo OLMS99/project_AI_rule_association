@@ -259,6 +259,9 @@ def Rule_extraction_learning_3(M, C, Ex, theta = 0.0, debug = False):
     return R
 
 def parseRules(classRuleSet, inputValues):
+    if classRuleSet is None:
+        return ["no_results"]
+
     resultBatch = []
     noOutput = set(["no_output_values"])
     for classification, rule in classRuleSet.items():

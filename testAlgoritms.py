@@ -319,9 +319,9 @@ def test_algorithms(modelParamsList, dataBase, classes, debug = False):
         correct_cases = case[1]
 
         tempoInicio = time.time()
-        algo1_result = KT.KT_1(Neurons_to_Lists(deepcopy(model.get_params())), classes, debug = debug)
+        algo1_result = None#KT.KT_1(Neurons_to_Lists(deepcopy(model.get_params())), classes, debug = debug)
         tempoCheckpoint1 = time.time()
-        algo2_result = MofN.MofN_2(Neurons_to_Lists(deepcopy(model.get_params())), deepcopy(model), dataBase[0], dataBase[1], debug = debug)
+        algo2_result = None#MofN.MofN_2(Neurons_to_Lists(deepcopy(model.get_params())), deepcopy(model), dataBase[0], dataBase[1], debug = debug)
         tempoCheckpoint2 = time.time()
         algo3_result = None#REL.Rule_extraction_learning_3(deepcopy(model), classes, dataBase[0][1], debug = debug)
         tempoCheckpoint3 = time.time()
@@ -363,7 +363,10 @@ def classArrayConvertion(preds, classes):
         print(classes)
         print(predCase)
         if isinstance(predCase, tuple):
-            preds01([int(idx == predCase[1]) for idx, classVal in classes])
+            if len(predCase) < 2:
+                preds01.append([0 for classVal in classes])
+            else:
+                preds01.append([int(idx == predCase[1]) for idx, classVal in enumerate(classes)])
         elif isinstance(predCase, list):
             preds01.append([int(classVal in predCase) for classVal in classes])
         else:
@@ -416,15 +419,17 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
         HiddenLayerRule = HLayerTam[idx] if isinstance(HLayerTam, list) else HLayerTam
         if not KT.isComplete(setEvaluation[0]):
             numberRulesLayeredKT = []
-            for layer_r in setEvaluation[0]:
-                numberRulesLayeredKT.append(len(layer_r))
+            if setEvaluation[0] is not None:
+                for layer_r in setEvaluation[0]:
+                    numberRulesLayeredKT.append(len(layer_r))
 
             missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "KT", numberRulesLayeredKT])
 
         if not MofN.isComplete(setEvaluation[1]):
             numberRulesLayeredMofN = []
-            for layer_r in setEvaluation[1]:
-                numberRulesLayeredMofN.append(len(layer_r))
+            if setEvaluation[1] is not None:
+                for layer_r in setEvaluation[1]:
+                    numberRulesLayeredMofN.append(len(layer_r))
             missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "MofN", numberRulesLayeredMofN])
 
         if not REL.isComplete(setEvaluation[2]):
@@ -436,8 +441,9 @@ def testesBateria(Database, Classes, numHLayers, HLayerTam, entrada, saida, RNGs
 
         if not RxREN.isComplete(setEvaluation[3]):
             numberRulesLayeredRxREN = dict()
-            for classResult, rules in setEvaluation[3].items():
-                numberRulesLayeredRxREN[classResult] = len(rules)
+            if setEvaluation[3] is not None:
+                for classResult, rules in setEvaluation[3].items():
+                    numberRulesLayeredRxREN[classResult] = len(rules)
             missing_entries.append([nomeDatabase, entrada, saida, numHLayers, HiddenLayerRule, "RxREN", numberRulesLayeredRxREN])
 
     print_missing_entries(missing_entries)
@@ -652,15 +658,15 @@ def print_Test_results(resultArray, fileName, DataBaseName):
 
 def simpleTest(seed):
     algoritmo_1_KT(seed)
-    #algoritmo_2_MofN(seed)
+    algoritmo_2_MofN(seed)
     #algoritmo_3_RuleExtractLearning(seed)
-    #algoritmo_4_RxRen(seed)
+    algoritmo_4_RxRen(seed)
     print("sem erros executando")
 
     return
 
 #seed = random.randrange(4294967296)
-seed = 0
+seed = 634567899
 #simpleTest(seed)
 main_test(seed)
 print(seed)

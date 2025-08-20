@@ -246,6 +246,8 @@ def MofN_2(U, model, DataX, Datay, theta=0, debug=False):
     return R
 
 def parseRules(ruleSet, model, inputValues):
+    if ruleSet is None:
+        return ["no_results"]
     model.predict(inputValues)
     model_values = model.getAtributes()
     noOutput = set(["no_output_values"])

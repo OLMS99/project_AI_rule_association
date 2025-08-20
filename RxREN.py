@@ -241,6 +241,8 @@ def RxREN_4(M, H, T, y, C, alpha = 0.1, debug = False):
     return R
 
 def parseRules(classRuleSets, inputValues):
+    if classRuleSets is None:
+        return ["no_results"]
     resultBatch = []
     for ruleSet in classRuleSets.values():
         for rule in ruleSet:
